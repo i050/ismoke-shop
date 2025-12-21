@@ -27,7 +27,7 @@ const RootLayout = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const { status: siteStatus } = useSiteStatus();
+  const { status: siteStatus, isLoading: siteStatusLoading } = useSiteStatus();
 
   // טעינת הסל בטעינה ראשונית של האפליקציה
   useEffect(() => {
@@ -44,7 +44,22 @@ const RootLayout = () => {
   // בדיקה האם המשתמש מורשה לגשת במצב תחזוקה (לפי allowedRoles מההגדרות)
   const isAllowedUser = isAuthenticated && user && siteStatus.allowedRoles?.includes(user.role);
 
-  // הסרנו את הבלוקינג על siteStatusLoading - האפליקציה תטען גם אם הסטטוס לא התקבל
+  // בזמן טעינת סטטוס האתר - מציג מסך טעינה מינימליסטי
+  if (siteStatusLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '1.25rem',
+        color: '#6366f1',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+      }}>
+        ⏳ טוען...
+      </div>
+    );
+  }
 
   // אם האתר במצב פרטי, הנתיב לא מותר, והמשתמש לא מורשה - הצג עמוד מצב פרטי ללא Layout
   if (siteStatus.maintenanceMode && !isAllowedPath && !isAllowedUser) {

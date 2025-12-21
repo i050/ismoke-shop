@@ -23,10 +23,10 @@ export const getSocket = (): Socket | null => {
       socket = io(API_BASE_URL, {
         // הגדרות לשיפור ביצועים וטיפול בשגיאות
         timeout: 5000, // timeout של 5 שניות
-        reconnectionAttempts: 1, // ניסיון אחד בלבד
+        reconnectionAttempts: 3, // ניסיונות חיבור מחדש
         reconnectionDelay: 1000, // השהייה בין ניסיונות
-        transports: ['websocket'], // WebSocket בלבד - ללא polling שגורם לעומס
-        autoConnect: false, // ביטול auto-connect - נחבר רק אם צריך
+        transports: ['websocket', 'polling'], // תעדוף WebSocket אבל fallback ל-polling
+        autoConnect: true,
       });
       
       // לוג רק ב-development
