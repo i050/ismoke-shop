@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "serve -s dist -l tcp://0.0.0.0:${PORT:-8080}",
+    "start": "HOST=0.0.0.0 serve -s dist",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
