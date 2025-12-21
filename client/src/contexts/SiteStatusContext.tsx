@@ -89,29 +89,31 @@ export const SiteStatusProvider: React.FC<SiteStatusProviderProps> = ({ children
    * טעינת הסטטוס מהשרת
    */
   const fetchStatus = useCallback(async () => {
+    console.log('🔄 SiteStatusContext: מתחיל טעינת סטטוס...');
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      // console.log('🔄 SiteStatusContext: מתחיל טעינת סטטוס...');
-      setIsLoading(true);
-      setError(null);
-      
-      // timeout של 3 שניות למניעת blocking
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 3000)
+      // timeout של 2 שניות למניעת blocking
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 2000)
       );
       
       const response = await Promise.race([getSiteStatus(), timeoutPromise]) as any;
-      // console.log('✅ SiteStatusContext: תשובה מהשרת:', response);
+      console.log('✅ SiteStatusContext: תשובה מהשרת:', response);
       
-      if (response.success) {
+      if (response?.success) {
         setStatus({
           maintenanceMode: response.data.maintenanceMode,
           message: response.data.message || '',
           allowedRoles: response.data.allowedRoles || ['admin', 'super_admin', 'customer']
         });
+      } else {
+        throw new Error('Invalid response from server');
       }
     } catch (err) {
       console.error('❌ SiteStatusContext: שגיאה בטעינת סטטוס האתר:', err);
-      setError('שגיאה בטעינת סטטוס האתר');
+      setError(err instanceof Error ? err.message : 'שגיאה בטעינת סטטוס האתר');
       // במקרה של שגיאה - נניח שהאתר פתוח (fail-open)
       setStatus({
         maintenanceMode: false,
@@ -119,6 +121,7 @@ export const SiteStatusProvider: React.FC<SiteStatusProviderProps> = ({ children
         allowedRoles: ['admin', 'super_admin', 'customer']
       });
     } finally {
+      console.log('🏁 SiteStatusContext: סיום טעינה - isLoading = false');
       setIsLoading(false);
     }
   }, []);
