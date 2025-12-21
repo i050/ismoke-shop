@@ -6,6 +6,7 @@ import type { Product } from '../types/Product';
 import type { FetchProductsParams, FetchProductsResponse } from '../store/slices/productsManagementSlice';
 import type { ProductFormData } from '../schemas/productFormSchema';
 import { ApiError } from '../utils/ApiError';
+import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
 
 /**
  * Service לניהול מוצרים
@@ -13,7 +14,7 @@ import { ApiError } from '../utils/ApiError';
  * Phase 5: יתווספו createProduct, updateProduct, duplicateProduct, restoreProduct, uploadImages
  */
 class ProductManagementService {
-  private baseUrl = '/api/products';
+  private baseUrl = `${API_BASE_URL}/products`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   /**
    * Helper: keep image objects as-is (no conversion to strings)
