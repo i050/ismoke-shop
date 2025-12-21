@@ -1,8 +1,7 @@
 import type { Product } from '../types'
 import { ApiError } from '../utils/ApiError';
-import { API_URL } from '../config/api';
 
-const API_BASE_URL = API_URL
+const API_BASE_URL = 'http://localhost:5000/api'
 
 // קבוע חיי מטמון (TTL) עבור תוצאות פילטר
 const FILTER_CACHE_TTL_MS = 120_000;

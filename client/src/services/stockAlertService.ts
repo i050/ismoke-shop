@@ -3,9 +3,7 @@
  * מנהל תקשורת עם ה-API של התראות "עדכן אותי כשחוזר למלאי"
  */
 
-import { API_URL } from '../config/api';
-
-const API_BASE_URL = `${API_URL}/stock-alerts`;
+const API_BASE_URL = 'http://localhost:5000/api/stock-alerts';
 
 // ממשק לתגובת יצירת התראה
 export interface CreateStockAlertResponse {

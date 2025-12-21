@@ -1,8 +1,7 @@
 import { ApiError } from '../utils/ApiError';
 import { getToken } from '../utils/tokenUtils';
-import { API_URL } from '../config/api';
 
-const API_BASE_URL = API_URL;
+const API_BASE_URL = 'http://localhost:5000/api';
 
 /**
  * פונקציה עוזרת לטיפול בשגיאות API

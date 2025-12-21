@@ -4,7 +4,9 @@
 import type { Cart } from '../store/slices/cartSlice';
 import { ApiError } from '../utils/ApiError';
 import { getToken } from '../utils/tokenUtils';
-import { API_BASE_URL } from '../config/api';
+
+// כתובת בסיס של ה-API
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ממשק לתגובה מהשרת
 interface ApiResponse<T> {
