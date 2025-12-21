@@ -35,21 +35,21 @@ export function getApiBaseUrl(): string {
       // הלוגיקה: מסירים את ה-suffix המספרי (-XXXX) מהשם
       const match = hostname.match(/^(.+?)-production(-\d+)?\.up\.railway\.app$/);
       if (match) {
-        // מחזירים את ה-URL של ה-Backend (ללא ה-suffix המספרי)
+        // מחזירים את ה-URL של ה-Backend (ללא ה-suffix המספרי) + /api
         const baseName = match[1];
-        return `https://${baseName}-production.up.railway.app`;
+        return `https://${baseName}-production.up.railway.app/api`;
       }
       
       // fallback - אם הפורמט שונה, ננסה להסיר רק את המספרים בסוף
       const simpleMatch = hostname.match(/^(.+?)-\d+\.up\.railway\.app$/);
       if (simpleMatch) {
-        return `https://${simpleMatch[1]}.up.railway.app`;
+        return `https://${simpleMatch[1]}.up.railway.app/api`;
       }
       
       // אם לא מצליחים לזהות את הפורמט, נשתמש ב-URL קשיח
       // (צריך לעדכן ידנית אם משנים את שם ה-Backend)
       console.warn('[API Config] לא הצלחתי לזהות את ה-Backend URL אוטומטית');
-      return 'https://ismoke-shop-production.up.railway.app';
+      return 'https://ismoke-shop-production.up.railway.app/api';
     }
     
     // אם אנחנו על Vercel או פלטפורמה אחרת
@@ -60,7 +60,7 @@ export function getApiBaseUrl(): string {
   }
 
   // 3. ברירת מחדל - פיתוח מקומי
-  return 'http://localhost:5000';
+  return 'http://localhost:5000/api';
 }
 
 /**
