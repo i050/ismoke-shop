@@ -18,10 +18,12 @@ const HomePage = () => {
   const navigate = useNavigate()
 
   // האזנה לעדכוני מחירים בזמן אמת
-  useSocket('groupUpdated', () => {
-    // כאשר יש עדכון בקבוצות לקוחות, נרענן את הקרוסלות
-    setRefreshKey(prev => prev + 1);
-  });
+  // useSocket('groupUpdated', () => {
+  //   // כאשר יש עדכון בקבוצות לקוחות, נרענן את הקרוסלות
+  //   setRefreshKey(prev => prev + 1);
+  // });
+  
+  console.log('HomePage Rendered');
   
   // קריאת מצב Authentication מ-Redux Store
   // const authState = useAppSelector((state) => state.auth)
