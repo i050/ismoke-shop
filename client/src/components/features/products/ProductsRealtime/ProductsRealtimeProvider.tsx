@@ -45,7 +45,8 @@ export const ProductsRealtimeProvider: React.FC<ProductsRealtimeProviderProps> =
     onGroupUpdate?.();
   }, [onGroupUpdate, throttleMs]);
 
-  useSocket('groupUpdated', handleGroupUpdate);
+  // ביטול זמני של socket עד לפתרון בעיית הקיפאון
+  // useSocket('groupUpdated', handleGroupUpdate);
 
   const value = useMemo<ProductsRealtimeContextValue>(() => ({
     lastGroupUpdateAt,
