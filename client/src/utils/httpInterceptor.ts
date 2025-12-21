@@ -16,7 +16,7 @@ class HttpInterceptor {
   ]
 
   constructor() {
-    console.log('🔧 [HTTP Interceptor] Initializing...');
+    // console.log('🔧 [HTTP Interceptor] Initializing...');
     this.originalFetch = window.fetch.bind(window)
     this.setupInterceptors()
   }
@@ -25,16 +25,16 @@ class HttpInterceptor {
     // החלפת fetch המקורי ב-interceptor
     const boundInterceptFetch = this.interceptFetch.bind(this);
     window.fetch = boundInterceptFetch as typeof fetch;
-    console.log('✅ [HTTP Interceptor] Successfully installed. window.fetch replaced.');
+    // console.log('✅ [HTTP Interceptor] Successfully installed. window.fetch replaced.');
   }
 
   private async interceptFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    console.debug('[HTTP Interceptor] interceptFetch called for:', url);
+    // console.debug('[HTTP Interceptor] interceptFetch called for:', url);
     
     // בדיקה אם הנתיב הוא public (לא צריך Authorization header)
     if (this.isPublicPath(input)) {
-      console.debug('[HTTP Interceptor] Public path detected, skipping auth header');
+      // console.debug('[HTTP Interceptor] Public path detected, skipping auth header');
       // לבקשות public - השתמש ב-fetch המקורי ללא Authorization header
       try {
         const response = await this.originalFetch.call(window, input, init)
@@ -57,7 +57,7 @@ class HttpInterceptor {
     }
 
     // לבקשות מוגנות - הוסף Authorization header
-    console.debug('[HTTP Interceptor] Protected path detected, adding auth header');
+    // console.debug('[HTTP Interceptor] Protected path detected, adding auth header');
     const modifiedInit = this.addAuthHeader(init)
 
     try {
@@ -105,10 +105,10 @@ class HttpInterceptor {
   private addAuthHeader(init?: RequestInit): RequestInit | undefined {
     const token = getToken()
 
-    console.debug('[HTTP Interceptor] addAuthHeader called. Token exists:', !!token);
+    // console.debug('[HTTP Interceptor] addAuthHeader called. Token exists:', !!token);
 
     if (!token) {
-      console.warn('[HTTP Interceptor] No token found in localStorage');
+      // console.warn('[HTTP Interceptor] No token found in localStorage');
       return init
     }
 
@@ -118,8 +118,8 @@ class HttpInterceptor {
     // הוספת Authorization header
     headers.set('Authorization', `Bearer ${token}`)
 
-    console.debug('[HTTP Interceptor] Added Authorization header. Token preview:', token.substring(0, 20) + '...');
-    console.debug('[HTTP Interceptor] All headers:', Object.fromEntries(headers.entries()));
+    // console.debug('[HTTP Interceptor] Added Authorization header. Token preview:', token.substring(0, 20) + '...');
+    // console.debug('[HTTP Interceptor] All headers:', Object.fromEntries(headers.entries()));
 
     return {
       ...init,

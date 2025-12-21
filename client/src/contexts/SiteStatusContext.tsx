@@ -90,12 +90,17 @@ export const SiteStatusProvider: React.FC<SiteStatusProviderProps> = ({ children
    */
   const fetchStatus = useCallback(async () => {
     try {
-      console.log('🔄 SiteStatusContext: מתחיל טעינת סטטוס...');
+      // console.log('🔄 SiteStatusContext: מתחיל טעינת סטטוס...');
       setIsLoading(true);
       setError(null);
       
-      const response = await getSiteStatus();
-      console.log('✅ SiteStatusContext: תשובה מהשרת:', response);
+      // timeout של 3 שניות למניעת blocking
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 3000)
+      );
+      
+      const response = await Promise.race([getSiteStatus(), timeoutPromise]) as any;
+      // console.log('✅ SiteStatusContext: תשובה מהשרת:', response);
       
       if (response.success) {
         setStatus({
