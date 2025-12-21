@@ -1,5 +1,6 @@
 import { ApiError } from '../utils/ApiError';
 import { getToken } from '../utils/tokenUtils';
+import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
 
 /**
  * שירות לניהול מלאי SKU בצד הלקוח.
@@ -60,7 +61,7 @@ export interface InventoryFilters {
 
 class InventoryService {
   /** בסיס ה-URL של כל קריאות המלאי */
-  private baseUrl = '/api/skus';
+  private baseUrl = `${API_BASE_URL}/skus`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   /**
    * עוטף קריאת fetch ומוודא טיפול מסודר בשגיאות מהשרת.

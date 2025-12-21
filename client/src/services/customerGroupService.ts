@@ -7,9 +7,10 @@ import type {
   ForceDeleteGroupResponse        // טיפוס חדש: תגובה אחרי מחיקה בכוח
 } from '../types/CustomerGroup';
 import { ApiError } from '../utils/ApiError';
+import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
 
 class CustomerGroupService {
-  private baseUrl = '/api/customer-groups';
+  private baseUrl = `${API_BASE_URL}/customer-groups`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   // Helper method for handling API responses
   private async handleResponse<T>(response: Response): Promise<T> {

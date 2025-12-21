@@ -23,9 +23,10 @@ import type {
   GetUserOrdersParams
 } from '../types/UserManagement';
 import { ApiError } from '../utils/ApiError';
+import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
 
 class UserManagementService {
-  private baseUrl = '/api/users';
+  private baseUrl = `${API_BASE_URL}/users`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   // ==========================================
   // Helper Methods - מתודות עזר

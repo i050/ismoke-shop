@@ -1,5 +1,6 @@
 import { ApiError } from '../utils/ApiError';
 import { getToken } from '../utils/tokenUtils';
+import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
 
 /**
  * שירות לדוחות מלאי SKU בצד הלקוח.
@@ -34,7 +35,7 @@ export interface MissedOpportunity {
 
 class SkuReportService {
   /** בסיס ה-URL של כל קריאות הדוחות עבור SKUs */
-  private baseUrl = '/api/skus';
+  private baseUrl = `${API_BASE_URL}/skus`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   /**
    * עוטף קריאת fetch ומוודא טיפול מסודר בשגיאות מהשרת.
