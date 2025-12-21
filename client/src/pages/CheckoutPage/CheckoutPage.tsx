@@ -24,8 +24,10 @@ import { Icon } from '../../components/ui/Icon';
 import Modal from '../../components/ui/Modal';
 import StockAlertButton from '../../components/features/products/StockAlertButton';
 import { setUser } from '../../utils/tokenUtils';
-import { API_BASE_URL } from '../../config/api';
 import styles from './CheckoutPage.module.css';
+
+// קביעת API URL מהסביבה
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // =====================================
 // קבועים

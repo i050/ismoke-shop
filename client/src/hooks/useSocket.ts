@@ -2,7 +2,10 @@
 // חיבור WebSocket גלובלי לאפליקציה
 import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { API_BASE_URL, isProduction } from '../config/api';
+
+// קביעת API URL מהסביבה
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const isProduction = import.meta.env.PROD;
 
 let socket: Socket | null = null;
 let connectionAttempted = false;
