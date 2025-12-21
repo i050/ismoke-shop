@@ -1,1 +1,6 @@
-/* REMOVED: postcss configuration deleted per user request */
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
