@@ -69,6 +69,12 @@ export function getApiBaseUrl(): string {
  */
 export const API_BASE_URL = getApiBaseUrl();
 
+// לוג לדיבוג - יופיע בקונסול הדפדפן
+if (typeof window !== 'undefined') {
+  console.log('[API Config] hostname:', window.location.hostname);
+  console.log('[API Config] API_BASE_URL:', API_BASE_URL);
+}
+
 /**
  * בודק אם אנחנו בסביבת פרודקשן
  */
