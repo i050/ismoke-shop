@@ -3,7 +3,9 @@
  * מנהל תקשורת עם ה-API של התראות "עדכן אותי כשחוזר למלאי"
  */
 
-const API_BASE_URL = 'http://localhost:5000/api/stock-alerts';
+// כתובת ה-API - משתמש במשתנה סביבה לתמיכה בהפעלה ב-production
+const BASE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = `${BASE_API_URL}/api/stock-alerts`;
 
 // ממשק לתגובת יצירת התראה
 export interface CreateStockAlertResponse {
