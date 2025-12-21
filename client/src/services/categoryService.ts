@@ -17,6 +17,7 @@ import type {
 	CategoryReorderItem,
 	Category 
 } from '../types/Category';
+import { API_BASE_URL as BASE_URL } from '../config/api';
 
 // ===== טיפוסים =====
 
@@ -37,9 +38,8 @@ export interface CategoryTreeNodeClient {
 
 // ===== קבועים =====
 
-// כתובת ה-API - משתמש במשתנה סביבה לתמיכה בהפעלה ב-production
-const BASE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_BASE_URL = `${BASE_API_URL}/api`;
+// כתובת ה-API - משתמש במודול מרכזי עם זיהוי אוטומטי של Railway
+const API_BASE_URL = `${BASE_URL}/api`;
 
 // ===== קאש =====
 

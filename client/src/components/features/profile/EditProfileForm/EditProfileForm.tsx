@@ -5,9 +5,7 @@ import { Icon } from '../../../ui/Icon';
 import { setUser } from '../../../../utils/tokenUtils';
 import { loginSuccess } from '../../../../store/slices/authSlice';
 import styles from './EditProfileForm.module.css';
-
-// קביעת API URL מהסביבה
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../../../../config/api';
 
 interface EditProfileFormProps {
   onSuccess?: () => void;

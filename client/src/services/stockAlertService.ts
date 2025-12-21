@@ -3,9 +3,10 @@
  * מנהל תקשורת עם ה-API של התראות "עדכן אותי כשחוזר למלאי"
  */
 
-// כתובת ה-API - משתמש במשתנה סביבה לתמיכה בהפעלה ב-production
-const BASE_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_BASE_URL = `${BASE_API_URL}/api/stock-alerts`;
+import { API_BASE_URL as BASE_URL } from '../config/api';
+
+// כתובת ה-API - משתמש במודול מרכזי עם זיהוי אוטומטי של Railway
+const API_BASE_URL = `${BASE_URL}/api/stock-alerts`;
 
 // ממשק לתגובת יצירת התראה
 export interface CreateStockAlertResponse {
