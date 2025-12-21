@@ -24,6 +24,7 @@ import { Icon } from '../../components/ui/Icon';
 import Modal from '../../components/ui/Modal';
 import StockAlertButton from '../../components/features/products/StockAlertButton';
 import { setUser } from '../../utils/tokenUtils';
+import { API_BASE_URL } from '../../config/api';
 import styles from './CheckoutPage.module.css';
 
 // =====================================
@@ -334,7 +335,7 @@ const CheckoutPage = () => {
         ...profileUpdateData.address
       };
       
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

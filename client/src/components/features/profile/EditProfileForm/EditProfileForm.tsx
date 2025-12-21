@@ -4,6 +4,7 @@ import { Button, Typography } from '@ui';
 import { Icon } from '../../../ui/Icon';
 import { setUser } from '../../../../utils/tokenUtils';
 import { loginSuccess } from '../../../../store/slices/authSlice';
+import { API_BASE_URL } from '../../../../config/api';
 import styles from './EditProfileForm.module.css';
 
 interface EditProfileFormProps {
@@ -96,7 +97,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onSuccess, onCancel }
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

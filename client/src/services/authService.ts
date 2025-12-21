@@ -1,8 +1,9 @@
 import type { User } from '../types'
 import { ApiError } from '../utils/ApiError';
 import { setToken, setUser, clearAuthData, getToken } from '../utils/tokenUtils'
+import { API_URL } from '../config/api';
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = API_URL
 
 export interface LoginData {
   email: string
