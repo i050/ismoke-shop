@@ -63,44 +63,21 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
     }
   }, [currentIndex, banners]);
 
-  // Auto-play logic (setTimeout-based, recursive) - יותר יציב מול closures
+  // Auto-play logic - משתמש בגישה פשוטה עם setInterval
   useEffect(() => {
     if (!enableAutoPlay || isPaused || banners.length <= 1) return;
 
-    let mounted = true;
-
-    const schedule = () => {
-      if (!mounted || isPaused) return;
-      // ניקוי timeout קודם אם קיים
-      if (autoPlayTimerRef.current) {
-        clearTimeout(autoPlayTimerRef.current);
-      }
-
-      console.debug('[HeroCarousel] scheduling next slide in', autoPlayInterval, 'ms');
-      autoPlayTimerRef.current = window.setTimeout(() => {
-        // השתמש ב־functional setState כדי להימנע מבעיות closure
-        setIsTransitioning(true);
-        setCurrentIndex((prev) => (prev + 1) % banners.length);
-
-        // סמן את סוף הטרנזישן
-        window.setTimeout(() => {
-          setIsTransitioning(false);
-        }, transitionDuration);
-
-        // קבע את הסבב הבא
-        schedule();
-      }, autoPlayInterval) as unknown as number;
-    };
-
-    schedule();
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, transitionDuration);
+    }, autoPlayInterval);
 
     return () => {
-      mounted = false;
-      if (autoPlayTimerRef.current) {
-        clearTimeout(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = null;
-        console.debug('[HeroCarousel] cleared autoplay timeout');
-      }
+      clearInterval(interval);
     };
   }, [enableAutoPlay, isPaused, banners.length, autoPlayInterval, transitionDuration]);
 

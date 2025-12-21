@@ -30,13 +30,13 @@ const HomePage = () => {
 
   return (
     <main className={styles.homePage}>
-      {/* Hero Carousel - מנוטרל זמנית לבדיקת performance */}
-      {/* <HeroCarousel 
+      {/* Hero Carousel - בראש הדף */}
+      <HeroCarousel 
         autoPlayInterval={5000}
         transitionDuration={800}
         enableAutoPlay={true}
         pauseOnHover={true}
-      /> */}
+      />
       
       {/* גריד של מוצרים שנוספו לאחרונה */}
       <RecentlyAddedGrid key={`recent-${refreshKey}`} />
