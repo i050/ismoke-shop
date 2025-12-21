@@ -1,0 +1,386 @@
+/* ProfilePage.module.css */
+
+.profilePage {
+  /* מיכל ראשי של דף הפרופיל - מקומי */
+  min-height: 100vh;
+  background: var(--color-bg-secondary);
+  padding: var(--spacing-2xl) 0;
+  position: relative; /* מאפשר pseudo background אנימטיבי */
+  overflow: hidden;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.userInfoCard,
+.securityCard,
+.quickLinksCard {
+  margin-bottom: var(--spacing-2xl);
+}
+
+/* כותרת הכרטיס - מרווח נוסף בין כותרת לכפתור לעריכה */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-lg); /* מרווח גדול יותר בין אלמנטים */
+}
+
+.cardTitle {
+  margin-bottom: 0;
+  color: var(--color-text-primary);
+  /* נותן כמות מרחב לוגית כדי להרחיק מהכפתור */
+  margin-inline-end: var(--spacing-2xl);
+}
+
+/* כפתור עריכה - יותר Padding ומרווח מהטקסט כדי להקל על קריאות ונגיעה */
+.editBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: calc(var(--spacing-sm) / 1.2) calc(var(--spacing-md) / 1.1);
+  margin-inline-start: var(--spacing-2xl); /* הגדלנו את המרווח מהכותרת */
+}
+
+/* ממשק פרטי המשתמש - מרווח בין שורות מוגדל כדי לא להצמיד טקסט לכפתורים */
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* כל שורה בפרטים - ישמרו על ריווח אופקי באמצע (label/value) */
+.detailRow {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  gap: var(--spacing-md); /* ריווח בין התווית לערך */
+}
+
+/* הגדלת רוחב מינימלי לתוויות כדי למנוע הידבקות לטקסט בצד השני */
+.label {
+  font-weight: bold;
+  min-width: 140px; /* הוגדל מ-120 ל-140 */
+  color: var(--color-text-secondary);
+}
+
+/* סקשן הגדרות - לוודא שיש ריווח מספק בין התיאור לכפתור */
+.settingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xl);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  gap: var(--spacing-md); /* מרווח פנימי בין תיאור לכפתור */
+}
+
+/* כפתורים בקישורים מהירים - קצת מרווח פנימי וחיצוני */
+.quickLinkBtn {
+  flex: 1;
+  min-width: 150px;
+  justify-content: center;
+  padding: calc(var(--spacing-sm) + 2px) var(--spacing-md);
+  margin-inline: 0.25rem;
+}
+
+.label {
+  font-weight: bold;
+  min-width: 120px;
+  color: var(--color-text-secondary);
+}
+
+.twoFactorSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xl);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+}
+
+.twoFactorStatus {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.enabled {
+  background: var(--state-success);
+}
+
+.disabled {
+  background: var(--state-error);
+}
+
+.twoFactorActions {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+/* קישורים מהירים - מרווחים משודרגים לשיפור קריאות ונוחות נגיעה */
+.quickLinks {
+  display: flex;
+  gap: var(--spacing-lg); /* מרווח גדול יותר בין הכפתורים */
+  flex-wrap: wrap;
+  padding: calc(var(--spacing-sm) * 0.25) 0; /* ריווח אנכי בתוך הקונטיינר */
+  align-items: center;
+  justify-content: center;
+}
+
+.quickLinksCard {
+  /* padding נוסף בתוך הכרטיס כדי לא לצמצם את הכפתורים לשוליים */
+  padding: calc(var(--spacing-lg));
+}
+
+.quickLinkBtn {
+  flex: 0 1 auto; /* לא ממלאים שורה מלאה באופן אגרסיבי */
+  min-width: 180px; /* הכפתורים יהיו יותר רחבים */
+  justify-content: center;
+  padding: calc(var(--spacing-sm) + 4px) var(--spacing-md);
+  margin-inline: 0.35rem;
+}
+
+@media (max-width: 640px) {
+  .quickLinks {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .quickLinkBtn {
+    width: 100%;
+    min-width: 0;
+    margin-inline: 0;
+  }
+
+  /* מובייל: הצמדת התווית והשדה לשורות נפרדות לשיפור קריאות ונוחות */
+  .detailRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: calc(var(--spacing-md) * 0.9);
+  }
+
+  .detailRow .label {
+    /* הסרה של רוחב מינימלי והנחת תווית בשורה נפרדת */
+    min-width: auto;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .detailRow > *:not(.label) {
+    width: 100%;
+  }
+}
+
+/* סקשן הגדרות */
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.settingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xl);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.settingInfo {
+  flex: 1;
+}
+
+.settingInfo h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-primary);
+}
+
+/* מודל שינוי סיסמה */
+.passwordForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inputGroup {
+  margin-bottom: 1rem;
+}
+
+.errorText {
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .settingItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .twoFactorActions {
+    width: 100%;
+  }
+
+  .twoFactorActions button {
+    flex: 1;
+  }
+}
+
+/* Center profile content on large screens (like LoginPage) */
+@media (min-width: 900px) {
+  /* מרכוז אופקי לכל הפרופיל ברזולוציות שולחן עבודה */
+  .profilePage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-2xl) 0;
+    /* אם ההורה הוא Grid, נרחיב כדי לאפשר מרכוז מלא */
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  /* הגבלת רוחב המכולה כדי שתהיה מרכוז אמיתי */
+  .container {
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* כוונון נוסף: לוודא שכל הכרטיסים יתמקדו במרכז */
+  .userInfoCard,
+  .securityCard,
+  .quickLinksCard {
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  /* דחיפת כפתור העריכה כלפי מטה ביחס לכותרת (רק בדסקטופ) */
+  .cardHeader {
+    align-items: flex-start; /* הכותרת למעלה */
+  }
+
+  .editBtn {
+    margin-top: var(--spacing-2xl); /* דחיפה משמעותית מטה */
+  }
+
+  /* ================= Animations & Micro-interactions ================= */
+  /* הערה: אנימציות עדינות לשיפור תחושת חיים, שמורות רק לדף פרופיל */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes subtleFloat {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-4px); }
+    100% { transform: translateY(0px); }
+  }
+
+  /* מיכל אנימציה כללית - נותן כניסה עדינה לכל התוכן */
+  .animatedContainer {
+    animation: fadeInUp 420ms ease-out both;
+  }
+
+  /* אנימציית כניסה לכרטיסים + אפקט hover */
+  .cardAnimated {
+    animation: fadeInUp 520ms ease-out both;
+    will-change: transform, box-shadow;
+  }
+
+  .cardAnimated:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* כותרות זזות קלות לעניין וקריאה */
+  .titleAnimated {
+    display: inline-block;
+    transform-origin: left center;
+    animation: fadeInUp 620ms ease-out both;
+  }
+
+  /* כפתורים עם מיקרו-אינטראקציה */
+  .btnInteractive {
+    transition: transform 160ms cubic-bezier(.2,.8,.2,1), box-shadow 160ms;
+  }
+  .btnInteractive:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .iconWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 220ms ease;
+  }
+  .btnInteractive:hover .iconWrap {
+    transform: rotate(-18deg);
+  }
+
+  /* שורות הפרטים - אנימציית כניסה מתוזמנת */
+  .userDetails .detailRow {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeInUp 480ms ease-out both;
+  }
+  .userDetails .detailRow:nth-child(1) { animation-delay: 160ms; }
+  .userDetails .detailRow:nth-child(2) { animation-delay: 220ms; }
+  .userDetails .detailRow:nth-child(3) { animation-delay: 280ms; }
+  .userDetails .detailRow:nth-child(4) { animation-delay: 340ms; }
+  .userDetails .detailRow:nth-child(5) { animation-delay: 400ms; }
+  .userDetails .detailRow:nth-child(6) { animation-delay: 460ms; }
+
+  /* נגיעה קלה של 'חיות' ברקע - גרדיאנט זז מאוד עדין */
+  .profilePage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(240,250,255,0.32), rgba(246,249,255,0.15));
+    pointer-events: none;
+    opacity: 0.9;
+    z-index: 0;
+    animation: subtleFloat 8s ease-in-out infinite;
+  }
+
+  /* לוודא שהכרטיסים מעל ה-pseudo background */
+  .container { position: relative; z-index: 1; }
+
+}

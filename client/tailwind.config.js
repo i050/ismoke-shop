@@ -1,0 +1,1 @@
+/* REMOVED: Tailwind configuration deleted per user request */

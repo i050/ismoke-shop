@@ -1,0 +1,803 @@
+/* CartItem Styles - עיצוב מודרני לפריט בסל */
+
+/* מיכל ראשי של הפריט עם אפקטים מודרניים */
+.cartItem {
+  display: grid;
+  /* Phase 4.1: הוספת עמודה ל-checkbox בהתחלה */
+  /* grid: checkbox | price | details | image */
+  grid-template-columns: 36px 84px 1fr 80px;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "checkbox price details image"
+    "checkbox price details image"
+    "checkbox price details image";
+  gap: 8px 12px;
+  padding: 12px;
+  background: rgba(249, 250, 251, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: visible;
+  /* layout left-to-right so price appears on the visual left */
+  direction: ltr;
+}
+
+/* Phase 4.1: סגנון פריט לא נבחר */
+.cartItem.notSelected {
+  opacity: 0.6;
+  background: rgba(240, 240, 240, 0.5);
+  border-color: rgba(200, 200, 200, 0.5);
+}
+
+.cartItem.notSelected:hover {
+  opacity: 0.85;
+}
+
+/* Phase 4.1: Checkbox לבחירת פריט */
+.selectionCheckbox {
+  grid-area: checkbox;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 2px solid #d1d5db;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.checkbox:checked + .checkboxLabel {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-color: #2563eb;
+}
+
+/* Phase 5.0: סגנון checkbox מנוטרל (disabled) - למוצרים שאזלו מהמלאי */
+.checkboxDisabled + .checkboxLabel {
+  border-color: #d1d5db;
+  background: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.checkboxDisabled + .checkboxLabel:hover {
+  border-color: #d1d5db;
+  background: #f3f4f6;
+}
+
+.checkIcon {
+  opacity: 0;
+  color: white;
+  transform: scale(0.5);
+  transition: all 0.15s ease;
+}
+
+.checkbox:checked + .checkboxLabel .checkIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkbox:focus + .checkboxLabel {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* קו צבעוני בצד ימין */
+.cartItem::before {
+  /* rounded gradient stripe with soft glow */
+  content: '';
+  position: absolute;
+  /* slightly shorter than full height so the stripe looks inset */
+  top: 4px;
+  right: 0;
+  width: 6px;
+  height: calc(100% - 8px);
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  background: linear-gradient(180deg, rgba(59,130,246,0.98) 0%, rgba(16,185,129,0.95) 100%);
+  box-shadow: 0 6px 18px rgba(59,130,246,0.12);
+  transform: translateX(6px);
+  opacity: 0;
+  transition: opacity 0.28s cubic-bezier(0.2, 0, 0, 1), transform 0.28s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.28s ease;
+}
+
+
+/* אפקט hover מודרני */
+.cartItem:hover {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.cartItem:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+  box-shadow: 0 8px 28px rgba(59,130,246,0.18);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .cartItem::before {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* אנימציית הסרה */
+.cartItem.removing {
+  opacity: 0;
+  transform: translateX(100%) scale(0.95);
+  pointer-events: none;
+}
+
+/* אנימציית הצלחה */
+.cartItem.success-animation {
+  animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); background: rgba(16, 185, 129, 0.1); }
+  100% { transform: scale(1); }
+}
+
+/* תמונת המוצר עם zoom מודרני */
+.imageContainer {
+  grid-area: image;
+  justify-self: end;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(243, 244, 246, 0.5);
+  position: relative;
+  align-self: start;
+}
+
+.imageContainer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  pointer-events: none;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* זום בתמונה בעת hover על הפריט */
+.cartItem:hover .image {
+  transform: scale(1.05);
+}
+
+/* פרטי המוצר */
+.details {
+  grid-area: details;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  direction: rtl;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+  text-align: right;
+}
+
+/* וריאנט (צבע/מידה) עם נקודת צבע */
+.variant {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  direction: rtl;
+}
+
+.variantItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  direction: rtl;
+}
+
+.variantItem strong {
+  color: #374151;
+  font-weight: 500;
+}
+
+/* נקודת צבע */
+.colorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+/* מחיר ליחידה - בלוק אנכי בצד השמאלי בתוך אזור הפרטים */
+.price {
+  grid-area: price;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: center;
+  justify-self: center;
+  width: 84px; /* fixed width for visual balance */
+  text-align: left;
+  direction: ltr; /* numbers rendered naturally */
+}
+
+.priceLabel {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  line-height: 1;
+}
+
+.priceValue {
+  font-size: 1.125rem; /* slightly larger for better legibility */
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6, #10b981);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* בורר כמות - דסקטופ */
+.quantityDesktop {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  /* place the counter in the content column and center it horizontally */
+  grid-column: 2;
+  justify-self: center;
+  justify-content: center;
+  direction: rtl;
+}
+
+.quantityWrapper {
+  position: relative; /* allows absolute-positioned pill overlaid */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* בורר כמות - מובייל (מוסתר בברירת מחדל) */
+.quantityMobile {
+  display: none;
+}
+
+/* מחיר סה"כ - מוסתר בגרסה זו */
+.totalPrice {
+  display: none;
+}
+
+/* כפתורי פעולות - בפינה הימנית העליונה */
+.actions {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  opacity: 0.92;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  z-index: 10;
+}
+
+.cartItem:hover .actions {
+  transform: translateY(-2px) scale(1.03);
+  opacity: 1;
+}
+
+.actions button {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  min-width: unset !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.04) !important;
+}
+
+.removeIcon {
+  color: #ef4444; /* red-500 */
+  width: 20px;
+  height: 20px;
+  transition: transform 0.16s ease, color 0.16s ease;
+  display: block;
+}
+
+.actions:hover .removeIcon {
+  transform: scale(1.12);
+  color: #dc2626; /* red-600 */
+}
+
+/* ספינר טעינה */
+.loadingSpinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* אינדיקטור קטן ליד בורר הכמות - דיסקרטי ולא חוסם */
+.inlineSpinner {
+  position: absolute;
+  top: 100px; /* מתחת לתמונה (80px + padding) */
+  right: 10px;
+  transform: translateY(-50%);
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(59,130,246,0.18);
+  border-top-color: #3b82f6; /* צבע העליון ליצירת אפקט סיבוב */
+  animation: inlineSpin 0.9s linear infinite;
+  box-sizing: border-box;
+  opacity: 0.95;
+  z-index: 5;
+}
+
+@keyframes inlineSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .inlineSpinner {
+    width: 18px;
+    height: 18px;
+    right: 8px;
+    border-width: 1.6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inlineSpinner {
+    animation: none;
+  }
+}
+
+/* הודעת שגיאה דיסקרטית ליד בורר הכמות - אדום מקצועי, נעלמת לאחר זמן על ידי ה-store */
+.updateError {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.06);
+  color: #b91c1c; /* red-700 */
+  font-size: 0.8125rem;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  animation: updateErrorIn 180ms ease-out;
+}
+
+/* כפתורת קטנה שמציגה הודעת מלאי ליד הבורר */
+
+.stockPill {
+  position: absolute;
+  top: -42px; /* hover/stack above selector so it doesn't push content */
+  left: 50%;
+  /* start slightly lifted and transparent so we can animate into place */
+  transform: translateX(-50%) translateY(-6px);
+  opacity: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(254, 226, 226, 1), rgba(255, 244, 244, 1));
+  color: #7f1d1d; /* darker red for text */
+  font-size: 0.8125rem;
+  box-shadow: 0 6px 22px rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  white-space: nowrap;
+  z-index: 12;
+  pointer-events: none; /* allow clicks on + button beneath */
+  transition: opacity 240ms cubic-bezier(0.2, 0, 0, 1), transform 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.pillIcon {
+  color: #dc2626; /* red-600 */
+  display: inline-block;
+}
+
+/* תזוזה קלה במובייל כדי לא להסתיר את הכפתור */
+@media (max-width: 480px) {
+  .stockPill {
+    top: -36px;
+    font-size: 0.78rem;
+  }
+}
+
+/* מצב גלוי - עושה fade-in ועצירה במקום */
+.stockPillVisible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.errorIcon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  color: #ef4444; /* red-500 */
+}
+
+@keyframes updateErrorIn {
+  from { transform: translateY(6px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* אינדיקטור טעינה */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  z-index: 10;
+}
+
+.loadingText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================
+   עיצוב רספונסיבי
+========================== */
+
+/* טאבלטים וקטנים יותר */
+@media (max-width: 768px) {
+  .cartItem {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  /* תמונה קטנה יותר במובייל */
+  .imageContainer {
+    width: 80px;
+    height: 80px;
+  }
+
+  /* פרטים תופסים יותר מקום */
+  .details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .name {
+    font-size: 0.9375rem;
+  }
+
+  /* הסתרת בורר כמות דסקטופ */
+  .quantityDesktop {
+    display: none;
+  }
+
+  /* הצגת בורר כמות מובייל */
+  .quantityMobile {
+    display: flex;
+    margin-top: 0.5rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* מחיר סה"כ עובר לשורה חדשה */
+  .totalPrice {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    order: 10;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    min-width: auto;
+  }
+
+  .totalLabel {
+    margin-bottom: 0;
+  }
+
+  .totalValue {
+    font-size: 1.125rem;
+  }
+
+  /* כפתור הסרה נשאר בפינה ותמיד נראה במובייל - מתחת לשורה */
+  .actions {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    opacity: 1; /* תמיד נראה במובייל */
+  }
+}
+
+/* מובייל קטן */
+@media (max-width: 480px) {
+  .cartItem {
+    padding: 0.75rem;
+  }
+
+  .imageContainer {
+    width: 70px;
+    height: 70px;
+  }
+
+  .name {
+    font-size: 0.875rem;
+  }
+
+  .price {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .priceLabel {
+    font-size: 0.8125rem;
+  }
+
+  .priceValue {
+    font-size: 1rem;
+  }
+
+  .variant {
+    gap: 0.5rem;
+  }
+
+  .variantItem {
+    font-size: 0.8125rem;
+  }
+
+  .totalValue {
+    font-size: 1rem;
+  }
+}
+
+/* תמיכה ב-RTL */
+[dir='rtl'] .cartItem {
+  direction: rtl;
+}
+
+[dir='rtl'] .totalPrice {
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  [dir='rtl'] .actions {
+    left: auto;
+    right: 0.5rem;
+  }
+}
+
+/* ==========================
+   עיצוב "אזל מהמלאי" - Out of Stock
+========================== */
+
+/* סימון הפריט כאזל מהמלאי */
+.cartItem.outOfStock {
+  background: rgba(254, 242, 242, 0.6); /* רקע אדום בהיר */
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.cartItem.outOfStock::before {
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.95) 0%, rgba(185, 28, 28, 0.9) 100%);
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.cartItem.outOfStock:hover {
+  background: rgba(254, 226, 226, 0.7);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ==========================
+   עיצוב "צריך התאמת כמות" - Needs Adjustment
+========================== */
+
+/* סימון הפריט שצריך התאמת כמות */
+.cartItem.needsAdjustment {
+  background: rgba(255, 251, 235, 0.7); /* רקע כתום בהיר */
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.cartItem.needsAdjustment::before {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.9) 100%);
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.cartItem.needsAdjustment:hover {
+  background: rgba(254, 243, 199, 0.8);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* באנר התאמת כמות */
+.quantityAdjustmentBanner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.9) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  font-size: 0.875rem;
+  color: #92400e;
+  direction: rtl;
+  margin-top: 8px;
+}
+
+.adjustmentIcon {
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.quantityAdjustmentBanner strong {
+  color: #78350f;
+  font-weight: 700;
+}
+
+/* כפתור התאמה */
+.adjustButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: auto;
+}
+
+.adjustButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+}
+
+.adjustButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* באנר אזל מהמלאי */
+.outOfStockBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.9) 0%, rgba(254, 202, 202, 0.8) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  direction: rtl;
+}
+
+.outOfStockMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #b91c1c; /* red-700 */
+}
+
+.outOfStockIcon {
+  color: #dc2626; /* red-600 */
+}
+
+/* הסתרת תמונה מעומעמת כשאזל מהמלאי */
+.cartItem.outOfStock .image {
+  opacity: 0.6;
+  filter: grayscale(30%);
+}
+
+/* עיצוב מותאם למובייל */
+@media (max-width: 768px) {
+  .outOfStockBanner {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  
+  .outOfStockMessage {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .outOfStockBanner {
+    padding: 8px 10px;
+  }
+  
+  .outOfStockMessage {
+    font-size: 0.8125rem;
+    gap: 6px;
+  }
+  
+  .outOfStockIcon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  /* התאמת כמות במובייל */
+  .quantityAdjustmentBanner {
+    padding: 8px 10px;
+    font-size: 0.8125rem;
+    gap: 6px;
+  }
+  
+  .adjustButton {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    width: 100%;
+    margin-top: 4px;
+  }
+}

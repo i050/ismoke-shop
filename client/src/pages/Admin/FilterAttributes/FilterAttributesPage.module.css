@@ -1,0 +1,235 @@
+/* ===============================================
+   FilterAttributesPage - עמוד ניהול מאפייני סינון
+   =============================================== */
+
+/* קונטיינר ראשי */
+.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 120px);
+}
+
+/* ===============================================
+   כותרת ותיאור
+   =============================================== */
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+/* ===============================================
+   כפתורי פעולה
+   =============================================== */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.statsInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.statsInfo svg {
+  color: var(--primary-color, #3b82f6);
+}
+
+/* ===============================================
+   רשת הכרטיסים
+   =============================================== */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================================
+   מצב ריק
+   =============================================== */
+
+.empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--surface-color, #ffffff);
+  border-radius: 12px;
+  border: 2px dashed var(--border-color, #e5e7eb);
+  margin: 2rem 0;
+}
+
+.empty svg {
+  color: var(--text-tertiary, #9ca3af);
+  margin-bottom: 1.5rem;
+}
+
+.empty h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+}
+
+.empty p {
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ===============================================
+   מצב טעינה
+   =============================================== */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem;
+  text-align: center;
+  min-height: 400px;
+}
+
+.loading svg {
+  color: var(--primary-color, #3b82f6);
+  margin-bottom: 1rem;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading p {
+  font-size: 1.1rem;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 1rem;
+}
+
+/* ===============================================
+   מצב שגיאה
+   =============================================== */
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem;
+  text-align: center;
+  min-height: 400px;
+  background: var(--surface-color, #ffffff);
+  border-radius: 12px;
+  border: 2px solid var(--error-color, #ef4444);
+}
+
+.error svg {
+  color: var(--error-color, #ef4444);
+  margin-bottom: 1.5rem;
+}
+
+.error h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+}
+
+.error p {
+  color: var(--text-secondary, #6b7280);
+  margin-bottom: 2rem;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* ===============================================
+   Responsive Design
+   =============================================== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .statsInfo {
+    justify-content: center;
+  }
+
+  .empty {
+    padding: 3rem 1.5rem;
+  }
+
+  .loading,
+  .error {
+    padding: 4rem 1.5rem;
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .empty h3 {
+    font-size: 1.1rem;
+  }
+
+  .empty p {
+    font-size: 0.9rem;
+  }
+}

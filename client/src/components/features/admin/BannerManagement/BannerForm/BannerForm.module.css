@@ -1,0 +1,827 @@
+/* ============================================
+  טופס באנר - חלון מודאלי
+  ============================================ */
+
+.banner-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.banner-form-container {
+  background: white;
+  border-radius: 12px;
+  max-width: min(1100px, 90vw); /* רוחב מותאם למסכים שונים - מקסימום 1100px או 90% ממסך */
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-2xl); /* שימוש ב-token קיים לצל מתקדם */
+  direction: rtl; /* מוודא שבלוק הטופס מיושר לימין ומתנהג כ-RTL */
+}
+
+/* כותרת חלון - עיצוב מודרני עם gradient */
+.banner-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-2xl); /* שימוש ב-token קיים - 2rem */
+  border-bottom: none; /* הסרת גבול תחתון - הgradient מספיק */
+  position: sticky;
+  top: 0;
+  background: var(--gradient-primary); /* gradient מהtokens הקיימים */
+  z-index: 10;
+  flex-direction: row-reverse; /* מציב את כפתור הסגירה בצד שמאל כמקובל בעברית */
+  border-radius: 12px 12px 0 0; /* עיגול רק בפינות העליונות */
+  box-shadow: var(--shadow-md); /* הוספת צל עדין */
+}
+
+.banner-form-header h2 {
+  font-size: var(--font-size-2xl); /* 24px - גודל בולט */
+  font-weight: var(--font-weight-extrabold); /* 800 - Inter extrabold */
+  font-family: var(--font-family); /* Inter */
+  letter-spacing: -0.01em; /* קירוב אותיות קל */
+  margin: 0;
+  text-align: right;
+  color: var(--color-text-inverse); /* צבע לבן לטקסט על רקע כהה */
+}
+
+/* אלמנטים חדשים בheader */
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs); /* 0.25rem */
+  align-items: flex-end;
+}
+
+.header-subtitle {
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: var(--font-weight-normal); /* 400 */
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm); /* 0.5rem */
+  align-items: center;
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  padding: var(--spacing-sm); /* 0.5rem */
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
+  font-size: var(--font-size-xl); /* 20px */
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+/* כפתור סגירה - מותאם לheader עם gradient */
+.close-btn {
+  background: rgba(255, 255, 255, 0.1); /* רקע שקוף עדין */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  color: var(--color-text-inverse); /* לבן */
+  padding: var(--spacing-sm); /* 0.5rem - token קיים */
+  border-radius: var(--radius-md); /* token קיים */
+  transition: var(--transition-normal); /* token קיים - 0.3s */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2); /* רקע בהיר יותר בhover */
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05); /* אפקט zoom עדין */
+}
+
+.close-btn:active {
+  transform: scale(0.95); /* אפקט לחיצה */
+}
+
+/* גוף הטופס */
+.banner-form {
+  padding: 1.5rem;
+  text-align: right; /* כל השדות מיושרים לימין שיתאים למשתמשי RTL */
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: var(--font-weight-semibold); /* 600 - משקל בינוני-כבד */
+  font-size: var(--font-size-sm); /* 14px */
+  color: var(--color-text-primary); /* #111827 - כהה וברור */
+  margin-bottom: 0.5rem;
+  justify-content: flex-end; /* מציג את האייקון לאחר הטקסט בעברית */
+  flex-direction: row-reverse; /* הופך את סדר האייקון והטקסט ב-RTL */
+  text-align: right;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="datetime-local"],
+.form-group textarea {
+  width: 100%;
+  padding: var(--spacing-md); /* 12px פדינג נוח */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md); /* 12px רדיוס מודרני */
+  font-size: var(--font-size-base);
+  transition: var(--transition-normal); /* 0.3s מעבר חלק */
+  direction: rtl; /* שדות טקסט בעברית */
+  text-align: right;
+  background: var(--color-bg-primary);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary); /* גבול כחול בפוקוס */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); /* צל ברור יותר */
+  background: var(--color-bg-elevated);
+}
+
+.form-group input.error,
+.form-group textarea.error {
+  border-color: #dc3545;
+}
+
+.form-group input.error:focus,
+.form-group textarea.error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.error-message {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* שורות מרובות בטופס */
+.form-row {
+  display: flex;
+  gap: 1rem;
+  direction: rtl;
+  align-items: flex-start; /* יישור לראש כדי שהכל יתחיל מאותה נקודה */
+}
+
+/* ============================================
+  Tabs Navigation - מערכת טאבים
+  ============================================ */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: var(--spacing-2xl); /* 2rem - רווח לתוכן */
+  direction: rtl;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: var(--spacing-md) var(--spacing-xl); /* 12px 24px */
+  font-size: var(--font-size-base); /* 16px */
+  font-weight: var(--font-weight-semibold); /* 600 */
+  color: var(--color-text-secondary); /* צבע עמום */
+  cursor: pointer;
+  transition: all var(--transition-fast); /* 0.15s */
+  position: relative;
+  top: 2px; /* כדי שהבורדר יהיה מעל border של tabs */
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--primary);
+  background: var(--color-bg-secondary);
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: var(--font-weight-bold); /* 700 */
+}
+
+/* תוכן טאבים */
+.tab-content {
+  display: none;
+  animation: fadeIn 0.2s ease-in;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* מפריד בין קבוצות שדות */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--spacing-2xl) 0; /* 2rem מעלה ומתחת */
+  border: none;
+}
+
+/* אזור העלאת תמונה */
+.image-upload-container {
+  border: 2px dashed #ced4da;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.image-upload-container:hover {
+  border-color: #667eea;
+}
+
+.image-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  cursor: pointer;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  gap: 0.75rem;
+}
+
+.image-upload-label:hover {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.image-upload-input {
+  display: none;
+}
+
+/* עזר לנגישות - מסתיר ויזואלית אך נשאר נגיש למסך קורא */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+.upload-hint {
+  font-size: 0.875rem;
+  color: #adb5bd;
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* תצוגה מקדימה קטנה בתוך הטופס */
+.banner-preview {
+  width: 100%;
+  aspect-ratio: 3/1; /* יחס רוחב-גובה 3:1 לדסקטופ */
+  border-radius: var(--radius-lg); /* 16px מתוקן design-tokens */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl); /* פדינג גדול לתצוגה מקצועית */
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+  box-shadow: var(--shadow-xl); /* צל מתקדם */
+}
+
+.banner-preview::after {
+  /* overlay דינמי עם opacity מותאם */
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* השתמש בערך של --overlay-opacity ישירות כדי שהאפקט יהיה צפוי וברור
+     נמנע מהכפלת ערכים שמחלישות את ה-overlay (calc עם גורם 0.7). */
+  background: rgba(0, 0, 0, var(--overlay-opacity, 0.4));
+  pointer-events: none; /* מניעת חסימת אינטראקציה */
+  z-index: 1;
+}
+
+.banner-preview-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+/* צבעי swatches */
+.color-presets { 
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 עמודות שווות */
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+}
+
+.color-swatch {
+  width: 48px; /* גדל יותר לקליק */
+  height: 48px;
+  border-radius: var(--radius-md);
+  border: 3px solid transparent; /* גבול עבה יותר */
+  cursor: pointer;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-sm); /* צל עדין */
+}
+
+.color-swatch:hover {
+  transform: translateY(-2px); /* אפקט הרמה */
+  box-shadow: var(--shadow-md);
+}
+
+.color-swatch.active {
+  border-color: var(--primary); /* גבול כחול בולט */
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); /* double outline effect */
+}
+.color-swatch:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+.color-custom { 
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.color-custom input[type="text"] { 
+  width: 140px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Courier New', monospace; /* פונט monospace ל-hex */
+  font-size: var(--font-size-sm);
+}
+
+/* הצגת ערך hex ליד color picker */
+.color-value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-family: 'Courier New', monospace;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.reset-color-btn { 
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--color-bg-primary);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  font-size: var(--font-size-sm);
+}
+
+.reset-color-btn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--border-hover);
+}
+.reset-color-btn:focus-visible { outline: 3px solid #667eea; outline-offset: 2px; }
+
+/* ============================================
+  Slider Control - בקר גרירה
+  ============================================ */
+.slider-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md); /* 12px */
+  direction: ltr; /* slider עובד LTR */
+}
+
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  outline: none;
+  transition: background 0.3s;
+}
+
+.slider:hover {
+  background: var(--color-bg-tertiary);
+}
+
+/* סגנון לthumb (הידית) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: var(--primary-hover);
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb:hover {
+  background: var(--primary-hover);
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider-value {
+  min-width: 45px;
+  text-align: center;
+  font-size: var(--font-size-base); /* 16px */
+  font-weight: var(--font-weight-semibold); /* 600 */
+  color: var(--color-text-primary);
+  font-family: 'Courier New', monospace;
+  background: var(--color-bg-elevated);
+  padding: var(--spacing-xs) var(--spacing-sm); /* 4px 8px */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.preview-title {
+  margin: 0;
+  font-size: var(--banner-title-size, 2.5rem); /* גודל מותאם או ברירת מחדל בינוני-גדול - 40px */
+  font-weight: var(--font-weight-extrabold); /* 800 - Inter extrabold */
+  font-family: var(--font-family); /* Inter מהתוקנים */
+  letter-spacing: -0.02em; /* קירוב אותיות למראה מקצועי */
+  line-height: 1.2; /* גובה שורה אופטימלית */
+  /* שימוש בצבע כותרת מותאם */
+  color: var(--banner-title-color, #ffffff);
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.4); /* צל חזק יותר לקריאות */
+}
+
+.preview-desc {
+  margin: var(--spacing-sm) 0 0; /* 8px מרווח עליון */
+  font-size: var(--banner-description-size, 1.125rem); /* גודל מותאם או ברירת מחדל בינוני - 18px */
+  font-weight: var(--font-weight-normal); /* 400 */
+  line-height: 1.5;
+  /* שימוש בצבע תיאור מותאם */
+  color: var(--banner-description-color, #ffffff);
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+.preview-cta {
+  margin-top: var(--spacing-lg); /* 16px */
+  padding: var(--spacing-md) var(--spacing-xl); /* 12px 24px */
+  border-radius: var(--radius-full); /* pill shape */
+  border: none;
+  font-size: var(--banner-cta-size, 1rem); /* גודל מותאם או ברירת מחדל רגיל - 16px */
+  font-weight: var(--font-weight-semibold); /* 600 */
+  transition: var(--transition-normal);
+  /* שימוש בצבעי CTA מותאמים */
+  background: var(--banner-cta-background-color, rgba(255,255,255,0.85));
+  color: var(--banner-cta-text-color, #111);
+  cursor: default;
+  box-shadow: var(--shadow-md); /* צל עדין */
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #dc3545;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.remove-image-btn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+/* קבוצת צ'קבוקס להפעלת באנר */
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.help-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  margin-right: 1.875rem;
+}
+
+/* פעולות סיום הטופס */
+.form-actions {
+  display: flex;
+  gap: var(--spacing-lg); /* 16px מרווח בין כפתורים */
+  justify-content: flex-end; /* כפתורים בצד ימין (סוף ה-flex) */
+  flex-direction: row-reverse; /* RTL - כפתור ראשי בשמאל */
+  padding-top: var(--spacing-2xl); /* 32px פדינג עליון */
+  border-top: 2px solid var(--border-light); /* גבול עבה יותר */
+  margin-top: var(--spacing-2xl);
+  background: var(--color-bg-secondary); /* רקע עדין */
+  padding: var(--spacing-xl);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg); /* פינות תחתונות מעוגלות */
+  margin: var(--spacing-2xl) calc(var(--spacing-2xl) * -1) calc(var(--spacing-2xl) * -1); /* מרווח שלילי */
+}
+
+/* ============================================
+  Responsive — התאמה למסכים שונים
+  ============================================ */
+
+/* גדול (Desktop Large) */
+@media (min-width: 1200px) {
+  .banner-form-container {
+    max-width: min(1200px, 90vw); /* יותר מקום במסכים גדולים */
+  }
+}
+
+/* טאבלטים (768px - 1199px) */
+@media (max-width: 1199px) {
+  .banner-form-container {
+    max-width: 95vw;
+  }
+  
+  .color-presets {
+    grid-template-columns: repeat(3, 1fr); /* שמירה על 3 עמודות */
+  }
+}
+
+/* טאבלטים קטנים (600px - 767px) */
+@media (max-width: 768px) {
+  .banner-form-container {
+    max-height: 95vh;
+    max-width: 98vw;
+  }
+
+  .banner-form-header {
+    padding: var(--spacing-lg); /* 16px */
+  }
+
+  .banner-form-header h2 {
+    font-size: var(--font-size-xl); /* 20px */
+  }
+
+  .banner-form {
+    padding: var(--spacing-lg);
+  }
+
+  .form-row {
+    grid-template-columns: 1fr; /* עמודה אחת */
+  }
+  
+  .color-presets {
+    grid-template-columns: repeat(2, 1fr); /* 2 עמודות בטאבלט */
+  }
+  
+  .form-actions {
+    gap: var(--spacing-md); /* הקטנת מרווח */
+  }
+}
+
+/* מובייל (320px - 599px) */
+@media (max-width: 480px) {
+  .banner-form-overlay {
+    padding: 0;
+  }
+
+  .banner-form-container {
+    max-height: 100vh;
+    border-radius: 0; /* ללא עיגולים במובייל */
+    max-width: 100vw;
+  }
+  
+  .banner-form-header {
+    padding: var(--spacing-md);
+    border-radius: 0;
+  }
+  
+  .banner-form-header h2 {
+    font-size: var(--font-size-lg); /* 18px */
+  }
+  
+  .banner-form {
+    padding: var(--spacing-md);
+  }
+
+  .image-upload-label {
+    padding: var(--spacing-2xl) var(--spacing-lg);
+  }
+
+  .form-actions {
+    flex-direction: column; /* כפתורים בעמודה */
+    gap: var(--spacing-sm);
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+/* ============================================
+  Responsive — התאמה למסכים קטנים
+  ============================================ */
+
+/* מובייל: שינוי aspect-ratio ל-16:9 */
+@media (max-width: 768px) {
+  .banner-preview {
+    aspect-ratio: 16/9; /* יחס גובה-רוחב מתאים למסכים קטנים */
+    padding: var(--spacing-2xl); /* הקטנת פדינג במובייל */
+  }
+}
+
+/* ============================================
+  נגישות (A11y) - WCAG 2.1 AA
+  ============================================ */
+
+/* מצב פוקוס לכל האלמנטים האינטראקטיביים */
+.close-btn:focus-visible,
+.image-upload-label:focus-visible,
+.checkbox-group label:focus-within,
+.color-swatch:focus-visible,
+.reset-color-btn:focus-visible,
+.form-group input:focus-visible,
+.form-group textarea:focus-visible,
+.form-group select:focus-visible {
+  outline: 3px solid var(--primary); /* כחול ברור */
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); /* ring effect */
+}
+
+/* focus-visible לכפתורים */
+button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* הסרת outline ברירת מחדל רק לעכבר */
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* הפחתת אנימציות למעדיפים (Reduced Motion) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .banner-form-overlay,
+  .close-btn,
+  .image-upload-label,
+  .remove-image-btn,
+  .form-group input,
+  .form-group textarea,
+  .color-swatch,
+  .reset-color-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ניגודיות גבוהה (High Contrast) */
+@media (prefers-contrast: high) {
+  .banner-form-container {
+    border: 3px solid currentColor;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .color-swatch,
+  .reset-color-btn {
+    border: 2px solid currentColor;
+  }
+  
+  .banner-form-header {
+    border-bottom: 3px solid currentColor;
+  }
+  
+  button {
+    border: 2px solid currentColor !important;
+  }
+}
+
+/* ============================================
+  שדות עם בחירת צבע - Layout אופקי
+  ============================================ */
+
+/* שורה שמכילה שדה קלט + בוחר צבעים */
+.fieldWithColor {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* שדה הקלט - תופס את רוב המקום (80%) */
+.fieldWithColor > input,
+.fieldWithColor > textarea {
+  flex: 6; /* 80% מהמקום */
+  min-width: 0; /* מאפשר התכווצות במסכים קטנים */
+}
+
+/* בוחר הצבעים - קטן בצד שמאל (20%) */
+.fieldWithColor > div[class*="colorSelectContainer"] {
+  flex: 0 0 180px; /* רוחב קבוע של 180px */
+  min-width: 160px; /* מינימום לנוחות */
+}
+
+/* במסכים קטנים - עובר למצב אנכי */
+@media (max-width: 768px) {
+  .fieldWithColor {
+    flex-direction: column;
+  }
+  
+  .fieldWithColor > div[class*="colorSelectContainer"] {
+    width: 100%;
+    flex: 1;
+  }
+}

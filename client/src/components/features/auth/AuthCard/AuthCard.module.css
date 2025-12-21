@@ -1,0 +1,42 @@
+/* AuthCard.module.css - סגנונות רכיב כרטיס התחברות */
+
+/* הכרטיס הראשי - Container עיצובי לטפסי התחברות */
+.authCard {
+  max-width: 450px;                    /* רוחב מקסימלי לכרטיס - הוגדל ל-450px */
+  margin: 0 auto;                      /* מרכוז הכרטיס */
+  padding: 2rem;                       /* ריווח פנימי נדיב */
+  background-color: #ffffff;           /* רקע לבן נקי */
+  border-radius: 8px;                  /* פינות מעוגלות */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* צל עדין */
+  border: 1px solid #e0e0e0;          /* גבול דק */
+  direction: rtl;                      /* כיוון עברית */
+}
+
+/* כותרת הכרטיס */
+.authCard__title {
+  text-align: center;                  /* יישור מרכז */
+  margin-bottom: 1.5rem;               /* ריווח תחתון */
+  color: #333;                         /* צבע כהה */
+  font-size: 1.5rem;                   /* גודל פונט גדול */
+  font-weight: bold;                   /* עובי בולט */
+  margin-top: 0;                       /* ביטול margin עליון */
+}
+
+/* תוכן הכרטיס */
+.authCard__content {
+  width: 100%;                         /* רוחב מלא */
+}
+
+/* התאמות למובייל */
+@media (max-width: 480px) {
+  .authCard {
+    margin: 1rem;                      /* ריווח קטן יותר במובייל */
+    padding: 1.5rem;                   /* ריווח פנימי קטן יותר */
+    max-width: none;                   /* ביטול רוחב מקסימלי במובייל */
+  }
+  
+  .authCard__title {
+    font-size: 1.3rem;                 /* פונט קטן יותר במובייל */
+    margin-bottom: 1rem;               /* ריווח קטן יותר */
+  }
+}

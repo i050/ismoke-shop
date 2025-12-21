@@ -1,0 +1,272 @@
+/* ===========================================
+   StockAlertButton - סגנונות רכיב התראת מלאי
+   =========================================== */
+
+/* מכל ראשי */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* תווית "אזל מהמלאי" */
+.outOfStockLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-error, #dc3545);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+/* כפתור התראה */
+.alertButton {
+  min-width: 160px;
+}
+
+/* קישור התראה (וריאנט link) */
+.alertLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--color-primary, #007bff);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.alertLink:hover {
+  color: var(--color-primary-dark, #0056b3);
+  text-decoration: underline;
+}
+
+.alertLink:focus-visible {
+  outline: 2px solid var(--color-primary, #007bff);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===========================================
+   וריאנט minimal - לשימוש בעגלת קניות
+   =========================================== */
+
+/* מכל בגרסה מינימלית */
+.containerMinimal {
+  width: 100%;
+  align-items: center;
+}
+
+/* כפתור התראה מינימלי */
+.alertButtonMinimal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.alertButtonMinimal:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.alertButtonMinimal:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.alertButtonMinimal:active {
+  transform: translateY(0);
+}
+
+/* ===========================================
+   תוכן המודל
+   =========================================== */
+
+.modalContent {
+  padding: 8px 0;
+  direction: rtl;
+  text-align: center;
+}
+
+/* ===========================================
+   טופס הרשמה
+   =========================================== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formDescription {
+  color: var(--color-text-secondary, #666);
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.formDescription strong {
+  color: var(--color-text-primary, #333);
+}
+
+.inputWrapper {
+  width: 100%;
+}
+
+.formActions {
+  margin-top: 8px;
+}
+
+/* הערת פרטיות */
+.privacyNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--color-text-muted, #999);
+  font-size: 12px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-light, #eee);
+}
+
+/* ===========================================
+   הודעת הצלחה
+   =========================================== */
+
+.successMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+.successIcon {
+  color: var(--color-success, #28a745);
+  animation: scaleIn 0.3s ease-out;
+}
+
+.successTitle {
+  color: var(--color-text-primary, #333);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.successText {
+  color: var(--color-text-secondary, #666);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.successText strong {
+  color: var(--color-text-primary, #333);
+}
+
+/* ===========================================
+   הודעת "כבר נרשם"
+   =========================================== */
+
+.alreadySubscribedMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+.infoIcon {
+  color: var(--color-primary, #007bff);
+}
+
+.infoTitle {
+  color: var(--color-text-primary, #333);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.infoText {
+  color: var(--color-text-secondary, #666);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.infoText strong {
+  color: var(--color-text-primary, #333);
+  word-break: break-all;
+}
+
+/* ===========================================
+   כפתור סגירה
+   =========================================== */
+
+.closeButton {
+  margin-top: 8px;
+  min-width: 120px;
+}
+
+/* ===========================================
+   אנימציות
+   =========================================== */
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===========================================
+   רספונסיביות
+   =========================================== */
+
+@media (max-width: 480px) {
+  .formDescription {
+    font-size: 14px;
+  }
+  
+  .successTitle,
+  .infoTitle {
+    font-size: 18px;
+  }
+  
+  .successText,
+  .infoText {
+    font-size: 14px;
+  }
+  
+  .privacyNote {
+    font-size: 11px;
+  }
+}

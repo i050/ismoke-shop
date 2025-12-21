@@ -1,0 +1,168 @@
+/* RecentlyAddedGrid - גריד רספונסיבי של מוצרים שנוספו לאחרונה */
+
+/* סקציית הגריד */
+.gridSection {
+  margin: var(--spacing-3xl) 0;
+  padding: var(--spacing-xl) 0;
+  width: 100%;
+}
+
+/* כותרת */
+.gridTitle {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-2xl);
+  text-align: center;
+}
+
+/* הגריד עצמו - 5 עמודות בדסקטופ */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--spacing-lg);
+  width: 100%;
+  direction: rtl;
+}
+
+/* קונטיינר לכפתור "טען עוד" */
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-2xl);
+  padding: var(--spacing-md) 0;
+}
+
+/* כפתור "טען עוד" */
+.loadMoreButton {
+  min-width: 200px;
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.3s ease;
+}
+
+.loadMoreButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* מצבי טעינה, שגיאה וריק */
+.loadingState,
+.errorState,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-3xl);
+  min-height: 200px;
+  color: var(--text-secondary);
+}
+
+.loadingState {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.errorState {
+  color: var(--danger);
+}
+
+/* ========================================
+   התאמות רספונסיביות
+   ======================================== */
+
+/* מסכים גדולים מאוד (1400px+) - 5 עמודות */
+@media (min-width: 1400px) {
+  .productGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* מסכים גדולים (1200px-1399px) - 4 עמודות */
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .productGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* מסכים בינוניים (992px-1199px) - 3 עמודות */
+@media (max-width: 1199px) and (min-width: 992px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* טאבלט (768px-991px) - 3 עמודות */
+@media (max-width: 991px) and (min-width: 768px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+  }
+  
+  .gridTitle {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* מובייל גדול (576px-767px) - 2 עמודות */
+@media (max-width: 767px) and (min-width: 576px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+  }
+  
+  .gridTitle {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .loadMoreButton {
+    min-width: 160px;
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* מובייל קטן (עד 575px) - עמודה אחת */
+@media (max-width: 575px) {
+  .productGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .gridSection {
+    margin: var(--spacing-2xl) 0;
+    padding: var(--spacing-md) 0;
+  }
+  
+  .gridTitle {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .loadMoreContainer {
+    margin-top: var(--spacing-lg);
+  }
+  
+  .loadMoreButton {
+    width: 100%;
+    min-width: auto;
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* אנימציות */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.productGrid {
+  animation: fadeIn 0.4s ease-out;
+}

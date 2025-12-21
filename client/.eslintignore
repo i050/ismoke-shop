@@ -1,0 +1,2 @@
+# Ignore legacy root-level pages now moved into per-component folders
+src/pages/*.tsx

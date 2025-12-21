@@ -1,0 +1,341 @@
+/* MiniCart Styles - עיצוב מודרני ומתקדם */
+/* כל הטוקנים מגיעים מ-design-tokens.css - alignment מלא עם design system */
+
+/* רקע כהה עם אפקט blur - כמו MobileMenu */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* modal backdrop color */
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* המגירה המודרנית - עיצוב זהה ל-MobileMenu */
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(100vw, 420px); /* רוחב מקסימלי 420px או כל המסך אם קטן יותר */
+  background: var(--color-bg-primary);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-2xl);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  direction: rtl;
+  overflow: hidden;
+  /* אנימציית כניסה מימין */
+  animation: slideInFromRight var(--transition-normal) ease-out forwards;
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* כותרת מודרנית עם גרדיאנט */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xl);
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-primary);
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-inverse);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.itemCount {
+  background: rgba(255, 255, 255, 0.25);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-inverse);
+}
+
+/* כפתור סגירה - משתמש ב-Button UI component */
+.closeButton {
+  /* Button UI handles padding/sizing/hover - אנחנו רק מוודים RTL ו-positioning */
+  margin-left: auto; /* דוחף לצד שמאל (RTL) */
+}
+
+/* תוכן עם גלילה חלקה */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, var(--color-bg-secondary));
+}
+
+/* שגיאות קצרות טווח באזור המגירה - אדום דיסקרטי */
+.transientErrors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.transientError {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(239, 68, 68, 0.06);
+  border-radius: var(--radius-sm);
+  color: var(--state-error);
+  font-size: var(--font-size-sm);
+}
+
+.transientDismiss {
+  /* Button UI component handles all styling - padding, hover, etc */
+  flex-shrink: 0; /* prevent shrinking */
+}
+
+/* רשימת פריטים */
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* מצב ריק מודרני */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-5xl) var(--spacing-lg);
+  text-align: center;
+  min-height: 400px;
+  background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-lg);
+}
+
+.emptyIcon {
+  font-size: var(--font-size-5xl);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.4;
+  filter: grayscale(100%);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.emptyText {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.emptySubtext {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacing-2xl);
+}
+
+.continueShoppingButton {
+  min-width: 200px;
+  background: var(--gradient-primary) !important;
+  box-shadow: var(--shadow-primary);
+}
+
+/* תחתית מודרנית */
+.footer {
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+/* סיכום מחיר מודרני */
+.summary {
+  margin-bottom: var(--spacing-lg);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.summaryLabel {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+}
+
+.summaryValue {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+.summaryNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Phase 4.1: הודעה על אין פריטים נבחרים */
+.noSelectionNote {
+  font-size: var(--font-size-xs);
+  color: var(--brand-primary);
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+/* כפתורי פעולה מודרניים */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.checkoutButton {
+  width: 100%;
+  background: var(--gradient-primary) !important;
+  box-shadow: var(--shadow-primary);
+  transition: transform var(--transition-fast), box-shadow var(--transition-normal);
+}
+
+.checkoutButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.checkoutButton:active {
+  transform: translateY(0);
+}
+
+.viewCartButton {
+  width: 100%;
+  background: transparent !important;
+  border: 2px solid var(--brand-primary) !important;
+  color: var(--brand-primary) !important;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.viewCartButton:hover {
+  background: rgba(59, 130, 246, 0.05) !important;
+  transform: translateY(-1px);
+}
+
+/* ==========================
+   עיצוב רספונסיבי
+========================== */
+
+/* מובייל */
+@media (max-width: 480px) {
+  .drawer {
+    width: 100vw; /* תמיד כל רוחב המסך במובייל */
+    max-width: none;
+  }
+
+  .header {
+    padding: var(--spacing-lg);
+  }
+
+  .title {
+    font-size: var(--font-size-lg);
+  }
+
+  .content {
+    padding: var(--spacing-md);
+  }
+
+  .footer {
+    padding: var(--spacing-lg);
+  }
+
+  .summaryValue {
+    font-size: var(--font-size-xl);
+  }
+
+  .emptyState {
+    padding: var(--spacing-2xl) var(--spacing-lg);
+  }
+
+  .emptyIcon {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+/* תמיכה ב-RTL - אין צורך לשנות כלום, הגישה עם transform עובדת אוטומטית */
+/* ה-drawer כבר מוגדר עם right:0 ו-translateX(-100%) שעובד נכון ב-RTL */
+
+/* גלילה מותאמת מודרנית */
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-xs);
+  transition: var(--transition-normal);
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}

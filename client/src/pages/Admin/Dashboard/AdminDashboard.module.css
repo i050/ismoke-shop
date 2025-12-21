@@ -1,0 +1,45 @@
+/* דשבורד ראשי של אזור הניהול */
+
+.dashboard {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: var(--spacing-xl);
+  animation: admin-fadeIn 0.5s ease-out;
+  overflow: hidden;
+}
+
+/* כותרת הדשבורד */
+.dashboardHeader {
+  margin-bottom: 0;
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin: 0;
+  font-weight: var(--font-weight-normal);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .title {
+    font-size: var(--font-size-xl);
+  }
+
+  .subtitle {
+    font-size: var(--font-size-sm);
+  }
+
+  .dashboardHeader {
+    margin-bottom: var(--spacing-xl);
+  }
+}

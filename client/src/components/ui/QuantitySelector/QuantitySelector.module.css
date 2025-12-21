@@ -1,0 +1,172 @@
+/* QuantitySelector - עיצוב מודרני עם blue accent */
+
+.quantitySelector {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 12px;
+  background-color: white;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quantitySelector:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 4px 0 rgba(59, 130, 246, 0.1);
+}
+
+/* כפתורי + ו- מודרניים */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  color: #3b82f6;
+  border-radius: 8px;
+  margin: 2px;
+}
+
+.button:hover:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: scale(1.05);
+}
+
+.button:active:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.2);
+  transform: scale(0.95);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  color: #9ca3af;
+}
+
+/* האייקונים בכפתורים */
+.icon {
+  font-size: 1.1em;
+  line-height: 1;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+.button:hover:not(:disabled) .icon {
+  transform: scale(1.1);
+}
+
+/* שדה ה-input מודרני */
+.input {
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  min-width: 40px;
+  padding: 0 8px;
+  transition: color 0.2s ease;
+}
+
+/* הסרת חיצים ב-Chrome, Safari, Edge */
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.input:focus {
+  color: #3b82f6;
+}
+
+/* הודעת מלאי מקסימלי */
+.maxWarning {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: #ff6b6b;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* גדלים שונים */
+.small {
+  height: 32px;
+}
+
+.small .button {
+  width: 32px;
+  height: 32px;
+}
+
+.small .input {
+  width: 40px;
+  font-size: 0.875rem;
+}
+
+.medium {
+  height: 40px;
+}
+
+.medium .button {
+  width: 40px;
+  height: 40px;
+}
+
+.medium .input {
+  width: 50px;
+  font-size: 1rem;
+}
+
+.large {
+  height: 48px;
+}
+
+.large .button {
+  width: 48px;
+  height: 48px;
+}
+
+.large .input {
+  width: 60px;
+  font-size: 1.125rem;
+}
+
+/* מצב RTL */
+[dir="rtl"] .quantitySelector {
+  direction: ltr; /* שומר על סדר הכפתורים */
+}
+
+/* Responsive - מובייל */
+@media (max-width: 768px) {
+  .medium {
+    height: 36px;
+  }
+
+  .medium .button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .medium .input {
+    width: 45px;
+  }
+}

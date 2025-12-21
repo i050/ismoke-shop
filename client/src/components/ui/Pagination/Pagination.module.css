@@ -1,0 +1,114 @@
+/* Pagination.module.css */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+}
+
+/* Navigation Buttons (Prev/Next) */
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-primary);
+}
+
+.navBtn:hover:not(.disabled) {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+  color: var(--primary);
+}
+
+.navBtn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Page Numbers Container */
+.pages {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* Page Number Buttons */
+.pageBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 var(--spacing-xs);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-primary);
+}
+
+.pageBtn:hover {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+  color: var(--primary);
+}
+
+.pageBtn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  cursor: default;
+}
+
+.pageBtn.active:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Ellipsis */
+.ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: var(--text-tertiary);
+  font-weight: var(--font-weight-bold);
+  user-select: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .pagination {
+    gap: 4px;
+    padding: var(--spacing-sm);
+  }
+
+  .navBtn,
+  .pageBtn {
+    min-width: 32px;
+    height: 32px;
+    font-size: var(--font-size-xs);
+  }
+
+  .pages {
+    gap: 4px;
+  }
+
+  /* Hide some page numbers on mobile */
+  .pageBtn:not(.active):nth-child(n+4):nth-last-child(n+4) {
+    display: none;
+  }
+}

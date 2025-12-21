@@ -1,0 +1,101 @@
+/**
+ * סגנונות Collapsible - קומפוננטה מתקפלת
+ * מבוסס על העיצוב המודרני של 2025
+ */
+
+.collapsible {
+  margin-bottom: 0.5rem;
+}
+
+/* כותרת הקטע המתקפל */
+.collapsibleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  background: var(--modern-bg-secondary, #f8fafc);
+  border: 1px solid var(--modern-border-color, #e2e8f0);
+  border-radius: 0.625rem;
+  cursor: pointer;
+  transition: var(--modern-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+  font-weight: 600;
+  color: var(--modern-text-primary, #0f172a);
+  font-size: 0.8125rem;
+  user-select: none;
+}
+
+.collapsibleHeader:hover {
+  background: var(--modern-bg-tertiary, #f1f5f9);
+  border-color: var(--modern-primary, #2563eb);
+}
+
+.collapsibleHeader:focus {
+  outline: 2px solid var(--modern-primary, #2563eb);
+  outline-offset: 2px;
+}
+
+.collapsibleTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapsibleTitleIcon {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+
+/* אייקון החץ */
+.collapsibleIcon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--modern-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+  font-size: 1.125rem;
+  color: var(--modern-text-secondary, #475569);
+}
+
+.collapsibleHeader.active .collapsibleIcon {
+  transform: rotate(180deg);
+  color: var(--modern-primary, #2563eb);
+}
+
+/* תוכן הקטע */
+.collapsibleContent {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.collapsibleContent.active {
+  max-height: 2000px;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.collapsibleInner {
+  padding: 1rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

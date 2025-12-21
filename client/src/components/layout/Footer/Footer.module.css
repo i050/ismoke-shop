@@ -1,0 +1,589 @@
+/* ======================================
+   Footer Component - עיצוב מקיף עם RTL
+   ====================================== */
+
+/* משתנים גלובליים */
+:root {
+  --footer-bg-primary: #2c3e50;
+  --footer-bg-secondary: #34495e;
+  --footer-bg-newsletter: #3498db;
+  --footer-text-primary: #ecf0f1;
+  --footer-text-secondary: #bdc3c7;
+  --footer-border: #34495e;
+  --footer-hover: #3498db;
+  --footer-success: #27ae60;
+  --footer-error: #e74c3c;
+  --footer-transition: all 0.3s ease;
+  --footer-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  --footer-border-radius: 8px;
+}
+
+/* Footer Container הראשי */
+.footer {
+  background-color: var(--footer-bg-primary);
+  color: var(--footer-text-primary);
+  box-shadow: var(--footer-shadow);
+  margin-top: auto; /* דוחף את הפוטר לתחתית */
+  direction: rtl;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Container עם הגבלת רוחב */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ======================================
+   החלק העליון - קישורים ורשתות חברתיות
+   ====================================== */
+
+.footerTop {
+  padding: 40px 0;
+  background-color: var(--footer-bg-primary);
+  border-bottom: 1px solid var(--footer-border);
+}
+
+.footerSections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  align-items: start;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sectionTitle {
+  color: var(--footer-text-primary) !important;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--footer-hover);
+  padding-bottom: 8px;
+  display: inline-block;
+}
+
+/* ======================================
+   רשתות חברתיות
+   ====================================== */
+
+.socialLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--footer-text-secondary);
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: var(--footer-border-radius);
+  background-color: rgba(255, 255, 255, 0.05);
+  transition: var(--footer-transition);
+  border: 1px solid transparent;
+}
+
+.socialLink:hover {
+  background-color: var(--footer-hover);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: var(--footer-hover);
+}
+
+/* צבעים ספציפיים לרשתות חברתיות */
+.socialLink[data-social-color="#1877f2"]:hover {
+  background-color: #1877f2;
+  border-color: #1877f2;
+}
+
+.socialLink[data-social-color="#e4405f"]:hover {
+  background-color: #e4405f;
+  border-color: #e4405f;
+}
+
+.socialLink[data-social-color="#34495e"]:hover {
+  background-color: #34495e;
+  border-color: #34495e;
+}
+
+.socialLink[data-social-color="#25d366"]:hover {
+  background-color: #25d366;
+  border-color: #25d366;
+}
+
+.socialIcon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.socialName {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* ======================================
+   רשימות קישורים
+   ====================================== */
+
+.linksList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.linksList li {
+  display: flex;
+}
+
+.footerLink {
+  color: var(--footer-text-secondary);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: var(--footer-border-radius);
+  transition: var(--footer-transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font-size: 14px;
+}
+
+.footerLink:hover {
+  color: var(--footer-text-primary);
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+  padding-right: 16px;
+}
+
+.linkIcon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+}
+
+/* ======================================
+   סקציית הניוזלטר
+   ====================================== */
+
+.newsletterSection {
+  background: linear-gradient(135deg, var(--footer-bg-newsletter), #2980b9);
+  padding: 25px 0;
+  text-align: center;
+}
+
+.newsletterContent {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Responsive - במסכים קטנים חזרה לפריסה אנכית */
+@media (max-width: 768px) {
+  .newsletterContent {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .newsletterText {
+    text-align: center;
+  }
+  
+  .newsletterForm {
+    width: 100%;
+    max-width: 450px;
+  }
+}
+
+.newsletterText {
+  flex: 1;
+  min-width: 250px;
+  text-align: right;
+}
+
+.newsletterTitle {
+  color: white !important;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.newsletterDescription {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 14px;
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+.newsletterForm {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 450px;
+  align-items: stretch;
+}
+
+.newsletterInput {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--footer-border-radius);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  direction: rtl;
+  text-align: right;
+}
+
+.newsletterInput::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.newsletterInput:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.newsletterButton {
+  padding: 12px 20px;
+  background-color: white;
+  color: var(--footer-bg-newsletter);
+  border: none;
+  border-radius: var(--footer-border-radius);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--footer-transition);
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.newsletterButton:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.newsletterButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.newsletterMessage {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--footer-border-radius);
+  font-weight: 500;
+  text-align: center;
+  max-width: 350px;
+  font-size: 13px;
+}
+
+.newsletterMessage.success {
+  background-color: rgba(39, 174, 96, 0.2);
+  color: #27ae60;
+  border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.newsletterMessage.error {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* ======================================
+   החלק התחתון - מידע יצירת קשר
+   ====================================== */
+
+.footerBottom {
+  background-color: var(--footer-bg-secondary);
+  padding: 25px 0;
+  border-top: 1px solid var(--footer-border);
+}
+
+.footerBottom .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.contactInfo {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--footer-text-secondary);
+  font-size: 14px;
+}
+
+.contactIcon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.contactLink {
+  color: var(--footer-text-secondary);
+  text-decoration: none;
+  transition: var(--footer-transition);
+}
+
+.contactLink:hover {
+  color: var(--footer-hover);
+  text-decoration: underline;
+}
+
+.contactText {
+  color: var(--footer-text-secondary);
+}
+
+.copyright {
+  color: var(--footer-text-secondary);
+  font-size: 13px;
+}
+
+/* ======================================
+   Responsive Design - עיצוב רספונסיבי
+   ====================================== */
+
+/* טאבלט */
+@media (max-width: 768px) {
+  .footerSections {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+  
+  .footerTop {
+    padding: 30px 0;
+  }
+  
+  .newsletterSection {
+    padding: 30px 0;
+  }
+  
+  .newsletterTitle {
+    font-size: 20px;
+  }
+  
+  .inputGroup {
+    flex-direction: column;
+    max-width: 400px;
+  }
+  
+  .newsletterInput,
+  .newsletterButton {
+    width: 100%;
+  }
+  
+  .footerBottom .container {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .contactInfo {
+    justify-content: center;
+    gap: 20px;
+  }
+}
+
+/* מובייל */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 15px;
+  }
+  
+  .footerSections {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .footerTop {
+    padding: 25px 0;
+  }
+  
+  .newsletterSection {
+    padding: 25px 0;
+  }
+  
+  .newsletterTitle {
+    font-size: 18px;
+  }
+  
+  .newsletterDescription {
+    font-size: 14px;
+  }
+  
+  .inputGroup {
+    max-width: 100%;
+  }
+  
+  .newsletterInput {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+  
+  .newsletterButton {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .contactInfo {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .contactItem {
+    justify-content: center;
+  }
+  
+  .footerBottom {
+    padding: 20px 0;
+  }
+}
+
+/* ======================================
+   אנימציות והאפקטים
+   ====================================== */
+
+/* אנימציה לטעינה */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footer {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* אפקט hover לסקציות */
+.section:hover .sectionTitle {
+  color: var(--footer-hover);
+  transform: translateX(5px);
+}
+
+/* אפקט לכפתור הניוזלטר בזמן שליחה */
+.newsletterButton:disabled {
+  position: relative;
+  overflow: hidden;
+}
+
+.newsletterButton:disabled::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* ======================================
+   נגישות (Accessibility)
+   ====================================== */
+
+/* Focus states */
+.socialLink:focus,
+.footerLink:focus,
+.contactLink:focus,
+.newsletterInput:focus,
+.newsletterButton:focus {
+  outline: 2px solid var(--footer-hover);
+  outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .footer {
+    background-color: #000;
+    color: #fff;
+  }
+  
+  .footerTop,
+  .footerBottom {
+    border-color: #fff;
+  }
+  
+  .socialLink,
+  .footerLink {
+    border: 1px solid #fff;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .footer {
+    background: none !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+  
+  .newsletterSection {
+    display: none;
+  }
+  
+  .socialLink,
+  .footerLink,
+  .contactLink {
+    color: #000 !important;
+  }
+}

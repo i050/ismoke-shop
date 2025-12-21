@@ -1,0 +1,395 @@
+/* סטיילים לרכיב מודל פרטי הזמנה עם ציר זמן */
+
+.container {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* מצב טעינה */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: #6b7280;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* מצב שגיאה */
+.error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* תוכן */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px;
+}
+
+/* כותרת הזמנה */
+.orderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  border: 1px solid #bae6fd;
+}
+
+.orderNumber {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.orderDate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* ציר זמן */
+.timeline {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.timelineSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 12px;
+}
+
+.timelineStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.timelineStep:last-child {
+  padding-bottom: 0;
+}
+
+/* קו מחבר */
+.connector {
+  position: absolute;
+  right: 15px;
+  top: 32px;
+  width: 2px;
+  height: calc(100% - 16px);
+  background: #d1d5db;
+}
+
+.connectorCompleted {
+  background: #16a34a;
+}
+
+/* אייקון בציר זמן */
+.stepIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid #d1d5db;
+  color: #9ca3af;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.completed .stepIcon {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+
+.current .stepIcon {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+  animation: pulse 2s infinite;
+}
+
+.cancelled .stepIcon {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+}
+
+/* תוכן שלב */
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 4px;
+}
+
+.stepLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.completed .stepLabel,
+.current .stepLabel {
+  color: #374151;
+}
+
+.cancelled .stepLabel {
+  color: #dc2626;
+}
+
+.stepDate {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.completed .stepDate {
+  color: #16a34a;
+}
+
+.cancelled .stepDate {
+  color: #dc2626;
+}
+
+/* סקציות */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* כרטיס כתובת */
+.addressCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.addressLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.addressLine svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+/* פרטי מעקב */
+.trackingInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 12px;
+  background: #fffbeb;
+  border-radius: 6px;
+  border: 1px solid #fde68a;
+  font-size: 13px;
+  color: #92400e;
+}
+
+.trackingInfo span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* רשימת פריטים */
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orderItem {
+  display: grid;
+  grid-template-columns: 50px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.itemImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+.itemImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.itemDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemSku {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.itemAttributes {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.itemQuantity {
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.itemPrice {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* כרטיס סיכום */
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f0f9ff;
+  border-radius: 6px;
+  border: 1px solid #bae6fd;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #374151;
+}
+
+.discount {
+  color: #16a34a;
+}
+
+.total {
+  padding-top: 8px;
+  border-top: 1px solid #bae6fd;
+  font-weight: 600;
+  font-size: 16px;
+  color: #0369a1;
+}
+
+/* הערות */
+.notes {
+  margin: 0;
+  padding: 12px;
+  background: #fffbeb;
+  border-radius: 6px;
+  border: 1px solid #fde68a;
+  font-size: 14px;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+/* רספונסיביות */
+@media (max-width: 640px) {
+  .orderHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .orderItem {
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .itemImage {
+    width: 40px;
+    height: 40px;
+    grid-row: span 2;
+  }
+
+  .itemQuantity,
+  .itemPrice {
+    font-size: 13px;
+  }
+
+  .trackingInfo {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,689 @@
+/* דף ניהול הזמנות - Admin Orders Page */
+/* Phase 5.1 מתוך ORDERS_SYSTEM_IMPLEMENTATION_PLAN.md */
+
+.ordersPage {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.statCard {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  transition: all 0.2s ease;
+}
+
+.statCard:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.currencyIcon {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.statValue {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.statLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* Filters Bar */
+.filtersBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.searchForm {
+  flex: 1;
+  min-width: 250px;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.filterGroup {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.filterSelect {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.filterSelect:hover {
+  border-color: var(--color-border-hover);
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+/* Table Container */
+.tableContainer {
+  flex: 1;
+  overflow: auto;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.ordersTable thead {
+  position: sticky;
+  top: 0;
+  background: var(--color-bg-secondary);
+  z-index: 1;
+}
+
+.ordersTable th {
+  padding: var(--spacing-md);
+  text-align: right;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.ordersTable td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+.ordersTable tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.ordersTable tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+/* Table Cells */
+.orderNumber {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  font-family: monospace;
+}
+
+.date {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.customer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.customerName {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.customerPhone {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  direction: ltr;
+  text-align: right;
+}
+
+.items {
+  color: var(--color-text-secondary);
+}
+
+.total {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+/* Status Cell */
+.statusCell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.statusSelect {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ordersTable tbody tr:hover .statusSelect {
+  opacity: 1;
+  border-color: var(--color-border);
+  background: var(--color-bg-primary);
+}
+
+.statusSelect:focus {
+  opacity: 1;
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+}
+
+.pageInfo {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Loading & Empty States */
+.loadingContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  color: var(--color-text-secondary);
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.emptyState svg {
+  color: var(--color-text-tertiary);
+}
+
+.emptyState h3 {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.emptyState p {
+  margin: 0;
+  color: var(--color-text-tertiary);
+}
+
+/* Error Message */
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+/* Spinning Animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.spinningIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.badgewarning {
+  background: var(--color-warning-bg, rgba(245, 158, 11, 0.1));
+  color: var(--color-warning, #f59e0b);
+}
+
+.badgeinfo {
+  background: var(--color-info-bg, rgba(59, 130, 246, 0.1));
+  color: var(--color-info, #3b82f6);
+}
+
+.badgeprimary {
+  background: var(--color-primary-bg, rgba(99, 102, 241, 0.1));
+  color: var(--color-primary, #6366f1);
+}
+
+.badgesuccess {
+  background: var(--color-success-bg, rgba(34, 197, 94, 0.1));
+  color: var(--color-success, #22c55e);
+}
+
+.badgedanger {
+  background: var(--color-danger-bg, rgba(239, 68, 68, 0.1));
+  color: var(--color-danger, #ef4444);
+}
+
+.badgesecondary {
+  background: var(--color-bg-subtle, rgba(107, 114, 128, 0.1));
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Search Input Wrapper */
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  right: var(--spacing-md);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.searchInputWrapper .searchInput {
+  padding-right: calc(var(--spacing-md) * 2 + 16px);
+}
+
+/* Settings Card */
+.settingsCard {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.settingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.settingInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.settingIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-info-bg, rgba(59, 130, 246, 0.1));
+  color: var(--color-info, #3b82f6);
+  flex-shrink: 0;
+}
+
+.settingText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.settingTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.settingDescription {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Toggle Button */
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  transition: all 0.2s ease;
+}
+
+.toggleButton:hover {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-hover);
+}
+
+.toggleButton.toggleActive {
+  color: var(--color-success, #22c55e);
+}
+
+.toggleButton.toggleActive:hover {
+  color: var(--color-success, #16a34a);
+  background: var(--color-success-bg, rgba(34, 197, 94, 0.1));
+}
+
+/* Setting Warning */
+.settingWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-warning-bg, rgba(245, 158, 11, 0.1));
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-warning, #f59e0b);
+}
+
+/* Stat Icon Colors */
+.statIconPrimary {
+  background: var(--color-primary-bg, rgba(99, 102, 241, 0.1));
+  color: var(--color-primary, #6366f1);
+}
+
+.statIconWarning {
+  background: var(--color-warning-bg, rgba(245, 158, 11, 0.1));
+  color: var(--color-warning, #f59e0b);
+}
+
+.statIconSuccess {
+  background: var(--color-success-bg, rgba(34, 197, 94, 0.1));
+  color: var(--color-success, #22c55e);
+}
+
+.statIconInfo {
+  background: var(--color-info-bg, rgba(59, 130, 246, 0.1));
+  color: var(--color-info, #3b82f6);
+}
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tableContainer {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ========================================
+   Tablet & Mobile Card Layout (768px ומטה)
+   בהשראת ProductRow - תצוגת כרטיסים
+   ======================================== */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filtersBar {
+    flex-direction: column;
+  }
+  
+  .filterGroup {
+    width: 100%;
+  }
+  
+  .filterSelect {
+    flex: 1;
+  }
+
+  /* Card Layout - הפיכת טבלה לכרטיסים */
+  .tableContainer {
+    background: transparent;
+    border: none;
+  }
+
+  .ordersTable {
+    display: block;
+  }
+
+  .ordersTable thead {
+    display: none;
+  }
+
+  .ordersTable tbody {
+    display: block;
+  }
+
+  /* כל שורה הופכת לכרטיס */
+  .ordersTable tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "orderNum orderNum"
+      "customer customer"
+      "items total"
+      "status actions";
+    gap: 8px 12px;
+    padding: 16px;
+    margin: 12px 0;
+    background: var(--color-bg-elevated);
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .ordersTable tbody tr:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  }
+
+  /* הסתרת תאים שלא נחוצים */
+  .ordersTable td {
+    display: flex !important;
+    padding: 0;
+    border: none;
+    align-items: center;
+  }
+
+  /* מספר הזמנה - שורה ראשונה, רוחב מלא */
+  .orderNumber {
+    grid-area: orderNum;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  /* תאריך - מוסתר במובייל */
+  .date {
+    display: none !important;
+  }
+
+  /* לקוח - שורה שנייה, רוחב מלא */
+  .customer {
+    grid-area: customer;
+    gap: 4px;
+  }
+
+  .customerName {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .customerPhone {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+  }
+
+  /* פריטים - שורה שלישית, צד ימין */
+  .items {
+    grid-area: items;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .items::before {
+    content: '📦 ';
+  }
+
+  /* סכום - שורה שלישית, צד שמאל */
+  .total {
+    grid-area: total;
+    justify-content: flex-start;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+  }
+
+  /* סטטוס - שורה רביעית, צד ימין */
+  .ordersTable tbody tr td:nth-child(6) {
+    grid-area: status;
+  }
+
+  .statusCell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .statusSelect {
+    opacity: 1;
+    border-color: var(--color-border);
+    background: var(--color-bg-primary);
+    padding: 6px 10px;
+    font-size: var(--font-size-xs);
+    width: 100%;
+  }
+
+  /* תשלום - מוסתר במובייל */
+  .ordersTable tbody tr td:nth-child(7) {
+    display: none !important;
+  }
+
+  /* כפתור פעולות - שורה רביעית, צד שמאל */
+  .ordersTable tbody tr td:nth-child(8) {
+    grid-area: actions;
+    justify-content: flex-end;
+  }
+
+  /* Badge adjustments */
+  .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}

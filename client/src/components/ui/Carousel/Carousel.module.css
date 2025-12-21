@@ -1,0 +1,333 @@
+/* קרוסלה מקצועית עם תמיכה בגריד ובגרירה */
+
+.carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--color-surface, #ffffff);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  direction: rtl; /* תמיכה בעברית */
+}
+
+/* גרסת הגריד - עבור שתי שורות במקביל */
+.carouselGrid {
+  border-radius: 16px;
+  padding: 8px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* קונטיינר הפריטים הראשי עם גלילה טבעית */
+.carouselContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+}
+
+/* קונטיינר עם שורות מרובות */
+.carouselContainerGrid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 10px;
+  padding: 0.5rem 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+  grid-auto-columns: minmax(280px, 1fr);
+}
+
+.carouselContainer::-webkit-scrollbar,
+.carouselContainerGrid::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* פריט בודד בקרוסלה */
+.carouselItem {
+  flex: 0 0 auto;
+  min-width: 280px;
+  scroll-snap-align: start;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.carouselItem:hover {
+  transform: translateY(-2px);
+}
+
+/* כפתורי החצים */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text-primary, #1f2937);
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.arrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: translateY(-50%) scale(1);
+}
+
+/* חץ שמאלי */
+.arrowLeft {
+  left: 16px;
+}
+
+/* חץ ימני */
+.arrowRight {
+  right: 16px;
+}
+
+/* נקודות הניווט */
+.dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 0;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-border, #d1d5db);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+.dot:hover {
+  opacity: 0.8;
+  transform: scale(1.2);
+}
+
+.dotActive {
+  background: var(--color-primary, #3b82f6);
+  opacity: 1;
+  transform: scale(1.3);
+}
+
+/* אנימציות למעברים חלקים */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.carouselItem {
+  animation: slideIn 0.4s ease-out;
+}
+
+/* תמיכה רספונסיבית */
+@media (max-width: 768px) {
+  .carousel {
+    border-radius: 8px;
+    margin: 0 -12px; /* מתיחה למסכי מובייל */
+  }
+  
+  .carouselGrid {
+    border-radius: 12px;
+    padding: 6px;
+    margin: 0 -8px;
+  }
+  
+  .arrow {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .arrowLeft {
+    left: 8px;
+  }
+  
+  .arrowRight {
+    right: 8px;
+  }
+  
+  .carouselItem {
+    padding: 4px;
+  }
+  
+  .dots {
+    margin-top: 12px;
+    padding: 8px 0;
+  }
+  
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel {
+    border-radius: 6px;
+  }
+  
+  .arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .arrowLeft {
+    left: 4px;
+  }
+  
+  .arrowRight {
+    right: 4px;
+  }
+}
+
+/* סטיילים מיוחדים לגרסת הגריד (שתי שורות) */
+.carouselGrid .carouselTrack {
+  min-height: 200px; /* גובה מינימלי לגריד */
+  align-items: stretch;
+}
+
+.carouselGrid .carouselItem {
+  height: auto;
+  min-height: 90px; /* גובה מינימלי לפריט בגריד */
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.carouselGrid .carouselItem:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* אפקטים מתקדמים לגרירה */
+.carouselContainer[data-dragging="true"] .carouselTrack {
+  transition: none;
+}
+
+.carouselContainer[data-dragging="true"] .carouselItem {
+  pointer-events: none;
+}
+
+/* אפקט זוהר עדין בגרסת הגריד */
+.carouselGrid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(59, 130, 246, 0.05) 50%, 
+    transparent 70%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* מצבי נגישות */
+.carousel:focus-within {
+  outline: 2px solid var(--color-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.arrow:focus {
+  outline: 2px solid var(--color-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.dot:focus {
+  outline: 2px solid var(--color-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* הסתרת מקש העכבר בזמן גרירה */
+.carouselContainer:active {
+  cursor: grabbing;
+}
+
+/* אפקט loading למקרה שהתוכן טוען */
+.carousel:empty::after {
+  content: '...טוען';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 16px;
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* שיפורים לביצועים */
+.carouselTrack {
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.carouselItem {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}

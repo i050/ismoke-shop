@@ -1,0 +1,152 @@
+/* קונטיינר כללי לשדה הקלט */
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+/* תווית השדה */
+.label {
+  font-size: 0.875rem;      /* 14px */
+  font-weight: 500;
+  /* צבע תווית - שימוש במשתנה צבע ראשי מרכזי */
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+  text-align: right;        /* יישור לימין עבור עברית */
+}
+
+/* סימן * לשדה חובה */
+.required {
+  /* סימון שדה חובה - השתמש בצבע של סטייט ERROR מהמאגרים הגלובליים */
+  color: var(--state-error);
+  margin-right: 0.25rem;
+}
+
+/* סטיילים בסיסיים לכל שדה קלט */
+.input {
+  border-radius: 6px;
+  font-size: 1rem;          /* 16px */
+  font-family: inherit;
+  transition: all 0.2s ease;
+  outline: none;
+  text-align: right;        /* יישור לימין עבור עברית */
+  direction: rtl;           /* כיוון עברית */
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+/* סטיילים לפי גודל השדה */
+.small {
+  padding: 6px 12px;
+  height: 32px;
+  font-size: 0.875rem;      /* 14px */
+}
+
+.medium {
+  padding: 10px 16px;
+  height: 40px;
+  font-size: 1rem;          /* 16px */
+}
+
+.large {
+  padding: 14px 20px;
+  height: 48px;
+  font-size: 1.125rem;      /* 18px */
+}
+
+/* סטיילים לפי סוג העיצוב */
+.outlined {
+  /* שדה מסוג outlined - גבול צבעי דרך משתמשי ה‑tokens */
+  background-color: var(--color-bg-elevated);
+  border: 2px solid var(--border-medium);
+  color: var(--color-text-primary);
+}
+
+.outlined:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+.filled {
+  background-color: var(--color-bg-hover);
+  border: 2px solid transparent;
+  color: var(--color-text-primary);
+}
+
+.filled:focus {
+  background-color: var(--color-bg-elevated);
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+.standard {
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border-medium);
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.standard:focus {
+  border-bottom-color: var(--brand-primary);
+  box-shadow: 0 1px 0 0 rgba(59, 130, 246, 0.18);
+}
+
+/* מצב שגיאה */
+.error {
+  /* מצב שגיאה משתמש ב-state token לטיפול אחיד */
+  border-color: var(--state-error) !important;
+}
+
+.error:focus {
+  border-color: var(--state-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08) !important;
+}
+
+/* מצב מושבת */
+.disabled {
+  /* מצב מושבת - רקע וטקסט משואתים מ-tokens */
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  border-color: var(--border);
+}
+
+.disabled::placeholder {
+  color: var(--border-medium);
+}
+
+/* טקסט עזר */
+.helperText {
+  font-size: 0.75rem;       /* 12px */
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+  text-align: right;        /* יישור לימין עבור עברית */
+}
+
+/* טקסט שגיאה */
+.errorText {
+  color: var(--state-error);
+}
+
+/* אפקטי hover */
+.input:hover:not(:disabled):not(.error) {
+  border-color: var(--color-text-muted);
+}
+
+.outlined:hover:not(:disabled):not(.error) {
+  border-color: var(--color-text-muted);
+}
+
+.filled:hover:not(:disabled):not(.error) {
+  background-color: var(--border-light);
+}
+
+.standard:hover:not(:disabled):not(.error) {
+  border-bottom-color: var(--color-text-muted);
+}

@@ -1,0 +1,63 @@
+/* סטיילים בסיסיים לכל כרטיס */
+.card {
+  background-color: white;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* סטיילים לפי סוג הכרטיס */
+.default {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.elevated {
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.elevated:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.outlined {
+  border: 2px solid #d1d5db;
+  box-shadow: none;
+}
+
+.outlined:hover {
+  border-color: #9ca3af;
+}
+
+/* סטיילים לפי גודל הריווח הפנימי */
+.none {
+  padding: 0;
+}
+
+.small {
+  padding: 12px;
+}
+
+.medium {
+  padding: 20px;
+}
+
+.large {
+  padding: 32px;
+}
+
+/* אפקט לחיצה - רק אם יש onClick */
+.card:hover {
+  cursor: pointer;
+}
+
+/* מצב לא פעיל - אם אין onClick */
+.card:not([onclick]):not([data-clickable]) {
+  cursor: default;
+}
+
+.card:not([onclick]):not([data-clickable]):hover {
+  transform: none;
+}

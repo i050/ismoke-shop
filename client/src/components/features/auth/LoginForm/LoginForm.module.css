@@ -1,0 +1,194 @@
+/* LoginForm.module.css - סטיילים לטופס התחברות */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;                       /* הוקטן מ-24px ל-20px */
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* הודעות שגיאה */
+.errorMessage {
+  padding: 12px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  color: #c33;
+  font-size: 14px;
+  text-align: center;
+}
+
+.forgotPassword {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.linkButton:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.linkButton:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* מפריד */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.divider span {
+  background-color: #fff;
+  padding: 0 16px;
+  color: #666;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+/* מצב switch בין התחברות להרשמה */
+.switchMode {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  margin-top: 16px;
+}
+
+.switchMode .linkButton {
+  font-weight: 500;
+}
+
+/* תמיכה ב-RTL */
+[dir="rtl"] .form {
+  direction: rtl;
+}
+
+[dir="rtl"] .forgotPassword {
+  justify-content: flex-start;
+}
+
+[dir="rtl"] .switchMode {
+  direction: rtl;
+}
+
+/* רספונסיביות */
+@media (max-width: 480px) {
+  .form {
+    padding: 16px;                      /* הוקטן מ-20px ל-16px במובייל */
+    gap: 14px;
+    max-width: 100%;
+    border-radius: 8px;
+  }
+
+  .fieldGroup {
+    gap: 6px;
+  }
+
+  .errorMessage {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .divider {
+    margin: 16px 0;
+  }
+
+  .divider span {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+
+/* אנימציות */
+.form {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* מצב טעינה */
+.linkButton:disabled:hover {
+  background-color: transparent;
+}
+
+/* פוקוס נגישות */
+.linkButton:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* OTP Step Styles */
+.otpHeader {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.otpTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.otpDescription {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.otpActions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.otpActions .linkButton {
+  font-size: 14px;
+}

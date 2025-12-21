@@ -1,0 +1,153 @@
+/* ==============================================
+   הדר משני - עיצוב בסיסי
+   ============================================== */
+
+/* קונטיינר ראשי של ההדר המשני */
+.secondaryHeader {
+  background-color: #f9fafb; /* רקע אפור בהיר */
+  border-bottom: 1px solid #e5e7eb; /* גבול תחתון דק */
+  height: 30px; /* גובה קטן עוד יותר למניעת גלילה אנכית */
+  display: flex; /* שימוש ב-flexbox */
+  align-items: center; /* יישור אנכי למרכז */
+  direction: rtl; /* כיוון מימין לשמאל */
+  overflow: visible; /* אפשר ל-dropdown להופיע מחוץ להדר */
+}
+
+/* הודעת טעינה */
+.loading {
+  color: #6b7280; /* צבע אפור */
+  font-size: 13px; /* פונט קטן */
+  padding: 0 12px; /* מרווחים */
+}
+
+/* הודעת שגיאה */
+.error {
+  color: #ef4444; /* צבע אדום */
+  font-size: 13px; /* פונט קטן */
+  padding: 0 12px; /* מרווחים */
+}
+
+/* קונטיינר פנימי להגבלת רוחב ומרווחים */
+.secondaryContainer {
+  max-width: 1200px; /* רוחב מקסימלי כמו בהדר הראשי */
+  margin: 0 auto; /* מרכז את התוכן */
+  padding: 0 12px; /* מרווחים קטנים יותר למניעת גלילה */
+  display: flex; /* flexbox לרשימת קטגוריות */
+  gap: 20px; /* מרווח בין קטגוריות */
+  overflow: visible; /* אפשר ל-dropdown להופיע - זאת הבעיה! */
+  flex-wrap: wrap; /* אפשר לקטגוריות לרדת שורה אם צריך */
+}
+
+/* ==============================================
+   קטגוריות ראשיות
+   ============================================== */
+
+/* פריט קטגוריה עם מיקום יחסי ל-dropdown */
+.categoryItem {
+  position: relative; /* חשוב למיקום dropdown */
+}
+
+/* כפתור/קישור הקטגוריה */
+.categoryButton {
+  background: none; /* ללא רקע */
+  border: none; /* ללא גבול */
+  color: #374151; /* צבע טקסט אפור כהה */
+  font-size: 15px; /* גודל פונט 15px */
+  cursor: pointer; /* סמן יד */
+  padding: 4px 10px; /* מרווחים קטנים יותר למניעת גלישה */
+  transition: color 0.2s; /* אנימציה חלקה */
+  line-height: 1; /* קו גובה 1 למניעת גלישה אנכית */
+  text-decoration: none; /* ללא קו תחתון לקישורים */
+  display: inline-block; /* התנהגות כמו כפתור */
+}
+
+/* hover על כפתור הקטגוריה */
+.categoryButton:hover {
+  color: #3b82f6; /* צבע כחול בהובר */
+  background: rgba(59, 130, 246, 0.1); /* רקע כחול בהובר */
+}
+
+/* ==============================================
+   תת-קטגוריות (dropdown)
+   ============================================== */
+
+/* קונטיינר לתת-קטגוריות */
+.subDropdown {
+  position: absolute; /* מיקום מוחלט מתחת לכפתור */
+  top: 100%; /* מתחת לכפתור */
+  right: 0; /* יישור לימין */
+  background: #fff; /* רקע לבן */
+  border: 1px solid #e5e7eb; /* גבול דק */
+  border-radius: 6px; /* פינות מעוגלות */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* צל קל */
+  z-index: 9999; /* מעל כל האלמנטים */
+  min-width: 150px; /* רוחב מינימלי */
+  display: block; /* הצג תמיד */
+}
+
+/* כפתור/קישור לתת-קטגוריה */
+.subLink {
+  display: block; /* תופס שורה מלאה */
+  padding: 8px 12px; /* מרווחים פנימיים */
+  color: #374151; /* צבע טקסט */
+  text-decoration: none; /* ללא קו תחתון */
+  font-size: 13px; /* גודל פונט קטן יותר */
+  background: none; /* ללא רקע לכפתור */
+  border: none; /* ללא גבול לכפתור */
+  cursor: pointer; /* סמן יד */
+  text-align: right; /* יישור לימין */
+  width: 100%; /* רוחב מלא */
+}
+
+/* hover על קישור תת-קטגוריה */
+.subLink:hover {
+  background: #f3f4f6; /* רקע אפור בהובר */
+}
+
+/* ==============================================
+   רספונסיביות - מובייל
+   ============================================== */
+
+/* מסך קטן (768px ומטה) */
+@media (max-width: 768px) {
+  /* הסתרת ההדר המשני במובייל - יש תפריט המבורגר במקום */
+  .secondaryHeader {
+    display: none;
+  }
+}
+
+/* אם רוצים להציג את ההדר המשני במובייל עם גלילה אופקית,
+   אפשר להחליף את הקוד למעלה בזה:
+   
+@media (max-width: 768px) {
+  .secondaryHeader {
+    height: 40px;
+    overflow: hidden;
+  }
+
+  .secondaryContainer {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+    padding: 0 var(--spacing-sm);
+  }
+
+  .secondaryContainer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .categoryButton {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    white-space: nowrap;
+    min-height: var(--touch-target-min);
+    display: flex;
+    align-items: center;
+  }
+
+  .subDropdown {
+    display: none;
+  }
+}
+*/

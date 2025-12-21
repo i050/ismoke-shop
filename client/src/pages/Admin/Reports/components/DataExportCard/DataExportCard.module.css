@@ -1,0 +1,198 @@
+/* כרטיס יצוא נתונים - סטיילים */
+
+.exportContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+/* ===== בחירת דוח ===== */
+.reportSelector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.reportOption {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: right;
+}
+
+.reportOption:hover:not(:disabled) {
+  background: var(--color-bg-elevated);
+}
+
+.reportOption[data-selected="true"] {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.reportOption:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reportOption svg {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.reportOption[data-selected="true"] svg {
+  color: #f59e0b;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.optionLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.optionDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* ===== בחירת תקופה ===== */
+.dateRangeSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border-right: 3px solid #f59e0b;
+}
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.sectionLabel svg {
+  color: #f59e0b;
+}
+
+/* ===== סינון סטטוס ===== */
+.statusFilterSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border-right: 3px solid #f59e0b;
+}
+
+.statusSelect {
+  width: 100%;
+  padding: var(--spacing-sm);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  direction: rtl;
+}
+
+.statusSelect:hover {
+  border-color: #f59e0b;
+}
+
+.statusSelect:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.statusSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== כפתורי יצוא ===== */
+.exportButtons {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.exportBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.exportBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.exportBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== כפתור PDF - צבע אדום ===== */
+.exportBtnPdf {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.exportBtnPdf:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* ===== הודעת יצוא אחרון ===== */
+.lastExport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: #10b981;
+  margin-top: auto;
+}
+
+/* ===== רספונסיביות ===== */
+@media (max-width: 480px) {
+  .exportButtons {
+    flex-direction: column;
+  }
+}

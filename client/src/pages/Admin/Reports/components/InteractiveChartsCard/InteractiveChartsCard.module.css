@@ -1,0 +1,146 @@
+/**
+ * סטיילים לכרטיס גרפים אינטרקטיביים
+ */
+
+/* ===== Container ראשי ===== */
+.chartsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+  padding: 0;
+}
+
+/* ===== בורר סוגי גרפים ===== */
+.chartTypeSelector {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.chartTypeBtn {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chartTypeBtn:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* מצב פעיל ===== */
+.chartTypeBtn.active {
+  border-color: var(--brand-primary);
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--brand-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.chartTypeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chartTypeBtn svg {
+  transition: transform 0.15s ease;
+}
+
+.chartTypeBtn.active svg {
+  transform: scale(1.15);
+}
+
+/* ===== בחירת טווח תאריכים ===== */
+.dateRangeSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border-right: 3px solid var(--brand-primary);
+}
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.sectionLabel svg {
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+/* ===== Wrapper הגרף ===== */
+.chartWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  overflow: hidden;
+}
+
+/* ===== הודעת שגיאה ===== */
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-destructive);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.errorMessage svg {
+  flex-shrink: 0;
+  color: var(--color-destructive);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  .chartTypeSelector {
+    gap: var(--spacing-xs);
+  }
+
+  .chartTypeBtn {
+    min-width: 70px;
+    padding: var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+
+  .chartWrapper {
+    min-height: 280px;
+    padding: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .chartTypeBtn {
+    flex: 1;
+    min-width: unset;
+  }
+
+  .chartWrapper {
+    min-height: 250px;
+  }
+}

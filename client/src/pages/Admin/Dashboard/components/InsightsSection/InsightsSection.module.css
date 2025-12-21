@@ -1,0 +1,211 @@
+/* Insights Section - כרטיסי תובנות */
+
+.insightsSection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* כרטיס תובנה */
+.insightCard {
+  background: var(--color-bg-glass);
+  backdrop-filter: var(blur(12px));
+  border: 1px solid var(rgba(255,255,255,0.1));
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition-normal);
+}
+
+.insightCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+}
+
+/* כותרת כרטיס */
+.cardHeader {
+  padding: var(--spacing-xl);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.cardHeader.hot {
+  background: linear-gradient(135deg, var(--state-error), var(--brand-tertiary));
+}
+
+.cardHeader.potential {
+  background: linear-gradient(135deg, var(--state-success), #06d6a0);
+}
+
+.cardHeader.missed {
+  background: linear-gradient(135deg, var(--state-warning), #fbbf24);
+}
+
+.headerIcon {
+  font-size: 1.5rem;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* תוכן הכרטיס */
+.cardContent {
+  padding: var(--spacing-xl);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* סגנון גלילה מותאם */
+.cardContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cardContent::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.cardContent::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.cardContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* פריט בכרטיס */
+.insightItem {
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: var(--transition-fast);
+}
+
+.insightItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.insightItem:hover {
+  background: rgba(0, 0, 0, 0.02);
+  padding-right: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+.itemInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.itemName {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+}
+
+.itemValue {
+  font-weight: 700;
+  font-size: 1rem;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* פס התקדמות */
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
+  border-radius: 3px;
+  transition: width 1.5s ease-out;
+}
+
+.potentialFill {
+  background: linear-gradient(90deg, var(--state-success), #06d6a0);
+}
+
+/* סיבת החמצה */
+.missedReason {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-top: var(--spacing-xs);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .insightsSection {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .insightsSection {
+    grid-template-columns: 1fr;
+  }
+
+  .cardContent {
+    padding: var(--spacing-lg);
+  }
+
+  .itemName {
+    font-size: 0.9rem;
+  }
+
+  .itemValue {
+    font-size: 0.95rem;
+  }
+}
+
+/* אנימציית כניסה לפסי התקדמות */
+@keyframes fillProgress {
+  from {
+    width: 0;
+  }
+}
+
+.progressFill {
+  animation: fillProgress 1.5s ease-out;
+}
+
+/* מצב טעינה */
+.loadingState {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* מצב ריק */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
+  color: var(--state-success);
+  text-align: center;
+  font-size: 0.9rem;
+}

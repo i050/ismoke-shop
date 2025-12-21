@@ -1,0 +1,417 @@
+/* ProductGrid - רכיב רשת מוצרים מקצועי ורספונסיבי */
+
+/* הגדרת משתנים למרווחים - משתמש בברייקפוינטס מ-design-tokens.css */
+:root {
+  --grid-gap-small: 0.75rem;    /* 12px */
+  --grid-gap-medium: 1.25rem;   /* 20px */
+  --grid-gap-large: 2rem;       /* 32px */
+  --grid-columns: auto-fit;     /* ערך ברירת מחדל לעמודות */
+  --grid-min-width: 280px;      /* רוחב מינימלי לכרטיס מוצר */
+  --grid-max-width: 320px;      /* רוחב מקסימלי לכרטיס מוצר */
+  
+  /* Touch-friendly targets */
+  --grid-touch-padding: 8px;    /* padding נוסף למגע */
+}
+
+/* הרשת הראשית */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns, auto-fit), minmax(var(--grid-min-width), var(--grid-max-width)));
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+  
+  /* התאמה לכיוון RTL */
+  direction: rtl;
+  
+  /* אנימציה חלקה לשינויים */
+  transition: all 0.3s ease;
+}
+
+/* מרווחים שונים בין הרכיבים */
+.productGrid.gap-small {
+  gap: var(--grid-gap-small);
+}
+
+.productGrid.gap-medium {
+  gap: var(--grid-gap-medium);
+}
+
+.productGrid.gap-large {
+  gap: var(--grid-gap-large);
+}
+
+/* פריט בודד ברשת */
+.gridItem {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  
+  /* אנימציה לכניסה */
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* אנימציית טעינה */
+.productGrid.loading .gridItem {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.productGrid.loading .gridItem:nth-child(1) { animation: fadeInUp 0.6s ease 0.1s forwards; }
+.productGrid.loading .gridItem:nth-child(2) { animation: fadeInUp 0.6s ease 0.2s forwards; }
+.productGrid.loading .gridItem:nth-child(3) { animation: fadeInUp 0.6s ease 0.3s forwards; }
+.productGrid.loading .gridItem:nth-child(4) { animation: fadeInUp 0.6s ease 0.4s forwards; }
+.productGrid.loading .gridItem:nth-child(5) { animation: fadeInUp 0.6s ease 0.5s forwards; }
+.productGrid.loading .gridItem:nth-child(6) { animation: fadeInUp 0.6s ease 0.6s forwards; }
+.productGrid.loading .gridItem:nth-child(7) { animation: fadeInUp 0.6s ease 0.7s forwards; }
+.productGrid.loading .gridItem:nth-child(8) { animation: fadeInUp 0.6s ease 0.8s forwards; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* מצב ריק - כאשר אין מוצרים */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted, #666);
+  direction: rtl;
+}
+
+.emptyStateContent {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.emptyStateTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary, #333);
+}
+
+.emptyStateDescription {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* התאמות רספונסיביות - מסודרות מהקטן לגדול */
+
+/* מסכים מאוד קטנים - מובייל ננו (0-379px) - כרטיס אחד */
+@media (max-width: 379px) {
+  .productGrid {
+    grid-template-columns: 1fr;
+    --grid-min-width: 100%;
+    --grid-max-width: 100%;
+    justify-content: stretch;
+    gap: var(--grid-gap-small);
+  }
+  
+  .gridItem {
+    padding-bottom: var(--grid-touch-padding);
+  }
+  
+  .emptyState {
+    min-height: 300px;
+    padding: 1rem;
+  }
+  
+  .emptyStateTitle {
+    font-size: 1.1rem;
+  }
+  
+  .emptyStateDescription {
+    font-size: 0.85rem;
+  }
+}
+
+/* מובייל קטן (380px-479px) - כרטיס אחד */
+@media (min-width: 380px) and (max-width: 479px) {
+  .productGrid {
+    grid-template-columns: 1fr;
+    --grid-min-width: 100%;
+    --grid-max-width: 100%;
+    justify-content: stretch;
+    gap: var(--grid-gap-small);
+    padding: 0;
+  }
+  
+  .gridItem {
+    padding-bottom: var(--grid-touch-padding);
+  }
+  
+  .emptyState {
+    min-height: 300px;
+    padding: 1.5rem;
+  }
+  
+  .emptyStateTitle {
+    font-size: 1.25rem;
+  }
+  
+  .emptyStateDescription {
+    font-size: 0.9rem;
+  }
+}
+
+/* מובייל בינוני (480px-639px) - שני כרטיסים */
+@media (min-width: 480px) and (max-width: 639px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    --grid-min-width: auto;
+    --grid-max-width: auto;
+    gap: var(--grid-gap-medium);
+    padding: 8px;
+  }
+  
+  .productGrid.gap-large {
+    gap: var(--grid-gap-medium);
+  }
+}
+
+/* מובייל גדול (640px-767px) - שני כרטיסים */
+@media (min-width: 640px) and (max-width: 767px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    --grid-min-width: auto;
+    --grid-max-width: auto;
+    gap: var(--grid-gap-medium);
+    padding: 12px;
+  }
+  
+  .productGrid.gap-large {
+    gap: var(--grid-gap-medium);
+  }
+}
+
+/* טאבלט קטן (768px-899px) - שלוש כרטיסים */
+@media (min-width: 768px) and (max-width: 899px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+    --grid-min-width: auto;
+    --grid-max-width: auto;
+    gap: var(--grid-gap-medium);
+  }
+}
+
+/* טאבלט (900px-1023px) - שלוש כרטיסים */
+@media (min-width: 900px) and (max-width: 1023px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+    --grid-min-width: 240px;
+    --grid-max-width: 300px;
+    gap: var(--grid-gap-medium);
+  }
+}
+
+/* לפטופ קטן (1024px-1199px) - ארבע כרטיסים */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .productGrid {
+    grid-template-columns: repeat(4, 1fr);
+    --grid-min-width: 220px;
+    --grid-max-width: 280px;
+    gap: var(--grid-gap-medium);
+  }
+}
+
+/* לפטופ בינוני (1200px-1439px) - ארבע כרטיסים */
+@media (min-width: 1200px) and (max-width: 1439px) {
+  .productGrid {
+    grid-template-columns: repeat(4, 1fr);
+    --grid-min-width: 250px;
+    --grid-max-width: 300px;
+    gap: var(--grid-gap-medium);
+  }
+}
+
+/* לפטופ גדול (1440px+) - חמש כרטיסים */
+@media (min-width: 1440px) {
+  .productGrid {
+    grid-template-columns: repeat(5, 1fr);
+    --grid-min-width: 260px;
+    --grid-max-width: 320px;
+    gap: var(--grid-gap-large);
+  }
+}
+
+/* Orientation - landscape mode adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  .productGrid {
+    /* במצב landscape עם גובה נמוך - שתי עמודות לפחות */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  .emptyState {
+    min-height: 200px;
+  }
+}
+
+/* אפקטים נוספים לחוויית משתמש משופרת */
+
+/* הובר על הרשת כולה */
+.productGrid:hover .gridItem {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* פוקוס נגישות */
+.productGrid:focus-within .gridItem {
+  opacity: 0.7;
+}
+
+.productGrid:focus-within .gridItem:focus-within {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+/* מצב טעינה משופר */
+.productGrid.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary-color, #007bff), transparent);
+  animation: loadingBar 2s infinite;
+}
+
+/* עטיפת וירטואליזציה - מאפשרת שכבת שלד מבלי לשבור את הפריסה */
+.virtualizedContainer {
+  position: relative;
+  width: 100%;
+  min-height: 40vh;
+}
+
+/* שכבת שלד לטעינה חוזרת שומרת על יציבות הגובה */
+.skeletonOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--grid-min-width), var(--grid-max-width)));
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.86) 100%);
+}
+
+.skeletonOverlay[data-gap-size="small"] {
+  gap: var(--grid-gap-small);
+}
+
+.skeletonOverlay[data-gap-size="medium"] {
+  gap: var(--grid-gap-medium);
+}
+
+.skeletonOverlay[data-gap-size="large"] {
+  gap: var(--grid-gap-large);
+}
+
+/* אלמנט שלד יחיד המדמה כרטיס מוצר */
+.skeletonItem {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.cardSkeleton {
+  width: 100%;
+  min-height: 360px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(230,230,230,0.6) 20%, rgba(245,245,245,0.95) 40%, rgba(230,230,230,0.6) 60%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes loadingBar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* התאמות למצב עמודות קבוע */
+.productGrid[style*="--grid-columns: 1"] {
+  grid-template-columns: 1fr;
+}
+
+.productGrid[style*="--grid-columns: 2"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.productGrid[style*="--grid-columns: 3"] {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.productGrid[style*="--grid-columns: 4"] {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.productGrid[style*="--grid-columns: 5"] {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.productGrid[style*="--grid-columns: 6"] {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* שליטה בעמודות באמצעות data attribute במקום inline styles */
+.productGrid[data-grid-columns="1"] {
+  grid-template-columns: 1fr;
+}
+
+.productGrid[data-grid-columns="2"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.productGrid[data-grid-columns="3"] {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.productGrid[data-grid-columns="4"] {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.productGrid[data-grid-columns="5"] {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.productGrid[data-grid-columns="6"] {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* הדפסה */
+@media print {
+  .productGrid {
+    display: block;
+    gap: 1rem;
+  }
+  
+  .gridItem {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  
+  .emptyState {
+    display: none;
+  }
+}

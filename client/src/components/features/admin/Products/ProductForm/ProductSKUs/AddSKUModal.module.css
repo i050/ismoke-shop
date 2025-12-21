@@ -1,0 +1,614 @@
+/* ===================================
+   Add SKU Modal Component Styles (Modern Design 2025)
+   =================================== */
+
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, sans-serif;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Helper Banner - הודעת עזר למילוי מראש */
+.helperBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--color-info-background, #e3f2fd);
+  border: 1px solid var(--color-info, #2196f3);
+  border-radius: var(--border-radius-md);
+  color: var(--color-info-text, #0d47a1);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.helperBanner svg {
+  flex-shrink: 0;
+  color: var(--color-info, #2196f3);
+}
+
+.helperBanner span {
+  flex: 1;
+}
+
+/* Field */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--modern-text-secondary, #475569);
+  transition: var(--modern-transition);
+}
+
+.required {
+  color: var(--modern-danger, #ef4444);
+  margin-right: 0.25rem;
+}
+
+/* אזהרה על מאפיין חסר */
+.missingWarning {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  background: rgba(251, 191, 36, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  animation: pulseWarning 2s ease-in-out infinite;
+  cursor: help;
+}
+
+@keyframes pulseWarning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.helperText {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  margin-top: -0.25rem;
+}
+
+/* ===================================
+   SKU Input with Check Button
+   =================================== */
+
+.skuInputWrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.skuInput {
+  flex: 1;
+}
+
+.checkButton {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--modern-primary, #2563eb) 0%, var(--modern-primary-dark, #1e40af) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: var(--modern-transition);
+  white-space: nowrap;
+  font-family: 'Rubik', sans-serif;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.checkButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.checkButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.checkButton:disabled {
+  background-color: var(--color-border);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.availability {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-md);
+  margin-top: -0.25rem;
+}
+
+.availabilitySuccess {
+  background-color: var(--color-success-background);
+  color: var(--color-success);
+}
+
+.availabilityError {
+  background-color: var(--color-danger-background);
+  color: var(--color-danger);
+}
+
+/* ===================================
+   Attributes Section
+   =================================== */
+
+.attributesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  border: 1px dashed var(--color-border);
+}
+
+.sectionTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.attributesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+/* ===================================
+   Color Picker - מוסר (ColorSelect הוא קומפוננטה נפרדת)
+   =================================== */
+
+/* ===================================
+   Checkbox
+   =================================== */
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  /* תמיכה בדפדפנים: user-select דורש פריפיקסים ל-Safari/IE/Firefox */
+  -webkit-user-select: none; /* Safari 3+, iOS Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE10+ / Edge Legacy */
+  user-select: none;
+  padding: 0.75rem;
+  background-color: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  transition: all 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--color-primary-alpha);
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.checkboxLabel span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* ===================================
+   Actions
+   =================================== */
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-background-secondary);
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+
+.addButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addButton:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-primary-alpha);
+}
+
+.addButton:active {
+  transform: translateY(0);
+}
+
+/* ===================================
+   Responsive Design
+   =================================== */
+
+@media (max-width: 768px) {
+  .container {
+    gap: 1rem;
+    padding: 0.25rem;
+    max-height: 80vh;
+  }
+
+  .attributesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .skuInputWrapper {
+    flex-direction: column;
+  }
+
+  .checkButton {
+    width: 100%;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancelButton,
+  .addButton {
+    width: 100%;
+  }
+}
+
+/* ===============================================
+   🆕 בחירת משפחת צבע מהבנק - UX משופר
+   =============================================== */
+
+.colorBankSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: var(--color-background-secondary, #f9fafb);
+  border-radius: var(--border-radius-lg, 12px);
+  border: 2px dashed var(--color-border, #e5e7eb);
+}
+
+.hint {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.loadingState {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  font-size: 0.875rem;
+}
+
+/* גריד משפחות צבעים */
+.colorFamilies {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.colorFamilyBtn {
+  padding: 0.75rem;
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-md, 8px);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.colorFamilyBtn:hover {
+  border-color: var(--color-primary, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.colorFamilyBtn.selected {
+  border-color: var(--color-primary, #3b82f6);
+  background: var(--color-primary-alpha, #eff6ff);
+  font-weight: 600;
+}
+
+.colorSwatch {
+  display: flex;
+  gap: 2px;
+}
+
+.colorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* סקשן בחירת גוונים ספציפיים */
+.variantsSection {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--color-background-light, #f3f4f6);
+  border-radius: var(--border-radius-md, 8px);
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.variantsTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.variants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
+
+.variantBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-sm, 6px);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.variantBtn:hover {
+  border-color: var(--color-primary, #3b82f6);
+  background: var(--color-primary-lightest, #f0f9ff);
+}
+
+.variantBtn.selected {
+  border-color: var(--color-primary, #3b82f6);
+  background: var(--color-primary-alpha, #eff6ff);
+  font-weight: 600;
+}
+
+.variantColor {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--border-radius-sm, 4px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.selectedInfo {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-success-background, #d1fae5);
+  color: var(--color-success-dark, #065f46);
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: 0.9rem;
+}
+
+/* תיבת אזהרה למאפיינים חסרים */
+.warningBox {
+  padding: 1rem;
+  background: var(--color-warning-background, #fef3c7);
+  border: 1px solid var(--color-warning, #f59e0b);
+  border-radius: var(--border-radius-md, 8px);
+  margin-top: 1rem;
+}
+
+.warningBox strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-warning-dark, #92400e);
+}
+
+.warningBox ul {
+  margin: 0;
+  padding-right: 1.5rem;
+  list-style: disc;
+}
+
+.warningBox li {
+  color: var(--color-warning-dark, #92400e);
+}
+
+.warningNote {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+/* ===================================
+   🎨 כפתורי פעולה (Modern Design 2025)
+   =================================== */
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--modern-border-color, #e2e8f0);
+}
+
+.cancelButton {
+  padding: 0.875rem 1.25rem;
+  background: var(--modern-bg-tertiary, #f1f5f9);
+  color: var(--modern-text-primary, #0f172a);
+  border: 2px solid var(--modern-border-color, #e2e8f0);
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: var(--modern-transition);
+  font-family: 'Rubik', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.cancelButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.2);
+  transition: left 0.3s;
+  z-index: 0;
+}
+
+.cancelButton:hover::before {
+  left: 100%;
+}
+
+.cancelButton:hover {
+  background: var(--modern-border-color, #e2e8f0);
+  border-color: var(--modern-text-tertiary, #94a3b8);
+  transform: translateY(-2px);
+  box-shadow: var(--modern-shadow-md);
+}
+
+.cancelButton:active {
+  transform: translateY(0);
+}
+
+.addButton {
+  padding: 0.875rem 1.25rem;
+  background: linear-gradient(135deg, var(--modern-success, #10b981) 0%, var(--modern-success-dark, #059669) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: var(--modern-transition);
+  font-family: 'Rubik', sans-serif;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.addButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.2);
+  transition: left 0.3s;
+  z-index: 0;
+}
+
+.addButton:hover::before {
+  left: 100%;
+}
+
+.addButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.addButton:active {
+  transform: translateY(0);
+}
+
+/* Responsive - התאמה למובייל */
+@media (max-width: 768px) {
+  .colorFamilies {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .variants {
+    grid-template-columns: 1fr;
+  }
+}

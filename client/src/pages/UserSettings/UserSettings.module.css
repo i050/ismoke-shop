@@ -1,0 +1,147 @@
+/* UserSettings.module.css */
+
+.userSettings {
+  min-height: 100vh;
+  background: var(--color-bg-secondary);
+  padding: var(--spacing-2xl) 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.securityCard,
+.accountCard {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.cardTitle {
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-text-primary);
+}
+
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.settingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xl);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.settingInfo {
+  flex: 1;
+}
+
+.settingInfo h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-primary);
+}
+
+.twoFactorStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.statusDot.enabled {
+  background: var(--state-success);
+}
+
+.statusDot.disabled {
+  background: var(--state-error);
+}
+
+.twoFactorActions {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.accountDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.label {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* מודל שינוי סיסמה */
+.passwordForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inputGroup {
+  margin-bottom: 1rem;
+}
+
+.errorText {
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .userSettings {
+    padding: 1rem 0;
+  }
+
+  .settingItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .twoFactorActions {
+    width: 100%;
+  }
+
+  .twoFactorActions button {
+    flex: 1;
+  }
+
+  .detailRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

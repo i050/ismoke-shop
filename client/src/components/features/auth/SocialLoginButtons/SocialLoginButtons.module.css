@@ -1,0 +1,136 @@
+/* SocialLoginButtons.module.css - סטיילים לכפתורי התחברות חברתית */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* כפתור בסיסי */
+.googleButton,
+.appleButton,
+.facebookButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  color: #333;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.googleButton:hover,
+.appleButton:hover,
+.facebookButton:hover {
+  border-color: #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.googleButton:active,
+.appleButton:active,
+.facebookButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* כפתור Google */
+.googleButton {
+  border-color: #dadce0;
+  color: #3c4043;
+}
+
+.googleButton:hover {
+  background-color: #f8f9fa;
+  border-color: #c4c7c5;
+}
+
+/* כפתור Apple */
+.appleButton {
+  border-color: #000;
+  background-color: #000;
+  color: #fff;
+}
+
+.appleButton:hover {
+  background-color: #333;
+  border-color: #333;
+}
+
+/* כפתור Facebook */
+.facebookButton {
+  border-color: #1877f2;
+  background-color: #1877f2;
+  color: #fff;
+}
+
+.facebookButton:hover {
+  background-color: #166fe5;
+  border-color: #166fe5;
+}
+
+/* איקונים */
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* תמיכה ב-RTL */
+[dir="rtl"] .container {
+  direction: rtl;
+}
+
+[dir="rtl"] .googleButton,
+[dir="rtl"] .appleButton,
+[dir="rtl"] .facebookButton {
+  flex-direction: row-reverse;
+}
+
+/* רספונסיביות */
+@media (max-width: 480px) {
+  .container {
+    max-width: 280px;
+    gap: 10px;
+  }
+
+  .googleButton,
+  .appleButton,
+  .facebookButton {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* מצב נגישות - פוקוס */
+.googleButton:focus,
+.appleButton:focus,
+.facebookButton:focus {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+/* אנימציה עדינה */
+.googleButton,
+.appleButton,
+.facebookButton {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

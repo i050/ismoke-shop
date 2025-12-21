@@ -1,0 +1,140 @@
+/* רכיב מחיר מוצר - עיצוב מקצועי ונקי */
+
+.priceContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: inherit;
+}
+
+/* גדלים שונים */
+.small {
+  font-size: 0.875rem;
+  gap: 0.25rem;
+}
+
+.medium {
+  font-size: 1rem;
+  gap: 0.5rem;
+}
+
+.large {
+  font-size: 1.25rem;
+  gap: 0.75rem;
+}
+
+/* מחיר נוכחי (ללא הנחה) */
+.currentPrice {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 1.1em;
+}
+
+/* מחיר מוזל (עם הנחה) - gradient ירוק דינמי */
+.discountedPrice {
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #10b981; /* fallback עבור דפדפנים שלא תומכים background-clip */
+  font-size: 1.1em;
+}
+
+/* מחיר מקורי מחוק - gradient אדום דינמי עם קו חוצה */
+.originalPrice {
+  position: relative;
+  font-weight: 400;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #ef4444; /* fallback עבור דפדפנים שלא תומכים background-clip */
+  font-size: 0.8em; /* קטן יותר */
+}
+
+/* קו חוצה בידיים עם pseudo-element (עובד עם gradient text) */
+.originalPrice::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  transform: translateY(-50%);
+  pointer-events: none; /* לא משפיע על interaction */
+}
+
+/* תג אחוז הנחה */
+.discountBadge {
+  background-color: #e53e3e;
+  color: white;
+  font-size: 0.75em;
+  font-weight: 600;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* שם קבוצת הלקוח - עם gradient זהב למראה premium/exclusive */
+.groupName {
+  /* Gradient זהב - מעבר משמאל ימין לאפקט דינמי */
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #f59e0b; /* fallback עבור דפדפנים שלא תומכים background-clip */
+  
+  /* סטיילינג */
+  font-size: 0.75em;
+  font-weight: 600;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  white-space: nowrap;
+  
+  /* Border זהב עדין */
+  border: 1px solid #fcd34d;
+  background-color: transparent; /* להסיר הרקע כדי לתת את הגרדיאנט */
+}
+
+/* התאמה למובייל */
+@media (max-width: 768px) {
+  .priceContainer {
+    gap: 0.25rem;
+  }
+  
+  .large {
+    font-size: 1.1rem;
+  }
+  
+  .medium {
+    font-size: 0.95rem;
+  }
+  
+  .small {
+    font-size: 0.8rem;
+  }
+}
+
+/* אפקטי hover עדינים */
+.priceContainer:hover .discountedPrice {
+  /* הרזת ירוק בעת hover - gradient יותר עמוק */
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.priceContainer:hover .originalPrice {
+  /* הרזת אדום בעת hover - gradient יותר עמוק */
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.priceContainer:hover .discountBadge {
+  background-color: #c53030;
+}

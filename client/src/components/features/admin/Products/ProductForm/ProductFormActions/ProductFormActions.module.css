@@ -1,0 +1,313 @@
+/* ================================================
+   ProductFormActions Styles
+   סגנונות לסרגל פעולות טופס מוצר
+   ================================================ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* ================================================
+   Warning Banner - אזהרת שינויים שלא נשמרו
+   ================================================ */
+
+.warningBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--color-warning-alpha, rgba(255, 193, 7, 0.1));
+  border: 1px solid var(--color-warning, #ffc107);
+  border-radius: var(--border-radius-md, 8px);
+  color: var(--color-warning-dark, #f57c00);
+  animation: slideDown 0.3s ease-out;
+}
+
+.warningIcon {
+  flex-shrink: 0;
+  color: var(--color-warning, #ffc107);
+}
+
+.warningText {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================================================
+   Validation Errors Banner - באנר שגיאות validation
+   ================================================ */
+
+.validationErrorsBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-error-alpha, rgba(239, 68, 68, 0.08));
+  border: 1px solid var(--color-error, #ef4444);
+  border-radius: var(--border-radius-md, 8px);
+  color: var(--color-error, #ef4444);
+  animation: slideDown 0.3s ease-out;
+}
+
+.errorIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-error, #ef4444);
+}
+
+.errorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.errorsTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-error-dark, #dc2626);
+}
+
+.errorsItems {
+  margin: 0;
+  padding-right: 0.5rem;
+  list-style-type: none;
+}
+
+.errorsItems li {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 0.25rem;
+  color: var(--color-error-dark, #dc2626);
+}
+
+.errorsItems li:last-child {
+  margin-bottom: 0;
+}
+
+/* ================================================
+   Actions Bar - סרגל הכפתורים (Sticky)
+   ================================================ */
+
+.actionsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--color-background, #fff);
+  border-top: 2px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-lg, 12px);
+  
+  /* Sticky positioning */
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  
+  /* Shadow for depth */
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05),
+              0 -2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* ================================================
+   Action Groups - קבוצות כפתורים
+   ================================================ */
+
+.primaryActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.secondaryActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ================================================
+   Tips Section - טיפים מקצועיים
+   ================================================ */
+
+.tips {
+  padding: 1.25rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-info-alpha, rgba(33, 150, 243, 0.08)) 0%,
+    var(--color-info-alpha, rgba(33, 150, 243, 0.04)) 100%
+  );
+  border: 1px solid var(--color-info, #2196f3);
+  border-radius: var(--border-radius-lg, 12px);
+  color: var(--color-text-primary, #1f2937);
+}
+
+.tipsTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-info, #2196f3);
+  margin: 0 0 0.875rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tipsList {
+  margin: 0;
+  padding-right: 1.25rem;
+  list-style-type: decimal;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.tipsList li {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.tipsList li:last-child {
+  margin-bottom: 0;
+}
+
+/* ================================================
+   Responsive Design - תצוגה רספונסיבית
+   ================================================ */
+
+/* Tablets and below (1024px) */
+@media (max-width: 1024px) {
+  .actionsBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .primaryActions,
+  .secondaryActions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .primaryActions {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .secondaryActions {
+    flex-direction: column-reverse;
+    gap: 0.625rem;
+  }
+
+  .warningBanner {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .validationErrorsBanner {
+    padding: 0.875rem 1rem;
+  }
+
+  .errorsTitle {
+    font-size: 0.875rem;
+  }
+
+  .errorsItems li {
+    font-size: 0.8125rem;
+  }
+
+  .tips {
+    padding: 1rem;
+  }
+
+  .tipsTitle {
+    font-size: 0.9375rem;
+  }
+
+  .tipsList li {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Mobile (768px) */
+@media (max-width: 768px) {
+  .actionsBar {
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .primaryActions,
+  .secondaryActions {
+    gap: 0.5rem;
+  }
+
+  .warningBanner {
+    padding: 0.625rem;
+    font-size: 0.8125rem;
+    gap: 0.5rem;
+  }
+
+  .warningIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .validationErrorsBanner {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .errorsTitle {
+    font-size: 0.8125rem;
+  }
+
+  .errorsItems li {
+    font-size: 0.75rem;
+  }
+
+  .tips {
+    padding: 0.875rem;
+  }
+
+  .tipsTitle {
+    font-size: 0.875rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .tipsList {
+    padding-right: 1rem;
+  }
+
+  .tipsList li {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    margin-bottom: 0.375rem;
+  }
+}
+
+/* Small Mobile (480px) */
+@media (max-width: 480px) {
+  .actionsBar {
+    padding: 0.75rem;
+  }
+
+  .tips {
+    padding: 0.75rem;
+  }
+
+  .tipsList {
+    padding-right: 0.875rem;
+  }
+}

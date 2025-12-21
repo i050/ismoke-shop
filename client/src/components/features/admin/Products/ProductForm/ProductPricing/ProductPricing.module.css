@@ -1,0 +1,276 @@
+/* Product Pricing Component Styles */
+/* מטרת הקובץ: עיצוב קומפוננטת התמחור עם preview חזותי */
+
+/* Container ראשי */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: var(--color-background);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* כותרת */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* שדות מחיר */
+.priceFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Preview של ההנחה */
+.discountPreview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.discountPreviewSuccess {
+  background: var(--color-success-background, #d4edda);
+  color: var(--color-success, #28a745);
+  border: 1px solid var(--color-success-alpha, rgba(40, 167, 69, 0.3));
+}
+
+.discountPreviewError {
+  background: var(--color-danger-background, #f8d7da);
+  color: var(--color-danger, #dc3545);
+  border: 1px solid var(--color-danger-alpha, rgba(220, 53, 69, 0.3));
+}
+
+.discountIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.discountMessage {
+  flex: 1;
+}
+
+/* תצוגה חזותית של המחירים */
+.priceDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--color-background-secondary, #f8f9fa);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.priceDisplayHeader {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.priceDisplayBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* מחיר להשוואה (מחיר לפני הנחה) */
+.comparePrice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comparePriceLabel {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.comparePriceValue {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+/* מחיר נוכחי */
+.currentPrice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.currentPriceLabel {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.currentPriceValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary, #007bff);
+}
+
+/* תג חיסכון */
+.savingsBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: var(--color-success, #28a745);
+  color: white;
+  border-radius: var(--border-radius-full, 9999px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  align-self: flex-start;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.savingsText {
+  white-space: nowrap;
+}
+
+/* סקציית טיפים */
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--color-info-background, #d1ecf1);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-info-alpha, rgba(23, 162, 184, 0.3));
+}
+
+.tipsHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-info, #17a2b8);
+}
+
+.tipsHeader svg {
+  flex-shrink: 0;
+}
+
+.tipsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tipsList li {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  padding-right: 1.25rem;
+  position: relative;
+}
+
+.tipsList li::before {
+  content: '•';
+  position: absolute;
+  right: 0;
+  color: var(--color-info, #17a2b8);
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .priceFields {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .priceDisplay {
+    padding: 1rem;
+  }
+
+  .currentPriceValue {
+    font-size: 1.25rem;
+  }
+
+  .tips {
+    padding: 0.875rem;
+  }
+}
+
+/* מצב Disabled */
+.container:has(input:disabled) {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* אנימציות */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.discountPreview {
+  animation: slideIn 0.3s ease;
+}
+
+.priceDisplay {
+  animation: slideIn 0.3s ease;
+}
+
+/* Focus States */
+.formGroup:focus-within {
+  position: relative;
+  z-index: 1;
+}

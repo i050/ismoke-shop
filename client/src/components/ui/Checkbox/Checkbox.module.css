@@ -1,0 +1,112 @@
+/* Checkbox בסיסי עם תמיכה ב-RTL ונגישות */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: inherit;
+  direction: rtl;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.disabledLabel {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.boxWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #3b82f6;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  transition: all 0.18s ease;
+}
+
+.boxChecked {
+  background: #3b82f6;
+  color: white;
+}
+
+.boxIndeterminate {
+  background: #3b82f6;
+}
+
+.checkIcon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.indeterminateBar {
+  width: 10px;
+  height: 2px;
+  background: white;
+  border-radius: 2px;
+}
+
+.text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.required {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.helper {
+  font-size: 0.75rem;
+  color: #6b7280;
+  padding-right: 2px;
+  text-align: right;
+}
+
+.helperDisabled {
+  opacity: 0.6;
+}
+
+/* מצבי פוקוס ונגישות */
+.input:focus + .box,
+.input:focus-visible + .box {
+  outline: 3px solid rgba(59,130,246,0.35);
+  outline-offset: 2px;
+}
+
+/* Hover */
+.label:hover .box:not(.boxChecked):not(.boxIndeterminate) {
+  background: #eff6ff;
+}
+
+/* Disabled */
+.input:disabled + .box {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+  color: #94a3b8;
+}

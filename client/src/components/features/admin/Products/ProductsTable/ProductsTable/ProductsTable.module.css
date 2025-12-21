@@ -1,0 +1,426 @@
+/* ========================================
+    ProductsTable - טבלת מוצרים מלאה
+    Phase 4.5: MVP Table Assembly
+    ======================================== */
+
+/* קונטיינר ראשי - מכיל את כל הטבלה עם רקע לבן, פינות מעוגלות וצל */
+.tableContainer {
+  background: white;
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+  overflow: hidden;
+  margin-top: var(--spacing-lg, 16px);
+}
+
+/* Bulk Actions Bar - סרגל פעולות קבוצתיות עם כפתורים לביטול ומחיקה */
+.bulkActionsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md, 12px) var(--spacing-lg, 16px);
+  background-color: #dbeafe;
+  border-bottom: 1px solid #93c5fd;
+}
+
+/* bulkCount - מציג את מספר הפריטים שנבחרו */
+.bulkCount {
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  color: #1e40af;
+}
+
+/* bulkActions - מכיל את הכפתורים לפעולות קבוצתיות */
+.bulkActions {
+  display: flex;
+  gap: var(--spacing-sm, 8px);
+}
+
+/* bulkDeleteBtn - כפתור מחיקה קבוצתית עם אפקט hover */
+.bulkDeleteBtn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  padding: var(--spacing-xs, 6px) var(--spacing-md, 12px);
+  border-radius: var(--radius-sm, 4px);
+  transition: background-color 0.15s ease;
+}
+
+/* bulkDeleteBtn:hover:not(:disabled) - שינוי צבע רקע בעת hover אם לא מושבת */
+.bulkDeleteBtn:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+/* bulkDeleteBtn:disabled - מצב מושבת עם שקיפות מופחתת */
+.bulkDeleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* bulkCancel - כפתור ביטול עם אפקט hover */
+.bulkCancel {
+  background: none;
+  border: none;
+  color: #1e40af;
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+  border-radius: var(--radius-sm, 4px);
+  transition: background-color 0.15s ease;
+}
+
+/* bulkCancel:hover - שינוי רקע בעת hover */
+.bulkCancel:hover {
+  background-color: #bfdbfe;
+}
+
+/* Wrapper עם scroll horizontal - מאפשר גלילה אופקית לטבלה */
+.tableWrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* טבלה - הגדרת רוחב מלא וקיפול גבולות */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-base, 14px);
+}
+
+/* Header - רקע כהה לכותרת הטבלה עם גבול תחתון */
+.thead {
+  background-color: var(--color-gray-50, #f9fafb);
+  border-bottom: 2px solid var(--color-gray-200, #e5e7eb);
+}
+
+/* thead tr th - עיצוב תאי הכותרת עם יישור ימין וגופן מודגש */
+.thead tr th {
+  padding: var(--spacing-md, 12px);
+  text-align: right;
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-gray-700, #374151);
+  font-size: var(--font-size-sm, 13px);
+  white-space: nowrap;
+}
+
+/* thCheckbox - רוחב קבוע לתיבת סימון בכותרת עם יישור מרכז */
+.thCheckbox {
+  width: 40px;
+  text-align: center !important;
+}
+
+/* thImage - רוחב קבוע לתמונה בכותרת */
+.thImage {
+  width: 80px;
+}
+
+/* thName - רוחב מינימלי לשם המוצר */
+.thName {
+  min-width: 250px;
+}
+
+/* thPrice - רוחב קבוע למחיר עם יישור שמאל */
+.thPrice {
+  width: 100px;
+  text-align: left !important;
+}
+
+/* thStock - רוחב קבוע למלאי */
+.thStock {
+  width: 130px;
+}
+
+/* thStatus - רוחב קבוע לסטטוס עם יישור מרכז */
+.thStatus {
+  width: 100px;
+  text-align: center !important;
+}
+
+/* thSales - רוחב קבוע למכירות עם יישור מרכז */
+.thSales {
+  width: 80px;
+  text-align: center !important;
+}
+
+/* thActions - רוחב קבוע לפעולות עם יישור שמאל */
+.thActions {
+  width: 120px;
+  text-align: left !important;
+}
+
+/* Body - רקע לבן לגוף הטבלה */
+.tbody {
+  background: white;
+}
+
+/* tbody tr - גבול תחתון לשורות עם הסרה מהשורה האחרונה */
+.tbody tr {
+  border-bottom: 1px solid var(--color-gray-200, #e5e7eb);
+}
+
+.tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* ========================================
+    Empty & Error States - מצבי ריק וטעות עם איקונים וטקסט
+    ======================================== */
+
+/* emptyState, errorState - עיצוב מצבי ריק וטעות עם מרכוז וצל */
+.emptyState,
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl, 48px) var(--spacing-xl, 24px);
+  text-align: center;
+  background: white;
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+  margin-top: var(--spacing-lg, 16px);
+}
+
+/* emptyIcon, errorIcon - איקונים עם מרווח תחתון וצבעים שונים */
+.emptyIcon,
+.errorIcon {
+  margin-bottom: var(--spacing-lg, 16px);
+  color: var(--color-gray-400, #9ca3af);
+}
+
+.errorIcon {
+  color: var(--color-error, #ef4444);
+}
+
+/* emptyTitle, errorTitle - כותרות עם גופן מודגש */
+.emptyTitle,
+.errorTitle {
+  font-size: var(--font-size-lg, 18px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-gray-900, #111827);
+  margin-bottom: var(--spacing-sm, 8px);
+}
+
+/* emptyDescription, errorDescription - תיאורים עם רוחב מקסימלי */
+.emptyDescription,
+.errorDescription {
+  font-size: var(--font-size-base, 14px);
+  color: var(--color-gray-600, #6b7280);
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* ========================================
+    Loading Skeleton - אנימציות שלד לטעינה
+    ======================================== */
+
+/* skeletonRow - שורה עם אנימציית pulse */
+.skeletonRow {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* skeleton - רקע עם אנימציית shimmer */
+.skeleton {
+  background: linear-gradient(
+     90deg,
+     #f3f4f6 0%,
+     #e5e7eb 50%,
+     #f3f4f6 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm, 4px);
+}
+
+/* skeletonImage - תמונה שלד עם גודל ופינות מעוגלות */
+.skeletonImage {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-md, 8px);
+}
+
+/* Utility classes for skeleton sizes used in the table skeleton rows */
+.skel_16_16 { width: 16px; height: 16px; }
+.skel_200_16 { width: 200px; height: 16px; }
+.skel_150_14 { width: 150px; height: 14px; margin-top: 4px; }
+.skel_60_16 { width: 60px; height: 16px; }
+.skel_80_16 { width: 80px; height: 16px; }
+.skel_60_24 { width: 60px; height: 24px; }
+.skel_30_16 { width: 30px; height: 16px; }
+.skel_80_32 { width: 80px; height: 32px; }
+
+/* keyframes shimmer - אנימציית הזזת רקע */
+@keyframes shimmer {
+  0% {
+     background-position: 200% 0;
+  }
+  100% {
+     background-position: -200% 0;
+  }
+}
+
+/* keyframes pulse - אנימציית שקיפות */
+@keyframes pulse {
+  0%, 100% {
+     opacity: 1;
+  }
+  50% {
+     opacity: 0.7;
+  }
+}
+
+/* תאים בשורת skeleton - ריפוד ויישור אנכי לתאי השלד */
+.skeletonRow .cellCheckbox,
+.skeletonRow .cellImage,
+.skeletonRow .cellName,
+.skeletonRow .cellPrice,
+.skeletonRow .cellStock,
+.skeletonRow .cellStatus,
+.skeletonRow .cellSales,
+.skeletonRow .cellActions {
+  padding: var(--spacing-md, 12px);
+  vertical-align: middle;
+}
+
+/* skeletonRow .cellName - פריסה עמודה עם מרווחים */
+.skeletonRow .cellName {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 4px);
+}
+
+/* ========================================
+    Responsive - מובייל - התאמות למסכים קטנים
+    ======================================== */
+
+/* @media (max-width: 768px) - התאמות לטאבלטים ומובייל - תצוגת כרטיסים */
+@media (max-width: 768px) {
+  /* padding לקונטיינר בטאבלט */
+  .tableContainer {
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    padding: 0 var(--spacing-md, 12px);
+  }
+
+  /* הסרת overflow ממכיל הטבלה */
+  .tableWrapper {
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+
+  /* הסתרת ה-thead בטאבלט ומובייל */
+  .thead {
+    display: none !important;
+  }
+
+  .table {
+     display: block; /* הפיכת הטבלה לבלוק לתצוגת כרטיסים */
+     width: 100%;
+  }
+
+  /* tbody - כרטיסים בעמודה אחת */
+  .tbody {
+    display: block;
+    width: 100%;
+  }
+
+  /* הסתרת עמודת checkbox במובייל */
+  .thCheckbox {
+    display: none;
+  }
+
+  /* הסתרת עמודת מכירות במובייל */
+  .thSales {
+    display: none;
+  }
+
+  /* התאמת רוחב עמודות */
+  .thImage {
+    width: 60px;
+  }
+
+  .thName {
+    min-width: 150px;
+  }
+
+  .thPrice {
+    width: 80px;
+  }
+
+  .thStock {
+    width: 100px;
+  }
+
+  .thActions {
+    width: 80px;
+  }
+
+  .bulkActionsBar {
+     padding: var(--spacing-sm, 8px) var(--spacing-md, 12px);
+  }
+
+  .bulkCount {
+     font-size: var(--font-size-xs, 12px);
+  }
+
+  .emptyState,
+  .errorState {
+     padding: var(--spacing-2xl, 32px) var(--spacing-lg, 16px);
+  }
+
+  .emptyIcon,
+  .errorIcon {
+     transform: scale(0.8);
+  }
+
+  .emptyTitle,
+  .errorTitle {
+     font-size: var(--font-size-base, 14px);
+  }
+
+  .emptyDescription,
+  .errorDescription {
+     font-size: var(--font-size-sm, 13px);
+  }
+}
+
+/* @media (max-width: 480px) - התאמות למובייל קטן - תצוגת כרטיסים */
+@media (max-width: 480px) {
+  .table {
+     min-width: unset;
+     font-size: var(--font-size-sm, 13px);
+     /* הפיכת הטבלה לתצוגת בלוקים */
+     display: block;
+  }
+
+  /* הסתרת כותרות הטבלה */
+  .thead {
+    display: none;
+  }
+
+  /* הגוף יהפוך לרשימה אנכית */
+  .tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tbody tr {
+    border-bottom: none;
+  }
+
+  .tableWrapper {
+    overflow-x: visible;
+  }
+
+  /* הסתרת עמודות בכותרת */
+  .thCheckbox,
+  .thSales,
+  .thImage {
+    display: none;
+  }
+}

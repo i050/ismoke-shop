@@ -1,0 +1,810 @@
+/* CheckoutPage Styles - עיצוב עמוד השלמת הזמנה */
+/* משתמש ב-design-tokens מהפרויקט לעקביות */
+
+/* =====================================
+   מיכל ראשי
+===================================== */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  min-height: 70vh;
+}
+
+/* =====================================
+   כותרת ושלבים
+===================================== */
+
+.header {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xl) 0;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.stepIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-normal);
+}
+
+.stepIndicator.active {
+  background: var(--primary);
+  color: var(--color-text-inverse);
+}
+
+.stepIndicator.completed {
+  background: var(--success);
+  color: var(--color-text-inverse);
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.stepLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.stepDivider {
+  width: 2rem;
+  height: 2px;
+  background: var(--border);
+}
+
+/* =====================================
+   שגיאה
+===================================== */
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  margin-bottom: var(--spacing-xl);
+}
+
+.errorIcon {
+  font-size: var(--font-size-xl);
+  flex-shrink: 0;
+}
+
+.errorClose {
+  margin-right: auto;
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  font-size: var(--font-size-base);
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+.errorClose:hover {
+  opacity: 1;
+}
+
+/* =====================================
+   תוכן ראשי - Grid
+===================================== */
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: var(--spacing-2xl);
+  align-items: start;
+}
+
+/* =====================================
+   פאנל טופס
+===================================== */
+
+.formPanel {
+  min-height: 400px;
+}
+
+.formSection {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xl) 0;
+}
+
+.sectionIcon {
+  font-size: var(--font-size-2xl);
+}
+
+/* =====================================
+   טופס
+===================================== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.required {
+  color: var(--danger);
+}
+
+.input,
+.textarea {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  transition: all var(--transition-fast);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input.inputError,
+.textarea.inputError {
+  border-color: var(--danger);
+}
+
+.input.inputError:focus,
+.textarea.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.fieldError {
+  font-size: var(--font-size-xs);
+  color: var(--danger);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--border);
+}
+
+/* =====================================
+   סיכום כתובת
+===================================== */
+
+.addressSummary {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.addressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.addressHeader h3 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.editButton {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  padding: 0;
+}
+
+.editButton:hover {
+  text-decoration: underline;
+}
+
+.addressText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* =====================================
+   Mock Payment Notice
+===================================== */
+
+.mockPaymentNotice {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.2));
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xl);
+}
+
+.noticeIcon {
+  font-size: var(--font-size-2xl);
+  flex-shrink: 0;
+}
+
+.noticeContent h4 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: #92400e;
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.noticeContent p {
+  font-size: var(--font-size-xs);
+  color: #a16207;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* =====================================
+   אפשרות הזמנה ללא תשלום
+===================================== */
+
+.unpaidOrderOption {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.15));
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xl);
+}
+
+.unpaidOrderIcon {
+  font-size: var(--font-size-2xl);
+  flex-shrink: 0;
+}
+
+.unpaidOrderContent {
+  flex: 1;
+}
+
+.unpaidOrderContent h4 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.unpaidOrderContent p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.5;
+}
+
+.unpaidOrderButton {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.unpaidOrderButton:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* =====================================
+   פאנל סיכום
+===================================== */
+
+.summaryPanel {
+  position: sticky;
+  top: var(--spacing-2xl);
+}
+
+.summaryCard {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.summaryTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xl) 0;
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+/* רשימת פריטים */
+.summaryItems {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.itemImage {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.itemImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+}
+
+.itemQuantity {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: 50%;
+}
+
+.itemDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemVariant {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.itemPrice {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+/* פירוט מחירים */
+.summaryTotals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.summaryDivider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--spacing-sm) 0;
+}
+
+.summaryTotal {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.freeShipping {
+  color: var(--success);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Phase 6.0: הנחת סף */
+.thresholdDiscount {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.05));
+  margin: 0 calc(-1 * var(--spacing-lg));
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: 8px;
+}
+
+.thresholdDiscountLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--success);
+  font-weight: var(--font-weight-semibold);
+}
+
+.thresholdDiscount span:last-child {
+  color: var(--success);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Trust badges */
+.trustBadges {
+  display: flex;
+  justify-content: space-around;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--border);
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+.badgeIcon {
+  font-size: var(--font-size-xl);
+}
+
+/* =====================================
+   מצבים מיוחדים
+===================================== */
+
+/* עגלה ריקה */
+.emptyCart {
+  text-align: center;
+  padding: var(--spacing-4xl) var(--spacing-2xl);
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.emptyCart h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.emptyCart p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacing-xl) 0;
+}
+
+/* מסך עיבוד */
+.processing {
+  text-align: center;
+  padding: var(--spacing-4xl) var(--spacing-2xl);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto var(--spacing-xl);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.processing h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.processing p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+/* =====================================
+   רספונסיביות
+===================================== */
+
+@media (max-width: 1024px) {
+  .content {
+    grid-template-columns: 1fr 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-lg);
+  }
+  
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .steps {
+    overflow-x: auto;
+    padding-bottom: var(--spacing-sm);
+  }
+  
+  .content {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+  
+  .summaryPanel {
+    position: static;
+    order: -1; /* סיכום מופיע קודם במובייל */
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .formActions {
+    flex-direction: column-reverse;
+  }
+  
+  .formActions button {
+    width: 100%;
+  }
+  
+  .trustBadges {
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .stepLabel {
+    display: none;
+  }
+  
+  .stepIndicator {
+    padding: var(--spacing-sm);
+  }
+  
+  .summaryItems {
+    max-height: 200px;
+  }
+}
+
+/* ==========================
+   שגיאת מלאי - Stock Error Banner
+========================== */
+
+.stockErrorBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.95) 0%, rgba(254, 202, 202, 0.9) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  margin-bottom: var(--spacing-xl);
+  animation: slideInDown 0.3s ease-out;
+  direction: rtl;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stockErrorContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stockErrorHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b91c1c;
+}
+
+.stockErrorTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.stockErrorMessage {
+  margin: 0;
+  color: #991b1b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.stockErrorHint {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 0.875rem;
+}
+
+.stockErrorActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .stockErrorBanner {
+    padding: 16px 18px;
+  }
+  
+  .stockErrorTitle {
+    font-size: 1rem;
+  }
+  
+  .stockErrorActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* =====================================
+   מודל עדכון פרטי פרופיל
+===================================== */
+
+.updateProfileModal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.updateProfileText {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.updateProfileDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.updateProfileItem {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.updateProfileItem strong {
+  color: var(--color-text-secondary);
+  margin-left: var(--spacing-sm);
+}
+
+.updateProfileActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+@media (max-width: 480px) {
+  .updateProfileActions {
+    flex-direction: column-reverse;
+  }
+  
+  .updateProfileActions button {
+    width: 100%;
+  }
+}

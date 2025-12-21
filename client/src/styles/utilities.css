@@ -1,0 +1,558 @@
+/* ========================================
+   Utilities - כיתות עזר
+   ======================================== */
+
+/* ==================== Cards ==================== */
+
+.card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-hover);
+}
+
+.card-compact {
+  padding: var(--spacing-md);
+}
+
+.card-large {
+  padding: var(--spacing-2xl);
+}
+
+/* ==================== Containers ==================== */
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.container-sm {
+  max-width: 768px;
+}
+
+.container-lg {
+  max-width: 1600px;
+}
+
+.section {
+  padding: var(--spacing-3xl) 0;
+}
+
+.section-sm {
+  padding: var(--spacing-xl) 0;
+}
+
+.section-lg {
+  padding: var(--spacing-5xl) 0;
+}
+
+/* ==================== Buttons ==================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-secondary {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--border-hover);
+}
+
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-success:hover {
+  background: var(--success-hover);
+  box-shadow: var(--shadow-success);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: var(--danger-hover);
+  box-shadow: var(--shadow-danger);
+}
+
+.btn-sm {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.btn-lg {
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  font-size: var(--font-size-lg);
+}
+
+.btn-disabled,
+.btn:disabled {
+  background: var(--color-bg-disabled);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+
+/* ==================== Text Utilities ==================== */
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+/* ==================== Spacing Utilities ==================== */
+
+.m-0 { margin: 0; }
+.mt-1 { margin-top: var(--spacing-sm); }
+.mt-2 { margin-top: var(--spacing-md); }
+.mt-3 { margin-top: var(--spacing-lg); }
+.mt-4 { margin-top: var(--spacing-xl); }
+.mb-1 { margin-bottom: var(--spacing-sm); }
+.mb-2 { margin-bottom: var(--spacing-md); }
+.mb-3 { margin-bottom: var(--spacing-lg); }
+.mb-4 { margin-bottom: var(--spacing-xl); }
+
+.p-0 { padding: 0; }
+.p-1 { padding: var(--spacing-sm); }
+.p-2 { padding: var(--spacing-md); }
+.p-3 { padding: var(--spacing-lg); }
+.p-4 { padding: var(--spacing-xl); }
+
+/* ==================== Display Utilities ==================== */
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-1 { gap: var(--spacing-sm); }
+.gap-2 { gap: var(--spacing-md); }
+.gap-3 { gap: var(--spacing-lg); }
+.gap-4 { gap: var(--spacing-xl); }
+
+.grid {
+  display: grid;
+}
+
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ==================== States ==================== */
+
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  visibility: visible;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+/* ==================== Admin Utility Classes (תאימות לאחור) ==================== */
+
+/* Global Utility Classes */
+.titleIconSquare {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-cyan));
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
+}
+
+/* Placeholder utilities */
+.placeholderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-2xl);
+}
+
+.placeholderIcon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+}
+
+.placeholderTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.placeholderSubtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-style: italic;
+}
+
+.comingSoon {
+  margin-top: var(--spacing-md);
+  padding: 0.35rem 0.9rem;
+  background: linear-gradient(90deg, rgba(59,130,246,0.12), rgba(6,182,212,0.12));
+  color: var(--color-brand-blue);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.featureBox {
+  margin-top: var(--spacing-lg);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+}
+
+.featureBoxTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.titleWithBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.devBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Admin card utilities */
+.admin-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-card-hover {
+  transition: all var(--transition-normal);
+}
+
+.admin-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-medium);
+}
+
+/* ========================================
+   Responsive Utilities - כיתות עזר רספונסיביות
+   ======================================== */
+
+/* ==================== Desktop Only ==================== */
+/* נראה רק במסכים גדולים מ-768px */
+@media (max-width: 768px) {
+  .hide-tablet,
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* ==================== Tablet & Below (עד 768px) ==================== */
+@media (max-width: 768px) {
+  /* הצגה/הסתרה */
+  .show-tablet {
+    display: block !important;
+  }
+  
+  .show-tablet-flex {
+    display: flex !important;
+  }
+  
+  /* רוחב מלא */
+  .full-width-tablet {
+    width: 100% !important;
+  }
+  
+  /* יישור טקסט */
+  .text-center-tablet {
+    text-align: center !important;
+  }
+  
+  /* Flexbox */
+  .flex-col-tablet {
+    flex-direction: column !important;
+  }
+  
+  .flex-wrap-tablet {
+    flex-wrap: wrap !important;
+  }
+  
+  /* Gap */
+  .gap-sm-tablet {
+    gap: var(--spacing-sm) !important;
+  }
+}
+
+/* ==================== Mobile Only (עד 480px) ==================== */
+@media (max-width: 480px) {
+  /* הצגה/הסתרה */
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .show-mobile {
+    display: block !important;
+  }
+  
+  .show-mobile-flex {
+    display: flex !important;
+  }
+  
+  /* רוחב מלא */
+  .full-width-mobile {
+    width: 100% !important;
+  }
+  
+  /* יישור טקסט */
+  .text-center-mobile {
+    text-align: center !important;
+  }
+  
+  .text-right-mobile {
+    text-align: right !important;
+  }
+  
+  /* Flexbox */
+  .flex-col-mobile {
+    flex-direction: column !important;
+  }
+  
+  .justify-center-mobile {
+    justify-content: center !important;
+  }
+  
+  .items-center-mobile {
+    align-items: center !important;
+  }
+  
+  /* Spacing */
+  .gap-sm-mobile {
+    gap: var(--spacing-sm) !important;
+  }
+  
+  .gap-xs-mobile {
+    gap: var(--spacing-xs) !important;
+  }
+  
+  .p-sm-mobile {
+    padding: var(--spacing-sm) !important;
+  }
+  
+  .p-xs-mobile {
+    padding: var(--spacing-xs) !important;
+  }
+  
+  .m-0-mobile {
+    margin: 0 !important;
+  }
+}
+
+/* ==================== Touch-Friendly Targets ==================== */
+/* כפתורים ואלמנטים אינטראקטיביים ידידותיים למגע */
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+}
+
+.touch-target-comfortable {
+  min-width: var(--touch-target-comfortable);
+  min-height: var(--touch-target-comfortable);
+}
+
+/* ==================== Mobile-First Visibility ==================== */
+/* מוסתר כברירת מחדל, נראה רק במובייל */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 480px) {
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .mobile-only-flex {
+    display: flex !important;
+  }
+}
+
+/* ==================== Safe Area (לאייפון X ומעלה) ==================== */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* תמיכה מלאה ב-notch (iPhone ו-Android) */
+.safe-area-all {
+  padding-top: max(env(safe-area-inset-top), 12px);
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ==================== Laptop Only (769-1024px) ==================== */
+/* שימושי להסתרת אלמנטים בטווח הביניים */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .hide-laptop {
+    display: none !important;
+  }
+  
+  .show-laptop {
+    display: block !important;
+  }
+  
+  .show-laptop-flex {
+    display: flex !important;
+  }
+}
+
+/* ==================== Large Desktop Only (מעל 1440px) ==================== */
+/* שימושי למסכי 4K ו-ultrawide */
+@media (min-width: 1441px) {
+  .show-large-desktop {
+    display: block !important;
+  }
+  
+  .show-large-desktop-flex {
+    display: flex !important;
+  }
+  
+  .hide-large-desktop {
+    display: none !important;
+  }
+}
+
+/* ==================== Orientation Utilities ==================== */
+/* שימושי לגלריות תמונות ווידאו במובייל */
+@media (orientation: portrait) {
+  .hide-portrait {
+    display: none !important;
+  }
+  
+  .show-portrait {
+    display: block !important;
+  }
+}
+
+@media (orientation: landscape) {
+  .hide-landscape {
+    display: none !important;
+  }
+  
+  .show-landscape {
+    display: block !important;
+  }
+}

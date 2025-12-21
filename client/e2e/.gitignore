@@ -1,0 +1,5 @@
+# קבצי Playwright E2E Testing
+test-results/
+playwright-report/
+playwright/.cache/
+e2e/screenshots/

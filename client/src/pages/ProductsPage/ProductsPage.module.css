@@ -1,0 +1,112 @@
+/* פריסת עמוד מוצרים: סיידבר פתוח מימין + תוכן ממלא את השאר (מבוסס flex) */
+.productsLayout {
+  display: flex; /* שתי עמודות: content + sidebar */
+  gap: 24px;
+  padding: 16px;
+  min-height: calc(100vh - 72px); /* מלא מתחת להדר */
+  box-sizing: border-box;
+}
+
+/* אזור פאנל הסינון - נשאר גלוי אך לא fixed מבחינת פריסת רוחב */
+.filtersArea {
+  position: sticky; /* נשאר גלוי כאשר גוללים, נשאר בתוך ה-flow */
+  top: 88px; /* רווח מהדר */
+  width: 280px;
+  max-height: calc(100vh - 104px);
+  overflow-y: auto; /* גלילה פנימית כשהתוכן ארוך */
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  z-index: 10; /* מעל התוכן בהתחשב ב-stacking context */
+  transition: var(--transition-normal);
+}
+
+/* אזור התוכן הראשי - יתפוס את השטח שנותר אחרי הסיידבר */
+.contentArea {
+  flex: 1;          /* תופס את השטח שנותר */
+  min-width: 0;     /* חשוב עבור children עם long content */
+  box-sizing: border-box;
+  padding-left: 8px; /* נשימה פנימית קטנה מצד השמאל הוויזואלי */
+}
+
+/* מצבי loading ו-error */
+.loadingState,
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  min-height: 400px;
+  padding: var(--spacing-3xl);
+}
+
+.loadingIcon {
+  color: var(--primary);
+  animation: pulse 2s infinite;
+}
+
+.errorIcon {
+  color: var(--danger);
+}
+
+.retryButton {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.retryButton:hover {
+  background: var(--primary-hover);
+}
+
+/* מידע על תוצאות */
+.resultsInfo {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-sm) 0;
+}
+
+/* Wrapper around the product grid so the refresh overlay can be absolutely positioned */
+.gridWrapper {
+  position: relative;
+}
+
+/* Overlay shown during background refreshing to avoid full-screen loading flash */
+.refreshOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* רספונסיביות: במסכים קטנים הפאנל יעבור ל־drawer/יוסתר */
+@media (max-width: 992px) {
+  .productsLayout {
+    display: block; /* החלפת פריסה לשורתית על מנת להציג תוכן מלא לפני הפאנל */
+    padding-right: 16px;
+  }
+
+  .filtersArea {
+    display: none; /* יוחלף ב-Drawer במובייל */
+  }
+
+  .contentArea {
+    width: 100%;
+    padding-left: 0;
+  }
+}

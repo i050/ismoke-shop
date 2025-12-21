@@ -1,0 +1,376 @@
+/* עיצוב כרטיסיות מידע המוצר - מחקה בדיוק את ה-HTML המצורף */
+
+.tabsContainer {
+  width: 100%;
+  max-width: 100%; /* מגביל לרוחב ההורה */
+  margin-top: 40px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-sizing: border-box;
+  overflow: hidden; /* מניעת גלישה */
+}
+
+/* כותרות הכרטיסיות */
+.tabHeaders {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+  overflow-x: auto;
+}
+
+.tabHeader {
+  flex: 1;
+  min-width: 120px;
+  padding: 15px 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabHeader:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.tabHeaderActive {
+  background: white;
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+/* תוכן הכרטיסיות */
+.tabPanel {
+  min-height: 300px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.tabContent {
+  padding: 30px;
+  line-height: 1.6;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* עיצוב תיאור המוצר */
+.description {
+  margin-bottom: 25px;
+  font-size: 16px;
+  color: #333;
+}
+
+.features {
+  margin-top: 25px;
+}
+
+.featuresTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.featuresList li {
+  position: relative;
+  padding: 8px 0 8px 20px;
+  color: #555;
+}
+
+.featuresList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  color: #28a745;
+  font-weight: bold;
+}
+
+/* עיצוב מפרט טכני */
+.specifications {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.specRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.specLabel {
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.specValue {
+  color: #666;
+  text-align: left;
+  flex: 1;
+}
+
+/* הודעה כאשר אין מפרט טכני */
+.noSpecs {
+  color: #999;
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.specDivider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 20px 0;
+}
+
+.specSectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 15px 0 10px 0;
+}
+
+/* עיצוב ביקורות */
+.reviewsContainer {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.reviewsSummary {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.averageRating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.ratingNumber {
+  font-size: 36px;
+  font-weight: bold;
+  color: #333;
+}
+
+.ratingStars {
+  display: flex;
+  gap: 4px;
+}
+
+.star {
+  color: #ddd;
+  font-size: 20px;
+}
+
+.star.filled {
+  color: #ffd700;
+}
+
+.totalReviews {
+  font-size: 14px;
+  color: #666;
+}
+
+/* רשימת ביקורות */
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.review {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.reviewerName {
+  font-weight: 600;
+  color: #333;
+}
+
+.reviewRating {
+  display: flex;
+  gap: 2px;
+}
+
+.reviewStar {
+  color: #ddd;
+  font-size: 14px;
+}
+
+.reviewStar.filled {
+  color: #ffd700;
+}
+
+.reviewDate {
+  font-size: 12px;
+  color: #999;
+  margin-right: auto;
+}
+
+.reviewText {
+  color: #555;
+  line-height: 1.6;
+}
+
+/* כפתור כתיבת ביקורת */
+.writeReview {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.writeReviewButton {
+  padding: 12px 24px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.writeReviewButton:hover {
+  background: #0056b3;
+}
+
+/* עיצוב משלוח והחזרות */
+.shippingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.infoSection {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.infoTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.infoList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.infoList li {
+  position: relative;
+  padding-right: 20px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.infoList li::before {
+  content: '•';
+  position: absolute;
+  right: 0;
+  color: #007bff;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tabContent {
+    padding: 20px;
+  }
+  
+  .tabHeader {
+    padding: 12px 15px;
+    font-size: 13px;
+    min-width: 100px;
+  }
+  
+  .reviewHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .reviewDate {
+    margin-right: 0;
+  }
+  
+  .shippingInfo {
+    gap: 20px;
+  }
+  
+  .infoSection {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabHeaders {
+    flex-direction: column;
+  }
+  
+  .tabHeader {
+    min-width: auto;
+    text-align: center;
+  }
+  
+  .specRow {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .specValue {
+    text-align: right;
+  }
+}

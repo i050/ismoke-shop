@@ -1,0 +1,102 @@
+# ====================================
+# Dependencies
+# ====================================
+node_modules/
+**/node_modules/
+
+# Lock files - Railway צריך אותם!
+# package-lock.json מאפשר reproducible builds
+# ולכן לא נוסיף אותו ל-gitignore
+
+# ====================================
+# Environment Variables
+# ====================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+**/.env
+**/.env.local
+
+# ====================================
+# Logs
+# ====================================
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ====================================
+# Build Outputs
+# ====================================
+dist/
+build/
+**/dist/
+**/build/
+dist-ssr/
+*.local
+
+# ====================================
+# IDE & Editors
+# ====================================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.swn
+
+# ====================================
+# OS Files
+# ====================================
+.DS_Store
+Thumbs.db
+
+# ====================================
+# Testing
+# ====================================
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# ====================================
+# Temporary Files
+# ====================================
+tmp/
+temp/
+*.tmp
+.cache/
+
+# ====================================
+# Database & Uploads
+# ====================================
+*.dump
+*.sql
+uploads/
+public/uploads/
+
+# ====================================
+# Documentation (keep plans in repo)
+# ====================================
+# אבל לא נוסיף קבצי TODO אישיים
+todo_state.json
+newtodo
+todo_dummy
+.todo_list
+
+# ====================================
+# Temporary & Personal Files
+# ====================================
+tmp.txt
+notes.txt
+abc
+todo.txt
+todo.md
+todoList
+todoList.md

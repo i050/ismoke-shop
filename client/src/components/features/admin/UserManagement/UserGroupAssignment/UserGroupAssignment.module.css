@@ -1,0 +1,231 @@
+/* סטיילים לרכיב שיוך משתמש לקבוצה */
+
+.container {
+  padding: 24px;
+  max-width: 500px;
+}
+
+.userInfo {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.userName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.userEmail {
+  color: #6b7280;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.currentGroup {
+  color: #374151;
+  margin: 8px 0 0 0;
+  font-size: 14px;
+}
+
+.groupName {
+  font-weight: 500;
+  color: #1e40af;
+}
+
+.error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  margin-bottom: 16px;
+}
+
+.assignContent h4,
+.removeContent h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.groupsList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.groupItem {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.groupItem:hover {
+  background: #f9fafb;
+}
+
+.groupItem.selected {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+}
+
+.groupItem:last-child {
+  border-bottom: none;
+}
+
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.groupName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.discount {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.groupDescription {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+.groupStats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.selectedGroupInfo {
+  padding: 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.selectedGroupInfo h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0 0 4px 0;
+}
+
+.selectedGroupInfo p {
+  color: #3730a3;
+  font-size: 14px;
+  margin: 0;
+}
+
+.removeContent {
+  margin-bottom: 24px;
+}
+
+.warning {
+  padding: 16px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+}
+
+.warning h4 {
+  color: #d97706;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.warning p {
+  color: #92400e;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.confirmation {
+  margin-bottom: 24px;
+}
+
+.confirmInput {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.confirmInput label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.confirmField {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.confirmField:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.loading {
+  text-align: center;
+  padding: 32px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* רספונסיביות */
+@media (max-width: 640px) {
+  .container {
+    padding: 16px;
+  }
+
+  .userInfo {
+    padding: 12px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .groupHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

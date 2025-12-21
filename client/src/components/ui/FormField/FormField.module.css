@@ -1,0 +1,63 @@
+/* FormField.module.css - סטיילים לרכיב FormField */
+
+/* Container בסיסי של FormField */
+.formField {
+  /* תצוגה כ-block element מלא */
+  display: block;
+  width: 100%;
+  
+  /* ריווח בין שדות בטופס */
+  margin-bottom: 1rem;
+  
+  /* מיקום יחסי לאלמנטים מוחלטים בתוכו */
+  position: relative;
+}
+
+/* מצב פוקוס על כל השדה */
+.formField:focus-within {
+  /* יכול להוסיף אפקטים כאשר השדה בפוקוס */
+}
+
+/* התאמה למכשירים קטנים (Mobile First) */
+@media (max-width: 768px) {
+  .formField {
+    /* ריווח קטן יותר במובייל */
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* התאמה למכשירים בינוניים (Tablet) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .formField {
+    /* ריווח סטנדרטי בטאבלט */
+    margin-bottom: 1rem;
+  }
+}
+
+/* התאמה למכשירים גדולים (Desktop) */
+@media (min-width: 1025px) {
+  .formField {
+    /* ריווח מעט גדול יותר בדסקטופ */
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* תמיכה ב-RTL (כיוון מימין לשמאל) */
+[dir="rtl"] .formField {
+  /* ההתנהגות זהה בשני הכיוונים */
+  /* Input component כבר מטפל ב-RTL */
+}
+
+/* מצבים מיוחדים */
+.formField--error {
+  /* ניתן להוסיף סטיילים נוספים למצב שגיאה כאן */
+}
+
+.formField--disabled {
+  /* ניתן להוסיף סטיילים נוספים למצב מושבת כאן */
+  opacity: 0.6;
+}
+
+.formField--required {
+  /* ניתן להוסיף סטיילים נוספים לשדות חובה כאן */
+}

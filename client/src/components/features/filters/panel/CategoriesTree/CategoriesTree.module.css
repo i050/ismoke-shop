@@ -1,0 +1,71 @@
+.tree { display:flex; flex-direction:column; gap:10px; background: #fff; border-radius:10px; padding:10px; box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
+.headerRow { display:flex; justify-content:space-between; align-items:center; }
+.title { font-size:14px; font-weight:700; }
+.headerControls { display:flex; align-items:center; gap:8px; }
+.clearBtn { background:transparent; border:1px solid #e6e6e6; padding:6px 8px; font-size:13px; cursor:pointer; border-radius:8px; color:#374151; }
+.clearBtn:disabled { opacity:.45; cursor:default; }
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+.children {
+	margin-top: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+.row { display:flex; align-items:center; gap:8px; }
+
+/* שם קטגוריה - קליקבילי לפתיחה/סגירה */
+.categoryName {
+  flex: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* אייקון חץ לפתיחה/סגירה */
+.expandIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 2px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.expandIcon:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+/* עומקים */
+.depth0 { 
+  padding-right: 0; 
+}
+.depth1 { 
+  padding-right: 20px; 
+  border-right: 2px solid #e2e8f0;
+  margin-right: 8px;
+}
+.depth2 { 
+  padding-right: 40px; 
+}
+.state { font-size:13px; color:#6b7280; }
+.nodeLabel { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; padding: 6px; width: 100%; border-radius:6px; }
+.nodeLabel:hover { background: #f8fafc; }
+
+/* תוויות ברמה 1 (תת-קטגוריות) */
+.depth1 .nodeLabel {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+.checkbox { margin: 0; width:16px; height:16px; }

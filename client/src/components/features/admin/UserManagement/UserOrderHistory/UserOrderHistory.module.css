@@ -1,0 +1,356 @@
+/* סטיילים לרכיב היסטוריית הזמנות של משתמש - Admin View */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* מצב טעינה */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: #6b7280;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* מצב שגיאה */
+.error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* כותרת */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerTitle h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.totalCount {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* סטטיסטיקות */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.statCardSuccess {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.statIcon {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.statCardSuccess .statIcon {
+  color: #16a34a;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* פילטרים */
+.filters {
+  display: flex;
+  gap: 12px;
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* מצב ריק */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #374151;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.emptyIcon {
+  color: #d1d5db;
+}
+
+/* טבלת הזמנות */
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ordersTable th {
+  padding: 12px;
+  text-align: right;
+  font-weight: 600;
+  color: #374151;
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.ordersTable td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.orderRow:hover {
+  background: #f9fafb;
+}
+
+.orderNumber {
+  font-weight: 500;
+  color: #3b82f6;
+}
+
+.orderDate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+}
+
+.orderItems {
+  color: #6b7280;
+}
+
+.orderTotal {
+  font-weight: 600;
+  color: #059669;
+}
+
+.orderActions {
+  text-align: center;
+}
+
+/* Badge סטטוס */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.statusPending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.statusConfirmed {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.statusProcessing {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.statusShipped {
+  background: #cffafe;
+  color: #0891b2;
+}
+
+.statusDelivered {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.statusCancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.statusReturned {
+  background: #fce7f3;
+  color: #db2777;
+}
+
+.statusAttention {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Badge תשלום */
+.paymentBadge {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.paymentPending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.paymentPaid {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.paymentFailed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.paymentRefunded {
+  background: #f3e8ff;
+  color: #9333ea;
+}
+
+.paymentPartial {
+  background: #fce7f3;
+  color: #db2777;
+}
+
+/* עימוד */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pageInfo {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* רספונסיביות */
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ordersTable th,
+  .ordersTable td {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .orderDate {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

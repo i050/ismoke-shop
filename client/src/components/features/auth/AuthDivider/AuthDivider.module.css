@@ -1,0 +1,53 @@
+/* AuthDivider.module.css - עיצוב רכיב מפריד */
+
+.divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 1.5rem 0;
+  /* קו אופקי */
+  border-top: 1px solid #e0e0e0;
+  /* תמיכה ב-RTL */
+  direction: rtl;
+}
+
+.text {
+  /* עיצוב הטקסט */
+  background-color: #fff;
+  color: #666;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  /* מיקום הטקסט על הקו */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* תמיכה ב-RTL */
+  direction: rtl;
+}
+
+/* עיצוב רספונסיבי */
+@media (max-width: 768px) {
+  .divider {
+    margin: 1.25rem 0;
+  }
+
+  .text {
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .divider {
+    margin: 1rem 0;
+  }
+
+  .text {
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,315 @@
+/* עיצוב עמוד פרטי מוצר - מחקה בדיוק את ה-HTML המצורף */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  direction: rtl;
+}
+
+/* מרווח אנכי מתחת להדר המשני (נשימה לפני ה-breadcrumb) */
+.secondaryHeader {
+  margin-bottom: 12px;
+}
+
+/* מצבי טעינה ושגיאה */
+.loading,
+.error {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-3xl);
+}
+
+.loadingIcon {
+  color: var(--primary);
+  animation: pulse 2s infinite;
+}
+
+.errorIcon {
+  color: var(--danger);
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  min-height: 400px;
+  padding: var(--spacing-3xl);
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+  margin-bottom: 28px;
+}
+
+.breadcrumbList {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.productHeader {
+  margin-top: 8px;
+  margin-bottom: 36px;
+}
+
+.productTitle {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-lg) 0;
+  line-height: 1.3;
+}
+
+.productMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: var(--border);
+  transition: color var(--transition-fast);
+}
+
+.star.filled {
+  color: var(--warning);
+}
+
+.reviewCount {
+  color: #666;
+  font-size: 14px;
+}
+
+.productSku {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Product Main - החלק המרכזי עם grid */
+.productMain {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-2xl);
+  margin-bottom: var(--spacing-3xl);
+}
+
+/* גלריית תמונות - צד שמאל (ימין ב-RTL) */
+.productImages {
+  position: relative;
+}
+
+/* פרטי המוצר - צד ימין (שמאל ב-RTL) */
+.productDetails {
+  padding: var(--spacing-xl);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  height: fit-content;
+}
+
+/* מחיר */
+.priceSection {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+/* בחירת צבע */
+.colorSelection {
+  margin-bottom: 25px;
+}
+
+/* בחירת כמות */
+.quantitySection {
+  margin-bottom: var(--spacing-lg);
+}
+
+.quantityLabel {
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.quantitySelector {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: fit-content;
+}
+
+.quantityButton {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--color-bg-elevated);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+  transition: background-color var(--transition-fast);
+}
+
+.quantityButton:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+}
+
+.quantityButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantityValue {
+  width: 60px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  font-weight: var(--font-weight-medium);
+}
+
+/* מצב מלאי */
+.stockStatus {
+  margin-bottom: var(--spacing-lg);
+}
+
+.inStock {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--success);
+  font-weight: var(--font-weight-medium);
+}
+
+.outOfStock {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--danger);
+  font-weight: var(--font-weight-medium);
+}
+
+/* כפתורי פעולה */
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.addToCartButton {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.addToCartButton:hover:not(.disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.addToCartButton.disabled {
+  background: var(--color-bg-disabled);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.buyNowButton {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--state-success);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.buyNowButton:hover {
+  background: var(--success-hover);
+  transform: translateY(-1px);
+}
+
+/* פעולות משניות */
+.secondaryActions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.actionButton {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+  color: var(--color-text-primary);
+}
+
+/* כרטיסיות מידע */
+.productTabs {
+  margin-bottom: var(--spacing-3xl);
+}
+
+/* מוצרים קשורים */
+.relatedProducts {
+  margin-bottom: var(--spacing-3xl);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container { padding: var(--spacing-lg); }
+  
+  .productMain { grid-template-columns: 1fr; gap: var(--spacing-2xl); }
+  
+  .productTitle { font-size: var(--font-size-2xl); }
+  
+  .productMeta { flex-direction: column; align-items: flex-start; gap: var(--spacing-lg); }
+  
+  .productDetails { padding: var(--spacing-lg); }
+  
+  .secondaryActions {
+    flex-direction: column;
+  }
+}

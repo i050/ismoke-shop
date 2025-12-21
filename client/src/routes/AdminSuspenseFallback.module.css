@@ -1,0 +1,10 @@
+/* AdminSuspenseFallback.module.css - סגנונות למסך טעינה של אזור הניהול */
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: var(--color-primary, #6366f1);
+}

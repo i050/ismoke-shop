@@ -1,0 +1,20 @@
+/* Disable2FA.module.css */
+
+.disableButton {
+  margin-top: 1rem;
+}
+
+.confirmDialog {
+  padding: 1rem 0;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.buttonGroup button {
+  min-width: 120px;
+}

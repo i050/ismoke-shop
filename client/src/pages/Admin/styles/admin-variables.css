@@ -1,0 +1,251 @@
+/* ========================================
+   Admin Variables - Aliases to Design Tokens
+   משתני אליאסים לאזור הניהול - מפנים ל-Design Tokens
+   ======================================== */
+
+:root {
+  /* Typography Aliases */
+  --admin-font-family: var(--font-family);
+  --admin-text-xs: var(--text-xs);
+  --admin-text-sm: var(--text-sm);
+  --admin-text-base: var(--text-base);
+  --admin-text-lg: var(--text-lg);
+  --admin-text-xl: var(--text-xl);
+  --admin-text-2xl: var(--text-2xl);
+  --admin-text-3xl: var(--text-3xl);
+  
+  --admin-font-normal: var(--font-normal);
+  --admin-font-medium: var(--font-medium);
+  --admin-font-semibold: var(--font-semibold);
+  --admin-font-bold: var(--font-bold);
+
+  /* Color Aliases */
+  --admin-bg-primary: var(--color-bg-primary);
+  --admin-bg-secondary: var(--color-bg-secondary);
+  --admin-bg-tertiary: var(--color-bg-tertiary);
+  --admin-bg-elevated: var(--color-bg-elevated);
+  --admin-bg-card: var(--color-bg-elevated);
+  --admin-bg-hover: var(--color-bg-hover);
+
+  --admin-text-primary: var(--color-text-primary);
+  --admin-text-secondary: var(--color-text-secondary);
+  --admin-text-tertiary: var(--color-text-tertiary);
+  --admin-text-muted: var(--color-text-muted);
+
+  --admin-accent-blue: var(--color-brand-blue);
+  --admin-accent-cyan: var(--color-brand-cyan);
+  --admin-accent-emerald: var(--color-brand-emerald);
+  --admin-accent-orange: var(--color-brand-orange);
+  --admin-accent-red: var(--color-brand-red);
+  --admin-accent-purple: var(--color-brand-purple);
+  --admin-accent-pink: var(--color-brand-pink);
+
+  --admin-border-light: var(--border-light);
+  --admin-border-medium: var(--border-medium);
+  --admin-border-dark: var(--border-dark);
+
+  /* Shadow Aliases */
+  --admin-shadow-xs: var(--shadow-xs);
+  --admin-shadow-sm: var(--shadow-sm);
+  --admin-shadow-md: var(--shadow-md);
+  --admin-shadow-lg: var(--shadow-lg);
+  --admin-shadow-xl: var(--shadow-xl);
+
+  /* Spacing Aliases */
+  --admin-spacing-xs: var(--spacing-xs);
+  --admin-spacing-sm: var(--spacing-sm);
+  --admin-spacing-md: var(--spacing-md);
+  --admin-spacing-lg: var(--spacing-lg);
+  --admin-spacing-xl: var(--spacing-xl);
+  --admin-spacing-2xl: var(--spacing-2xl);
+
+  /* Border Radius Aliases */
+  --admin-radius-sm: var(--radius-sm);
+  --admin-radius-md: var(--radius-md);
+  --admin-radius-lg: var(--radius-lg);
+  --admin-radius-xl: var(--radius-xl);
+
+  /* Transition Aliases */
+  --admin-transition-fast: var(--transition-fast);
+  --admin-transition-normal: var(--transition-normal);
+  --admin-transition-slow: var(--transition-slow);
+
+  /* Admin-Specific Variables */
+  --admin-nav-width: 260px;
+  --admin-header-height: 70px;
+  --admin-topbar-height: 60px;
+  --admin-glass-border: rgba(0, 0, 0, 0.08);
+  --admin-blur-subtle: blur(8px);
+}
+
+/* משתני Dark Mode (מוערים לעתיד) */
+/*
+[data-theme="dark"] {
+  --admin-bg-primary: #0a0a0a;
+  --admin-bg-secondary: #111111;
+  --admin-bg-card: rgba(255, 255, 255, 0.03);
+  --admin-bg-glass: rgba(255, 255, 255, 0.08);
+  --admin-bg-hover: rgba(255, 255, 255, 0.12);
+
+  --admin-text-primary: #ffffff;
+  --admin-text-secondary: #a1a1aa;
+  --admin-text-muted: #71717a;
+
+  --admin-glass-border: rgba(255, 255, 255, 0.1);
+  --admin-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+*/
+
+/* רקע מודרני עם גרדיאנטים עדינים */
+.admin-background {
+  background: var(--admin-bg-secondary);
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
+  min-height: 100vh;
+}
+
+/* אנימציות שימושיות */
+@keyframes admin-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes admin-slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes admin-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* כיתות עזר גלובליות */
+.admin-card {
+  background: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-light);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.admin-card-hover {
+  transition: var(--admin-transition-normal);
+}
+
+.admin-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-lg);
+  border-color: var(--admin-border-medium);
+}
+
+/* Global Utility Classes */
+.titleIconSquare {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-cyan));
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
+}
+
+/* Placeholder utilities */
+.placeholderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--admin-spacing-lg);
+  padding: var(--admin-spacing-2xl);
+}
+
+.placeholderIcon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-tertiary);
+}
+
+.placeholderTitle {
+  font-size: var(--admin-text-2xl);
+  font-weight: var(--admin-font-semibold);
+  color: var(--admin-text-primary);
+  margin: 0;
+}
+
+.placeholderSubtitle {
+  font-size: var(--admin-text-base);
+  color: var(--admin-text-secondary);
+  margin: 0;
+  font-style: italic;
+}
+
+.comingSoon {
+  margin-top: var(--admin-spacing-md);
+  padding: 0.35rem 0.9rem;
+  background: linear-gradient(90deg, rgba(59,130,246,0.12), rgba(6,182,212,0.12));
+  color: var(--admin-accent-blue);
+  border-radius: var(--admin-radius-sm);
+  font-weight: var(--admin-font-semibold);
+}
+
+.featureBox {
+  margin-top: var(--admin-spacing-lg);
+  background: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-light);
+  border-radius: var(--admin-radius-md);
+  padding: var(--admin-spacing-lg);
+}
+
+.featureBoxTitle {
+  font-size: var(--admin-text-lg);
+  font-weight: var(--admin-font-semibold);
+  margin: 0 0 var(--admin-spacing-sm) 0;
+}
+
+.titleWithBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.devBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, var(--warning), var(--warning-hover));
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}

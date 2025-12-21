@@ -1,0 +1,288 @@
+/* פאנל ניווט צדדי ימני - NavigationPanel */
+
+.navigationPanel {
+  /* Default behavior: fixed overlay for small screens */
+  position: fixed;
+  top: 64px;
+  right: 0;
+  width: var(--nav-width);
+  height: 100vh;
+  background: var(--color-bg-elevated);
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 100;
+  direction: rtl;
+  /* no global transform transition here - mobile-specific transitions handled below */
+  /* בדסקטופ (>768px) - תמיד גלוי, אין transform */
+}
+
+/* מצב מוסתר במובייל - class הזה מתווסף כש-isOpen=false */
+.mobileHidden {
+  /* זה יפעל רק במסכים קטנים - ראה @media למטה */
+}
+
+/* אזור כותרת + לוגו */
+.header {
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
+.logoIcon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  color: #ffffff;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* כפתור סגירה במובייל */
+.closeButton {
+  /* ברירת מחדל - בכדי לא להציג X בדסקטופ (לא רלוונטי כשהפאנל תמיד גלוי) */
+  display: none;
+  position: absolute;
+  top: var(--spacing-lg);
+  left: var(--spacing-lg);
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+/* אזור הניווט */
+.navigation {
+  flex: 1;
+  padding: var(--spacing-lg) var(--spacing-md);
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 0.75rem var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.navLink:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+/* מצב active */
+.navLink.active {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+  color: #ffffff;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-md);
+}
+
+/* אייקון */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  transition: var(--transition-fast);
+}
+
+/* Ensure SVG icons inherit the intended text color and render their stroke correctly.
+   Some modules may apply text gradients or transparent fills to text — make sure
+   navigation icons always use currentColor for the stroke and remain visible. */
+.icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  color: inherit; /* allow color on the wrapper (.navLink or .icon) to control the icon */
+  stroke: currentColor; /* lucide-react icons use stroke=currentColor */
+}
+
+/* טקסט */
+.label {
+  flex: 1;
+  text-align: right;
+}
+
+/* פוטר */
+.footer {
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  background: var(--color-bg-secondary);
+}
+
+.version {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Responsive - במסכים קטנים */
+@media (max-width: 768px) {
+  .navigationPanel {
+    /* פתרון: רוחב מקסימלי 200px או כל המסך אם קטן יותר */
+    width: min(100vw, 200px);
+    /* בנייד - תפריט מוסתר כברירת מחדל */
+    transform: translateX(100%);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* כשפתוח (isOpen=true) - הצג אותו */
+  .navigationPanel.mobileOpen {
+    /* פתיחה עם אנימציה חלקה */
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+    transition: transform 0.28s ease-out; /* animate opening */
+    /* children (labels) fade-in when opening */
+    .navLink,
+    .title,
+    .version {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.18s ease-in;
+    }
+    /* show close X on open (small fade) */
+    .closeButton {
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      transition: opacity 0.12s ease-in;
+      pointer-events: auto !important;
+    }
+  }
+
+  /* כשסגור (isOpen=false) - וודא שמוסתר */
+  .navigationPanel.mobileHidden {
+    /* סגירה מיידית - ללא אנימציית יציאה */
+    transform: translateX(100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition: none; /* no exit animation */
+    /* make the textual children disappear instantly on close */
+    .navLink,
+    .title,
+    .version {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transition: none !important; /* instant hide */
+    }
+    /* hide close X immediately when panel closed */
+    .closeButton {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transition: none !important;
+      pointer-events: none !important;
+    }
+  }
+
+  .header {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  /* בכפיפות לנייד - נראה את כפתור ה-X כדי לאפשר סגירה */
+  .closeButton {
+    display: flex;
+  }
+
+  .logoIcon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .title {
+    font-size: var(--font-size-base);
+  }
+
+  .navLink {
+    padding: 0.625rem var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Desktop / larger screens: put the navigation into the normal flow
+   so it doesn't overlay or cover the main content. This mirrors a two-column layout. */
+@media (min-width: 769px) {
+  .navigationPanel {
+    grid-area: nav;
+    position: static; /* participate in layout (grid) */
+    top: auto;
+    right: auto;
+    height: auto;
+    width: var(--nav-width);
+    transform: none !important; /* ensure no translations apply */
+    visibility: visible !important;
+    pointer-events: auto !important;
+    box-shadow: none; /* optional: avoid overlay shadow in desktop */
+  }
+
+  /* ensure the mobile-specific classnames don't interfere on desktop */
+  .navigationPanel.mobileHidden,
+  .navigationPanel.mobileOpen {
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Scrollbar מעוצב */
+.navigationPanel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.navigationPanel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navigationPanel::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.navigationPanel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}

@@ -1,0 +1,247 @@
+/* ======================================
+   App Component - מבנה ראשי עם RTL
+   ====================================== */
+
+/* Global App Container */
+html, body {
+  width: 100%;
+  max-width: 100vw; /* מונע חריגה מרוחב המסך */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden; /* מונע גלילה אופקית */
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  direction: rtl;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 100vw; /* מונע חריגה */
+  overflow-x: hidden;
+}
+
+/* ======================================
+   Header Section
+   ====================================== */
+
+.app-header {
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-content {
+  width: 100%;
+  padding: 1rem 4vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content h1 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* ======================================
+   Layout Section
+   ====================================== */
+
+.app-layout {
+  display: flex; /* תצוגת פלקס */
+  flex: 1; /* --- IGNORE --- */
+  width: 100%; /* שימוש בכל הרוחב עד למקסימום */
+  gap: 2rem; /* רווח בין העמודות */
+  
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 0; /* מונע overflow */
+}
+
+/* ======================================
+   Content States
+   ====================================== */
+
+.loading-state,
+.error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.error-state {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.error-text {
+  color: #dc2626 !important;
+  font-weight: 500;
+}
+
+.products-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.products-preview {
+  padding: 1rem;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-top: 1rem;
+}
+
+/* ======================================
+   Responsive Design
+   ====================================== */
+
+/* טאבלט */
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .header-content {
+    padding: 1rem;
+  }
+  
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+  
+  .main-content {
+    order: 1; /* מוודא שהתוכן מופיע לפני הסיידבר במובייל */
+  }
+}
+
+/* מובייל */
+@media (max-width: 480px) {
+  .app-layout {
+    padding: 0.5rem;
+  }
+  
+  .header-content {
+    padding: 0.75rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .header-content h1 {
+    font-size: 1.25rem;
+  }
+  
+  .products-section {
+    padding: 1rem;
+  }
+  
+  .loading-state,
+  .error-state {
+    padding: 2rem 1rem;
+  }
+}
+
+/* ======================================
+   אנימציות והאפקטים
+   ====================================== */
+
+.app {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.main-content > * {
+  animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ======================================
+   נגישות
+   ====================================== */
+
+/* Focus states */
+.app-header button:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .app-header {
+    border-bottom: 2px solid #000;
+  }
+  
+  .products-section,
+  .loading-state,
+  .error-state {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* container עליון שמרכז את כל האפליקציה */
+.app-container {
+  max-width: 1800px; /* רוחב מקסימלי סטנדרטי לאתרים מודרניים */
+  margin: 0 auto; /* מרכוז אוטומטי - שווה בשני הצדדים */
+  padding: 0 10px; /* מרווח קבוע משני הצדדים */
+  width: 100%; /* שימוש בכל הרוחב עד למקסימום */
+  box-sizing: border-box; /* חישוב נכון של רוחב עם padding */
+  direction: rtl; /* יישור מימין לשמאל לעברית */
+  text-align: right; /* יישור טקסט לימין */
+}
+
+/* רספונסיבי - פחות padding בנייד */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 0 10px;
+  }
+}

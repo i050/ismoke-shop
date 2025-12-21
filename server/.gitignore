@@ -1,0 +1,78 @@
+# ====================================
+# Dependencies
+# ====================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ====================================
+# Environment Variables
+# ====================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# ====================================
+# Logs
+# ====================================
+logs/
+*.log
+npm-debug.log*
+winston/
+
+# ====================================
+# Build Outputs
+# ====================================
+dist/
+build/
+*.js.map
+*.d.ts.map
+
+# ====================================
+# TypeScript Cache
+# ====================================
+*.tsbuildinfo
+.tscache/
+
+# ====================================
+# Testing
+# ====================================
+coverage/
+.nyc_output/
+junit.xml
+
+# ====================================
+# IDE & Editors
+# ====================================
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# ====================================
+# Temporary Files
+# ====================================
+tmp/
+temp/
+*.tmp
+
+# ====================================
+# Database Dumps
+# ====================================
+*.dump
+*.sql
+dump/
+
+# ====================================
+# Uploads (if stored locally)
+# ====================================
+uploads/
+public/uploads/

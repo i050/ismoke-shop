@@ -1,0 +1,183 @@
+/* ========================================
+   Design Tokens - מערכת עיצוב מרכזית
+   ======================================== */
+
+:root {
+  /* ==================== צבעי רקע (Backgrounds) ==================== */
+  --color-bg-primary: #ffffff;           /* רקע ראשי בהיר */
+  --color-bg-secondary: #f9fafb;         /* רקע משני */
+  --color-bg-elevated: #ffffff;          /* כרטיסים, פאנלים */
+  --color-bg-hover: #f3f4f6;             /* רקע hover */
+  --color-bg-tertiary: #f3f4f6;          /* רקע שלישוני */
+  --color-bg-disabled: #e5e7eb;          /* רקע disabled */
+  
+  /* גרדיאנטים */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-hero: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  
+  /* ==================== צבעי טקסט (Text Colors) ==================== */
+  --color-text-primary: #111827;         /* טקסט ראשי כהה */
+  --color-text-secondary: #4b5563;       /* טקסט משני */
+  --color-text-tertiary: #6b7280;        /* טקסט שלישוני */
+  --color-text-disabled: #9ca3af;        /* טקסט disabled */
+  --color-text-inverse: #ffffff;         /* טקסט על רקע כהה */
+  --color-text-muted: #9ca3af;           /* טקסט עמום */
+  
+  /* ==================== צבעי מותג (Brand Colors) ==================== */
+  --color-brand-blue: #3b82f6;           /* כחול ראשי */
+  --color-brand-cyan: #06b6d4;           /* ציאן */
+  --color-brand-purple: #8b5cf6;         /* סגול */
+  --color-brand-emerald: #10b981;        /* ירוק */
+  --color-brand-orange: #f59e0b;         /* כתום */
+  --color-brand-red: #ef4444;            /* אדום */
+  --color-brand-pink: #ec4899;           /* ורוד */
+  
+  /* ==================== צבעי מצב (State Colors) ==================== */
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  
+  --success: #10b981;
+  --success-hover: #059669;
+  
+  --warning: #f59e0b;
+  --warning-hover: #d97706;
+  
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  
+  --info: #06b6d4;
+  --info-hover: #0891b2;
+  
+  /* ==================== גבולות (Borders) ==================== */
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --border-medium: #d1d5db;
+  --border-hover: #9ca3af;
+  --border-dark: #6b7280;
+  
+  /* ==================== צללים (Shadows) ==================== */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 16px 0 rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 16px 32px 0 rgba(0, 0, 0, 0.12);
+  --shadow-2xl: 0 24px 48px 0 rgba(0, 0, 0, 0.15);
+  
+  /* צללים צבעוניים */
+  --shadow-primary: 0 8px 16px rgba(59, 130, 246, 0.3);
+  --shadow-success: 0 8px 16px rgba(16, 185, 129, 0.3);
+  --shadow-danger: 0 8px 16px rgba(239, 68, 68, 0.3);
+  
+  /* ==================== טיפוגרפיה (Typography) ==================== */
+  /* משפחת פונטים */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* גדלי פונט */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.25rem;      /* 20px */
+  --font-size-2xl: 1.5rem;      /* 24px */
+  --font-size-3xl: 1.875rem;    /* 30px */
+  --font-size-4xl: 2.25rem;     /* 36px */
+  --font-size-5xl: 3rem;        /* 48px */
+  
+  /* גדלי פונט - Aliases ישנים לתאימות */
+  --text-xs: var(--font-size-xs);
+  --text-sm: var(--font-size-sm);
+  --text-base: var(--font-size-base);
+  --text-lg: var(--font-size-lg);
+  --text-xl: var(--font-size-xl);
+  --text-2xl: var(--font-size-2xl);
+  --text-3xl: var(--font-size-3xl);
+  --text-4xl: var(--font-size-4xl);
+  
+  /* משקלי פונט */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  /* משקלי פונט - Aliases ישנים לתאימות */
+  --font-normal: var(--font-weight-normal);
+  --font-medium: var(--font-weight-medium);
+  --font-semibold: var(--font-weight-semibold);
+  --font-bold: var(--font-weight-bold);
+  
+  /* ==================== מרווחים (Spacing) ==================== */
+  --spacing-xs: 0.25rem;        /* 4px */
+  --spacing-sm: 0.5rem;         /* 8px */
+  --spacing-md: 0.75rem;        /* 12px */
+  --spacing-lg: 1rem;           /* 16px */
+  --spacing-xl: 1.5rem;         /* 24px */
+  --spacing-2xl: 2rem;          /* 32px */
+  --spacing-3xl: 3rem;          /* 48px */
+  --spacing-4xl: 4rem;          /* 64px */
+  --spacing-5xl: 6rem;          /* 96px */
+  
+  /* ==================== רדיוס פינות (Border Radius) ==================== */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+  
+  /* ==================== מעברים (Transitions) ==================== */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* ==================== Z-Index ==================== */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1600;
+  
+  /* ==================== משתני עזר נוספים (Additional Helpers) ==================== */
+  --nav-width: 260px;
+  --color-border-hover: var(--border-hover);
+  --brand-primary: var(--color-brand-blue);
+  --brand-accent: var(--color-brand-cyan);
+  --brand-secondary: var(--color-brand-purple);
+  --brand-tertiary: var(--color-brand-pink);
+  --state-success: var(--color-brand-emerald);
+  --state-warning: var(--color-brand-orange);
+  --state-error: var(--color-brand-red);
+  --color-bg-glass: rgba(255, 255, 255, 0.9);
+  
+  /* ==================== Admin-Specific (לאחור תאימות) ==================== */
+  --admin-nav-width: 260px;
+  --admin-header-height: 70px;
+  --admin-topbar-height: 60px;
+  --admin-glass-border: rgba(0, 0, 0, 0.1);
+  --admin-blur-subtle: blur(8px);
+  
+  /* ==================== Responsive Breakpoints ==================== */
+  /* ערכים אלו תואמים ל-BREAKPOINTS ב-useResponsive.ts */
+  --breakpoint-mobile: 480px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-laptop: 1024px;
+  --breakpoint-desktop: 1200px;
+  --breakpoint-large-desktop: 1440px;
+  
+  /* ==================== Touch & Accessibility ==================== */
+  /* מינימום לנגישות לפי WCAG - אזור נגיעה של 44x44px */
+  --touch-target-min: 44px;
+  /* גודל נוח יותר למכשירי מגע */
+  --touch-target-comfortable: 48px;
+}
+
+/* ========================================
+   הערה: אנימציות וכיתות עזר עברו לקבצים נפרדים
+   ראה: animations.css, utilities.css
+   ======================================== */

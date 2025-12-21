@@ -1,0 +1,207 @@
+/* ProductsTableFilters - עיצוב פילטרים לטבלת המוצרים */
+
+.filters {
+  padding: 1.5rem 2rem;
+  background: var(--color-bg-elevated, #ffffff);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+/* שורת פילטרים */
+.filtersRow {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* קבוצת פילטר */
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+  flex: 1;
+  max-width: 280px;
+}
+
+.filterLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.filterLabel svg {
+  color: var(--color-primary, #6366f1);
+  opacity: 0.8;
+}
+
+/* Select styling - עיצוב מלא לסלקט נייטיב */
+.select {
+  width: 100%;
+  min-width: 200px;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  color: var(--color-text-primary, #111827);
+  cursor: pointer;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 12px center;
+  padding-left: 36px;
+}
+
+.select:hover {
+  border-color: var(--color-border-dark, #9ca3af);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.select:disabled {
+  background-color: var(--color-bg-secondary, #f9fafb);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* כפתור איפוס */
+.resetButton {
+  margin-bottom: 0;
+  white-space: nowrap;
+  height: 40px;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+/* פילטרים פעילים */
+.activeFilters {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-light, #f3f4f6);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.activeFiltersLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+/* Chips container */
+.chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Chip - תג פילטר פעיל */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  background: linear-gradient(135deg, var(--color-primary-light, #e0e7ff) 0%, var(--color-primary-lighter, #eef2ff) 100%);
+  color: var(--color-primary, #4f46e5);
+  border: 1px solid var(--color-primary-light, #c7d2fe);
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(99, 102, 241, 0.1);
+}
+
+.chip:hover {
+  background: linear-gradient(135deg, var(--color-primary-lighter, #c7d2fe) 0%, var(--color-primary-light, #e0e7ff) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.15);
+}
+
+.chipLabel {
+  line-height: 1;
+}
+
+/* תוספת לציון תתי-קטגוריות */
+.chipExtra {
+  font-weight: 500;
+  opacity: 0.85;
+  font-size: 0.75rem;
+}
+
+/* כפתור הסרת chip */
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: currentColor;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.chipRemove:hover {
+  opacity: 1;
+}
+
+.chipRemove:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Responsive - טאבלט */
+@media (max-width: 1024px) {
+  .filterGroup {
+    min-width: 150px;
+  }
+}
+
+/* Responsive - מובייל */
+@media (max-width: 768px) {
+  .filters {
+    padding: 1rem;
+  }
+
+  .filtersRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterGroup {
+    min-width: 100%;
+  }
+
+  .select {
+    min-width: 100%;
+  }
+
+  .resetButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .activeFilters {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chips {
+    width: 100%;
+  }
+}

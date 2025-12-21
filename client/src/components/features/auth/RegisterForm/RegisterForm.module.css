@@ -1,0 +1,340 @@
+/* RegisterForm.module.css - סטיילים לטופס הרשמה */
+
+/* wrapper למרכוז טוב יותר עם RTL */
+.formWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;                    /* הוקטן ל-400px כדי להתאים ל-LoginForm */
+  padding: 20px;                       /* הוקטן מ-24px ל-20px */
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* שדות שם - פריסה בשורה */
+.nameFields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nameFields .fieldGroup {
+  margin: 0;
+}
+
+/* קבוצת תיבת סימון */
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: #007bff;
+  cursor: pointer;
+}
+
+.checkboxText {
+  flex: 1;
+  text-align: right;
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+  padding: 0;
+  margin: 0 4px;
+}
+
+.linkButton:hover {
+  color: #0056b3;
+}
+
+/* הודעות שגיאה */
+.errorText {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* מפריד */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.divider span {
+  background-color: #fff;
+  padding: 0 16px;
+  color: #666;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+/* מצב switch בין הרשמה לכניסה */
+.switchMode {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  margin-top: 16px;
+}
+
+.switchMode .linkButton {
+  font-weight: 500;
+}
+
+/* תמיכה ב-RTL */
+[dir="rtl"] .formWrapper {
+  direction: rtl;
+}
+
+[dir="rtl"] .form {
+  direction: rtl;
+}
+
+[dir="rtl"] .nameFields {
+  direction: rtl;
+}
+
+[dir="rtl"] .checkboxLabel {
+  direction: rtl;
+}
+
+[dir="rtl"] .checkboxText {
+  text-align: left;
+}
+
+[dir="rtl"] .errorText {
+  text-align: left;
+}
+
+[dir="rtl"] .switchMode {
+  direction: rtl;
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .formWrapper {
+    padding: 0 16px;
+  }
+
+  .form {
+    padding: 18px;
+    gap: 16px;
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .nameFields {
+    gap: 14px;
+  }
+
+  .fieldGroup {
+    gap: 6px;
+  }
+
+  .checkboxLabel {
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .divider {
+    margin: 18px 0;
+  }
+
+  .divider span {
+    font-size: 13px;
+  }
+
+  .switchMode {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .formWrapper {
+    padding: 0 12px;
+  }
+
+  .form {
+    padding: 16px;
+    gap: 14px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  .nameFields {
+    gap: 12px;
+  }
+
+  .fieldGroup {
+    gap: 5px;
+  }
+
+  .checkboxLabel {
+    font-size: 13px;
+    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .checkboxLabel input[type="checkbox"] {
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+
+  .divider {
+    margin: 16px 0;
+  }
+
+  .divider span {
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  .switchMode {
+    font-size: 12px;
+  }
+
+  .linkButton {
+    font-size: 12px;
+  }
+}
+
+/* אנימציות */
+.form {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* מצב טעינה */
+.checkboxLabel:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.linkButton:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.linkButton:disabled:hover {
+  color: #ccc;
+}
+
+/* פוקוס נגישות */
+.checkboxLabel input:focus,
+.linkButton:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* עיצוב מיוחד לתיבת הסימון */
+.checkboxLabel input[type="checkbox"]:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+/* טקסט עזר קטן */
+.form small {
+  font-size: 12px;
+  color: #777;
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* ========================================
+   סטיילים להודעת ממתין לאישור
+   ======================================== */
+
+.pendingApproval {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.pendingIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.pendingTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+}
+
+.pendingMessage {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.pendingMessage strong {
+  color: #1f2937;
+}

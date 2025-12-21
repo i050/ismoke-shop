@@ -1,0 +1,83 @@
+/* המרת צבעים/מרווחים ל-design tokens */
+.registerPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.container {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.header {
+  text-align: center;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.header h1 {
+  margin-bottom: 0.5rem;
+  font-size: var(--font-size-4xl);
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.header p {
+  font-size: var(--font-size-lg);
+  color: #64748b;
+}
+
+.formContainer {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.backLink {
+  text-align: center;
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: #475569;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.linkButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #1e293b;
+}
+
+.linkButton:focus {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* רספונסיביות */
+@media (max-width: 480px) {
+  .registerPage {
+    padding: var(--spacing-lg);
+  }
+
+  .container {
+    max-width: 100%;
+  }
+
+  .header h1 {
+    font-size: var(--font-size-3xl);
+  }
+}

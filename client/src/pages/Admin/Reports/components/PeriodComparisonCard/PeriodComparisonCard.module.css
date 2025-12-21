@@ -1,0 +1,186 @@
+/* כרטיס השוואת תקופות - סטיילים */
+
+.comparisonContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+/* ===== בחירת תקופות ===== */
+.periodSelectors {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.periodSelector {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.selectorLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+}
+
+.periodSelect {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.periodSelect:hover {
+  border-color: var(--color-border-hover);
+}
+
+.periodSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.15);
+}
+
+.vsIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(236, 72, 153, 0.04));
+  border-radius: var(--radius-full);
+  color: #ec4899;
+  margin-top: 16px;
+  flex-shrink: 0;
+}
+
+/* ===== תוצאות השוואה ===== */
+.resultsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.resultCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease;
+}
+
+.resultCard:hover {
+  background: var(--color-bg-elevated);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text-tertiary);
+}
+
+.resultMetric {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.resultValues {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.periodValue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.periodLabel {
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.valueText {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* ===== אינדיקטור שינוי ===== */
+.changeIndicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}
+
+.changeIndicator[data-direction="up"] {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.changeIndicator[data-direction="down"] {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.changeIndicator[data-direction="stable"] {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--color-text-tertiary);
+}
+
+/* ===== מצב שגיאה ===== */
+.errorState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  text-align: center;
+  color: var(--color-error);
+}
+
+/* ===== רספונסיביות ===== */
+@media (max-width: 480px) {
+  .periodSelectors {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .vsIcon {
+    margin-top: 0;
+    transform: rotate(90deg);
+  }
+
+  .resultValues {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .changeIndicator {
+    align-self: flex-start;
+  }
+}

@@ -1,0 +1,923 @@
+/* ===================================
+   SKU Card Component Styles (Modern Design)
+   =================================== */
+
+/* כרטיס SKU - מבנה אופקי */
+.skuCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  overflow: hidden; /* שומר על border-radius נקי */
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: row;
+  min-height: 240px; /* min-height במקום height - מאפשר לכרטיס לגדול */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.skuCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(99, 102, 241, 0.05);
+  transform: translateY(-4px);
+}
+
+/* כרטיס במצב עריכה */
+.skuCardEditing {
+  border-color: var(--modern-primary, var(--color-primary));
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), var(--modern-shadow-xl);
+  transform: none !important;
+  min-height: 320px; /* מצב עריכה דורש יותר מקום בגלל שדות נוספים */
+  animation: slideInUp 0.5s ease-out;
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===================================
+   אזור גלריית תמונות (35% מהכרטיס)
+   =================================== */
+
+.skuImages {
+  width: 35%;
+  background: var(--color-background, #f9fafb);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+}
+
+.imageThumbnail {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.imageThumbnail:first-child {
+  border-color: var(--color-primary);
+}
+
+.imageThumbnail:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.moreImages {
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, var(--color-border, #e5e7eb), var(--color-background-secondary, #d1d5db));
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.moreImages:hover {
+  background: linear-gradient(135deg, var(--color-background-secondary, #d1d5db), var(--color-border, #9ca3af));
+  transform: scale(1.05);
+}
+
+.noImagesPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.noImagesPlaceholder svg {
+  opacity: 0.3;
+}
+
+.noImagesPlaceholder small {
+  font-size: 0.625rem;
+  font-style: italic;
+}
+
+/* ===================================
+   תוכן הכרטיס (65% מהכרטיס)
+   =================================== */
+
+.skuContent {
+  flex: 1;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skuName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.skuCode {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  background: var(--color-background, #f3f4f6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+/* פרטי SKU */
+.skuDetails {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: auto;
+  font-size: 0.875rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailLabel {
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+
+.detailValue {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* Badge מלאי */
+.stockBadge {
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stockBadge.inStock {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success, #059669);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stockBadge.lowStock {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning, #f59e0b);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.stockBadge.stockOut {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger, #ef4444);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* תצוגת צבע */
+.colorDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.colorSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 0.375rem;
+  border: 2px solid var(--color-border, #e5e7eb);
+  flex-shrink: 0;
+  /* ודא שהצבע תמיד נראה - fallback לבן אם אין צבע */
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.colorText {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.colorHexLabel {
+  font-size: 0.7rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  margin-right: 0.35rem;
+}
+
+
+
+/* ===================================
+   מצב עריכה (Edit Mode)
+   =================================== */
+
+.editingNote {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-alpha, rgba(99, 102, 241, 0.1));
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.editLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--modern-text-secondary, #475569);
+  margin: 0;
+  transition: var(--modern-transition);
+}
+
+.editRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.editFieldHalf {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  background-color: var(--modern-bg-light, white);
+  border: 2px solid var(--modern-border-color, #e2e8f0);
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  font-family: 'Rubik', sans-serif;
+  color: var(--modern-text-primary, #0f172a);
+  transition: var(--modern-transition);
+  outline: none;
+}
+
+.input:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--modern-shadow-md);
+}
+
+.input:focus {
+  border-color: var(--modern-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), var(--modern-shadow-md);
+}
+
+.inputError {
+  border-color: var(--color-danger);
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px var(--color-danger-alpha, rgba(239, 68, 68, 0.1));
+}
+
+.inputSku {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Availability Check */
+.availability {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  display: inline-block;
+}
+
+.availabilitySuccess {
+  color: var(--color-success);
+}
+
+.availabilityError {
+  color: var(--color-danger);
+}
+
+/* ===================================
+   Color Picker
+   =================================== */
+
+.colorPickerWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* 🎨 דרופדאון לבחירת צבע */
+.colorDropdown {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* מפריד "או" בין דרופדאון לכפתור */
+.orSeparator {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  padding: 0 0.25rem;
+}
+
+.colorButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.colorButton:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-alpha);
+}
+
+.colorPickerPopup {
+  position: fixed;
+  /* הופעה כמקטע צף בתצוגה - מחוץ לגבולות הקונטיינר */
+  z-index: 2000;
+  background-color: var(--color-background, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: popupSlideIn 0.2s ease;
+  /* מיקום יוגדר ב-JS בעת render */
+  top: auto;
+  left: auto;
+}
+
+@keyframes popupSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.colorPickerClose {
+  padding: 0.5rem 1rem;
+  /* ודא שיש ניגודיות גם אם משתני ה-theme משתנים */
+  background-color: var(--color-primary, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.colorPickerClose:hover {
+  background-color: var(--color-primary-dark, #1d4ed8);
+}
+
+/* לחצן אישור בפופאפ - צבע בולט */
+.colorPickerConfirm {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-success, #10b981);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.colorPickerConfirm:hover {
+  filter: brightness(0.95);
+}
+
+.colorPickerActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ===================================
+   Checkbox
+   =================================== */
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.checkbox input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox span {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+/* ===================================
+   כפתורי פעולה (Actions)
+   =================================== */
+
+.skuActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+
+.btnAction {
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: var(--modern-transition);
+  color: var(--modern-text-secondary, #6b7280);
+  position: relative;
+  overflow: hidden;
+  font-family: 'Rubik', sans-serif;
+  border: 2px solid var(--modern-border-color, #e2e8f0);
+}
+
+.btnAction::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.2);
+  transition: left 0.3s;
+  z-index: 0;
+}
+
+.btnAction:hover::before {
+  left: 100%;
+}
+
+.btnAction span {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+
+.btnAction:hover {
+  background: var(--modern-bg-tertiary, #f1f5f9);
+  border-color: var(--modern-text-tertiary, #94a3b8);
+  transform: translateY(-2px);
+  box-shadow: var(--modern-shadow-md);
+}
+
+.btnAction:active {
+  transform: translateY(0);
+}
+
+.btnAction.danger:hover {
+  border-color: var(--modern-danger, #ef4444);
+  color: var(--modern-danger, #ef4444);
+}
+
+.btnAction.success {
+  background: linear-gradient(135deg, var(--modern-success, #10b981) 0%, var(--modern-success-dark, #059669) 100%);
+  color: white;
+  border-color: var(--modern-success, #10b981);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btnAction.success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  border-color: var(--modern-success-dark, #059669);
+  color: white;
+}
+
+/* ===================================
+   Error Messages
+   =================================== */
+
+.error {
+  font-size: 0.75rem;
+  color: var(--color-danger);
+  margin-top: 0.25rem;
+}
+
+/* ===================================
+   Responsive Design
+   =================================== */
+
+@media (max-width: 768px) {
+  .skuCard {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .skuImages {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0.5rem;
+  }
+
+  .imageThumbnail {
+    min-width: 80px;
+    width: 80px;
+  }
+
+  .moreImages {
+    min-width: 80px;
+    width: 80px;
+  }
+
+  .skuContent {
+    padding: 1rem;
+  }
+
+  .skuActions {
+    grid-template-columns: 1fr;
+  }
+
+  .editRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================
+   🆕 בנק הצבעים + מאפיינים נוספים
+   =================================== */
+
+/* סקשן בנק הצבעים */
+.colorBankSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-background, #f9fafb);
+  border-radius: 0.5rem;
+  border: 1px dashed var(--color-border);
+}
+
+.sectionTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  color: var(--color-text-primary);
+}
+
+.loadingState {
+  text-align: center;
+  padding: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+/* משפחות צבע */
+.colorFamilies {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.colorFamilyBtn {
+  padding: 0.5rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.colorFamilyBtn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light, #eff6ff);
+  transform: translateY(-2px);
+}
+
+.colorFamilyBtn.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light, #eff6ff);
+  font-weight: 600;
+}
+
+.colorSwatch {
+  display: flex;
+  gap: 2px;
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* סקשן גוונים */
+.variantsSection {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.variantsTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-secondary);
+}
+
+.variants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.4rem;
+}
+
+.variantBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+}
+
+.variantBtn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-lightest, #f0f9ff);
+}
+
+.variantBtn.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light, #eff6ff);
+  font-weight: 600;
+}
+
+.variantColor {
+  width: 18px;
+  height: 18px;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* סקשן מאפיינים נוספים */
+.additionalAttributesSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-background, #f9fafb);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+}
+
+.attributesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.required {
+  color: var(--modern-danger, var(--color-danger, #ef4444));
+  margin-right: 0.25rem;
+}
+
+/* אזהרה על מאפיין חסר */
+.missingWarning {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  background: rgba(251, 191, 36, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  animation: pulseWarning 2s ease-in-out infinite;
+  cursor: help;
+}
+
+@keyframes pulseWarning {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* רשימת אזהרות חסר מוצגת במצב תצוגה */
+.missingWarningsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.missingWarningBlock {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  background: rgba(251, 191, 36, 0.06);
+  color: #7c2d12; /* dark amber for readability */
+  border: 1px solid rgba(251, 191, 36, 0.18);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* ===================================
+   🎨 Collapsible Sections (Modern Design)
+   =================================== */
+
+.collapsibleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  background: var(--modern-bg-secondary, #f8fafc);
+  border: 1px solid var(--modern-border-color, #e2e8f0);
+  border-radius: 0.625rem;
+  cursor: pointer;
+  transition: var(--modern-transition);
+  font-weight: 600;
+  color: var(--modern-text-primary, #0f172a);
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+  user-select: none;
+}
+
+.collapsibleHeader:hover {
+  background: var(--modern-bg-tertiary, #f1f5f9);
+  border-color: var(--modern-primary, #2563eb);
+}
+
+.collapsibleIcon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--modern-transition);
+  font-size: 1.125rem;
+}
+
+.collapsibleHeader.active .collapsibleIcon {
+  transform: rotate(180deg);
+}
+
+.collapsibleContent {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+  padding: 0 1rem;
+}
+
+.collapsibleContent.active {
+  max-height: 1000px;
+  padding: 1rem;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.collapsibleContent.active .editField {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.collapsibleContent.active .editField:nth-child(1) { animation-delay: 0.1s; }
+.collapsibleContent.active .editField:nth-child(2) { animation-delay: 0.15s; }
+.collapsibleContent.active .editField:nth-child(3) { animation-delay: 0.2s; }
+.collapsibleContent.active .editField:nth-child(4) { animation-delay: 0.25s; }
+.collapsibleContent.active .editField:nth-child(5) { animation-delay: 0.3s; }
+
+/* ===================================
+   🎨 תגיות מיוחדות (Tags)
+   =================================== */
+
+.familyControl {
+  margin-bottom: 0.75rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--modern-text-secondary, #475569);
+  margin-bottom: 0.375rem;
+}
+
+.selectedFamily {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--modern-bg-secondary, #f8fafc);
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.manualTag {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--modern-accent-pink, #ec4899);
+  background: rgba(236, 72, 153, 0.1);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.familyVariantInfo {
+  font-size: 0.75rem;
+  color: var(--modern-text-tertiary, #94a3b8);
+}
+
+.noFamily {
+  padding: 0.5rem 0.75rem;
+  background: var(--modern-bg-tertiary, #f1f5f9);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--modern-text-secondary, #475569);
+  font-style: italic;
+}

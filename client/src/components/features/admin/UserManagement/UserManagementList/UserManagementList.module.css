@@ -1,0 +1,362 @@
+/* סטיילים לרכיב רשימת ניהול משתמשים */
+
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.addUserBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.searchBox {
+  flex: 1;
+  max-width: 400px;
+}
+
+.searchInput {
+  width: 100%;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  margin-bottom: 16px;
+}
+
+.tableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.loading {
+  padding: 48px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: #f9fafb;
+  padding: 12px 16px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #374151;
+}
+
+.table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.groupBadge {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.groupBadge.clickable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.groupBadge.clickable:hover {
+  background: #bfdbfe;
+}
+
+.noGroup {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.active {
+  color: #059669;
+  font-weight: 500;
+}
+
+.inactive {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.pageInfo {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.modalContent {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .searchBox {
+    max-width: none;
+  }
+
+  /* ========================================
+     Mobile Card Layout - בהשראת CartItem
+     תצוגת כרטיס במקום שורת טבלה
+     ======================================== */
+
+  /* הסתרת כותרות הטבלה */
+  .table {
+    display: block;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .table tbody tr {
+    /* הפיכה מ-table-row לכרטיס grid */
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(249, 250, 251, 0.9);
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+    border-radius: 12px;
+    border-bottom: none;
+  }
+
+  .table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .table td {
+    border-bottom: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* שם המשתמש (עמודה 2) */
+  .table td:nth-child(2) {
+    display: block;
+    padding: 0;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  /* אימייל (עמודה 3) */
+  .table td:nth-child(3) {
+    justify-content: flex-start;
+    padding: 0;
+    gap: 8px;
+    font-size: 0.875rem;
+  }
+
+  .table td:nth-child(3)::before {
+    content: 'אימייל: ';
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  /* קבוצה (עמודה 4) */
+  .table td:nth-child(4) {
+    justify-content: flex-start;
+    padding: 0;
+    gap: 8px;
+  }
+
+  .table td:nth-child(4)::before {
+    content: 'קבוצה: ';
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .groupBadge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .noGroup {
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+
+  /* סטטוס (עמודה 5) */
+  .table td:nth-child(5) {
+    justify-content: flex-start;
+    padding: 0;
+    gap: 8px;
+  }
+
+  .table td:nth-child(5)::before {
+    content: 'סטטוס: ';
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .active,
+  .inactive {
+    font-size: 0.75rem;
+  }
+
+  /* תאריך הצטרפות (עמודה 6) - הסתרה */
+  .table td:nth-child(6) {
+    display: none;
+  }
+
+  /* checkbox (עמודה 1) - הסתרה */
+  .table td:nth-child(1) {
+    display: none;
+  }
+
+  /* פעולות (עמודה 7) */
+  .table td:nth-child(7) {
+    grid-column: 1;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 0;
+    margin-top: 4px;
+    border-top: 1px solid var(--color-gray-100, #f3f4f6);
+    padding-top: 8px;
+  }
+
+  .actions {
+    gap: 4px;
+    width: 100%;
+  }
+
+  .actions button {
+    flex: 1;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
+  }
+
+  .tableContainer {
+    overflow-x: visible;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

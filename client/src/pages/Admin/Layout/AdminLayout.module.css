@@ -1,0 +1,202 @@
+/* Layout ראשי של אזור הניהול */
+
+.adminLayout {
+  display: flex;
+  height: 100vh; /* גובה קבוע - לא min-height */
+  overflow: hidden; /* מונע גלילה על ה-layout עצמו */
+  background: var(--color-bg-primary);
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+  direction: rtl;
+}
+
+/* שכבת רקע כהה לתפריט מובייל */
+.mobileOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* אזור התוכן המרכזי - זהו ה-scroll container */
+.mainContent {
+  flex: 1;
+  margin-right: var(--nav-width); /* מרווח עבור הפאנל הצדדי */
+  overflow-y: auto; /* הגלילה קורית כאן! */
+  overflow-x: hidden; /* מונע גלילה אופקית */
+  height: 100%; /* תופס את כל הגובה */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header קבוע למובייל/טאבלט - נשאר במקום בעת גלילה */
+.mobileHeader {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-bg-primary);
+  /* backdrop-filter לאפקט זכוכית מט כשגוללים מתחת */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-sm);
+}
+
+/* כותרת לוח ניהול */
+.mobileTitle {
+  margin: 0;
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-primary);
+}
+
+.hamburgerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.hamburgerButton:hover {
+  background: var(--color-bg-hover);
+}
+
+/* תוכן הדף - מתחת ל-TopBar */
+.pageContent {
+  flex: 1;
+  padding: var(--spacing-xl);
+}
+
+/* Responsive - במסכים קטנים */
+@media (max-width: 768px) {
+  .adminLayout {
+    overflow-x: hidden; /* מונע גלילה אופקית במובייל */
+  }
+
+  .mainContent {
+    margin-right: 0; /* הפאנל מוסתר במובייל */
+  }
+
+  .pageContent {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Desktop and larger - use grid layout so the sidebar is part of flow
+   and does not overlay page content. This prevents the sidebar from
+   covering the main content on medium/large screens. */
+@media (min-width: 769px) {
+  .adminLayout {
+    display: grid;
+    height: 100vh;
+    overflow: hidden;
+    /* RTL layout: grid columns are placed from right-to-left, so
+       define nav first so it sits on the right column in RTL */
+    grid-template-columns: var(--nav-width) 1fr;
+    grid-template-areas: "nav content";
+    align-items: stretch; /* stretch כדי שהתוכן ימלא את כל הגובה */
+  }
+
+  /* Navigation panel sits in the second column instead of fixed */
+  /* mainContent will be the first column */
+  .mainContent {
+    margin-right: 0; /* remove fixed offset */
+    grid-area: content;
+    padding: var(--spacing-xl);
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  /* ב-desktop ה-mobileHeader מוסתר דרך ה-JSX */
+}
+
+@media (max-width: 480px) {
+  .mainContent {
+    margin-right: 0; /* הפאנל מוסתר במובייל */
+  }
+
+  .pageContent {
+    padding: var(--spacing-sm);
+  }
+
+  /* קטנו את ה-header והכפתור בנקודת שבירה זו */
+  .mobileHeader {
+    height: 52px;
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .mobileTitle {
+    font-size: var(--font-size-base, 1rem);
+  }
+
+  .hamburgerButton {
+    padding: 4px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .hamburgerButton svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* מסכים קטנים מאוד (עד 360px) - קטנו עוד יותר */
+@media (max-width: 360px) {
+  .mobileHeader {
+    /* גובה מינימלי - עדיין נגיש וגם חוסך מקום */
+    height: 48px;
+    padding: 4px var(--spacing-xs);
+  }
+
+  .mobileTitle {
+    font-size: var(--font-size-sm, 0.875rem);
+  }
+
+  .hamburgerButton {
+    /* כפתור קטן אבל עדיין מעל WCAG minimum touch target (32px) */
+    padding: 3px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .hamburgerButton svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Scrollbar מעוצב לאזור התוכן */
+.mainContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mainContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mainContent::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.mainContent::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}

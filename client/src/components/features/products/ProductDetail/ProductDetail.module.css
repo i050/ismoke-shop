@@ -1,0 +1,252 @@
+.productDetail {
+  padding: var(--spacing-xl);
+  /* הסר max-width ו-margin: 0 auto - זה כבר ב-app-container */
+}
+
+/* מיכל עיקרי עם גודל קבוע למניעת שינויים בטאבים */
+.container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  box-sizing: border-box;
+  overflow-x: hidden; /* מניעת גלישה אופקית */
+}
+
+.productDetail h1 {
+  /* כותרת מוצר - שימוש במשתנה צבע מרכזי מעיצוב אחיד */
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+}
+
+/* ריווח אנכי בין ההדר המשני, ה-breadcrumb וכותרת המוצר */
+.secondaryHeader { margin-bottom: var(--spacing-md); }
+
+.breadcrumb { margin-bottom: var(--spacing-2xl); }
+
+.productHeader { margin-top: var(--spacing-sm); margin-bottom: var(--spacing-2xl); }
+
+/* עיצוב אזור המחיר בדף המוצר */
+.priceSection {
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-normal);
+}
+
+/* עיצוב מיוחד לרכיב המחיר בדף המוצר */
+.productDetailPrice {
+  font-size: 1.4rem !important;
+}
+
+.currentPrice {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.transientBanner {
+  padding: 0.6rem 1rem;
+  background: linear-gradient(90deg,#fff8ee,#fffdf8);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0,0,0,0.06);
+  text-align: center;
+}
+
+/* עיצוב אזור ה-main עם grid layout */
+.productMain {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* תמונות רחבות יותר בצד ימין, פרטים בצד שמאל */
+  gap: var(--spacing-2xl); /* רווח בין העמודות */
+  margin-bottom: var(--spacing-3xl);
+}
+
+/* Responsive - במסכים קטנים, עמודות אחת מתחת לשנייה */
+@media (max-width: 768px) {
+  .productMain { grid-template-columns: 1fr; gap: var(--spacing-md); }
+}
+
+/* עיצוב לכוכבים */
+.stars { display: flex; flex-direction: row; align-items: center; gap: var(--spacing-xs); }
+
+/* כפתורי פעולה - שמירה על סידור אנכי ורווח בין הכפתורים */
+.actionButtons {
+  display: flex;
+  flex-direction: column; /* הסדר אנכי - כפתור אחד מעל השני */
+  gap: var(--spacing-md);   /* רווח נקי ומודרני בין הכפתורים */
+  margin-bottom: var(--spacing-lg);
+}
+
+/* עיצוב לבורר הכמות */
+.quantitySection {
+  margin: var(--spacing-lg) 0;
+}
+
+.quantityLabel {
+  margin-bottom: var(--spacing-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* זהה להתנהגות בעגלת - מכיל את הבורר ומאפשר הוספת pill שמעליו בלי להזיז את ה-layout */
+.quantityWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stockPill {
+  position: absolute;
+  top: -44px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  opacity: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(254, 226, 226, 1), rgba(255, 244, 244, 1));
+  color: #7f1d1d;
+  font-size: 0.8125rem;
+  box-shadow: 0 6px 22px rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  white-space: nowrap;
+  z-index: 12;
+  pointer-events: none;
+  transition: opacity 240ms cubic-bezier(0.2, 0, 0, 1), transform 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.stockPillVisible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.pillIcon { color: #dc2626; display: inline-block; }
+
+/* ===========================================
+   מצב מלאי - עיצובים
+   =========================================== */
+
+.stockStatus {
+  margin: var(--spacing-md) 0;
+}
+
+.inStock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.outOfStock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* ===========================================
+   הודעה "כל היחידות בעגלה שלך"
+   =========================================== */
+
+.allInCart {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(16, 185, 129, 0.12) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #16a34a;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 10px;
+  animation: fadeInMessage 0.3s ease;
+}
+
+.allInCartBanner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  color: #16a34a;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  animation: fadeInMessage 0.3s ease;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+}
+
+.allInCartBannerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.allInCartTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #15803d;
+}
+
+.allInCartSubtitle {
+  font-size: 0.875rem;
+  color: #22c55e;
+}
+
+.cartLink {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #15803d;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.cartLink:hover {
+  color: #16a34a;
+  text-decoration: none;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.cartLink:active {
+  transform: scale(0.98);
+}
+
+@keyframes fadeInMessage {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* רספונסיביות */
+@media (max-width: 480px) {
+  .allInCart {
+    font-size: 0.875rem;
+    padding: 8px 12px;
+  }
+  
+  .allInCartBanner {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  
+  .allInCartTitle {
+    font-size: 0.9375rem;
+  }
+  
+  .allInCartSubtitle {
+    font-size: 0.8125rem;
+  }
+}

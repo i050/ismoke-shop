@@ -1,0 +1,486 @@
+/* ========================================
+   ColorSelect - קומפוננטת בחירת צבע מותאמת אישית
+   ======================================== */
+
+/* קונטיינר כללי לשדה הבחירה */
+.colorSelectContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+/* תווית השדה */
+.label {
+  font-size: var(--font-size-sm);      /* 14px */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+  text-align: right;                    /* יישור לימין עבור עברית */
+}
+
+/* סימן * לשדה חובה */
+.required {
+  color: var(--state-error);
+  margin-right: var(--spacing-xs);
+}
+
+/* כפתור הבחירה הראשי */
+.selectButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  height: 40px;
+  background-color: var(--color-bg-elevated);
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  outline: none;
+  text-align: right;
+  direction: rtl;
+  user-select: none;
+}
+
+/* אפקט hover על הכפתור */
+.selectButton:hover:not(.disabled) {
+  border-color: var(--color-text-muted);
+  background-color: var(--color-bg-hover);
+}
+
+/* מצב פוקוס */
+.selectButton:focus:not(.disabled) {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+/* מצב פתוח */
+.selectButton.open {
+  border-color: var(--brand-primary);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* מצב שגיאה */
+.selectButton.error {
+  border-color: var(--state-error) !important;
+}
+
+.selectButton.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08) !important;
+}
+
+/* מצב מושבת */
+.selectButton.disabled {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  border-color: var(--border);
+}
+
+/* הערך הנבחר */
+.selectedValue {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+/* אינדיקטור צבע קטן (עיגול) ליד הטקסט */
+.colorIndicator {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* placeholder */
+.placeholder {
+  color: var(--color-text-muted);
+}
+
+/* אייקון החץ */
+.arrow {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+
+/* החץ כשהרשימה פתוחה */
+.arrowUp {
+  transform: rotate(180deg);
+}
+
+/* רשימת האופציות (dropdown) */
+.optionsList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background-color: var(--color-bg-elevated);
+  border: 2px solid var(--brand-primary);
+  border-top: none;
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: var(--z-dropdown);
+  animation: slideDown 0.2s ease;
+}
+
+/* אנימציה לפתיחת הרשימה */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* אופציה בודדת ברשימה */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  direction: rtl;
+  text-align: right;
+  border-right: 4px solid transparent; /* רוחב הקו הצבעוני */
+}
+
+/* אפקט hover על אופציה */
+.option:hover {
+  background-color: var(--color-bg-hover);
+}
+
+/* אופציה נבחרת */
+.option.selected {
+  background-color: var(--color-bg-tertiary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* טקסט האופציה */
+.optionText {
+  flex: 1;
+  color: var(--color-text-primary);
+}
+
+/* קו צבעוני בצד ימין של כל אופציה */
+.colorBar {
+  width: 4px;
+  height: 24px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  margin-left: var(--spacing-sm);
+  box-shadow: var(--shadow-xs);
+}
+
+/* סקרול בר מותאם */
+.optionsList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.optionsList::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xs);
+}
+
+.optionsList::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: var(--radius-xs);
+}
+
+.optionsList::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* טקסט עזר */
+.helperText {
+  font-size: var(--font-size-xs);       /* 12px */
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+  text-align: right;
+}
+
+/* טקסט שגיאה */
+.errorText {
+  color: var(--state-error);
+}
+
+/* ========================================
+   HexColorPicker Popup Styles
+   ======================================== */
+
+/* אופציה מיוחדת לפתיחת ה-picker */
+.customOption {
+  font-weight: var(--font-weight-semibold);
+  color: var(--brand-primary);
+  border-top: 1px solid var(--border);
+}
+
+/* אוברליי מלא מסך */
+.pickerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* החלון של ה-picker */
+.pickerPopup {
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-2xl);
+  padding: var(--spacing-xl);
+  max-width: 320px;
+  width: 90%;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* כותרת ה-picker */
+.pickerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border);
+}
+
+.pickerHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* כפתור סגירה */
+.pickerCloseBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  line-height: 1;
+  transition: color var(--transition-fast);
+}
+
+.pickerCloseBtn:hover {
+  color: var(--color-text-primary);
+}
+
+/* גוף ה-picker */
+.pickerBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* תצוגת הצבע הנוכחי */
+.currentColorDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.colorPreview {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.colorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.colorHex {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: 'Courier New', monospace;
+  color: var(--color-text-primary);
+}
+
+.colorNameLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* שדה הקלדה ידנית */
+.hexInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.hexInputGroup label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.hexInput {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-family: 'Courier New', monospace;
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast);
+}
+
+.hexInput:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+/* כפתורי פעולה */
+.pickerActions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border);
+}
+
+.pickerBtn {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pickerBtnCancel {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+
+.pickerBtnCancel:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--border-hover);
+}
+
+.pickerBtnConfirm {
+  background-color: var(--brand-primary);
+  color: white;
+  border-color: var(--brand-primary);
+}
+
+.pickerBtnConfirm:hover {
+  background-color: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+}
+
+/* התאמה ל-HexColorPicker מהספריה */
+.pickerBody :global(.react-colorful) {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  user-select: none;
+  cursor: default;
+}
+
+.pickerBody :global(.react-colorful__saturation) {
+  border-radius: var(--radius-sm);
+  border-bottom: none;
+  position: relative;
+  flex-grow: 1;
+  border-top-left-radius: var(--radius-sm);
+  border-top-right-radius: var(--radius-sm);
+  background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+    linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+}
+
+.pickerBody :global(.react-colorful__hue) {
+  border-radius: var(--radius-sm);
+  height: 12px;
+  margin-top: var(--spacing-md);
+  position: relative;
+  background: linear-gradient(
+    to right,
+    #f00 0%,
+    #ff0 17%,
+    #0f0 33%,
+    #0ff 50%,
+    #00f 67%,
+    #f0f 83%,
+    #f00 100%
+  );
+}
+
+.pickerBody :global(.react-colorful__pointer) {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: translate(-50%, -50%);
+}
+
+.pickerBody :global(.react-colorful__interactive) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: crosshair;
+  touch-action: none;
+}

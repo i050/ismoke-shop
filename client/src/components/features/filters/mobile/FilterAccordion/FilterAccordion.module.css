@@ -1,0 +1,108 @@
+/**
+ * FilterAccordion Styles
+ * 
+ * סגנונות לאקורדיון פילטרים עם אנימציה חלקה
+ */
+
+.accordion {
+  border-bottom: 1px solid var(--border);
+}
+
+.accordion:last-child {
+  border-bottom: none;
+}
+
+/* Header Button */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: transparent;
+  border: none;
+  text-align: right;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.header:hover {
+  background: var(--color-bg-hover);
+}
+
+.titleWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.icon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* Badge לספירת פילטרים פעילים */
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--spacing-xs);
+  background: var(--primary);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-full);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-bg-hover);
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.clearButton:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.chevron {
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+/* Content Area */
+.content {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 0;
+}
+
+.content.open {
+  opacity: 1;
+}
+
+.contentInner {
+  padding: 0 var(--spacing-lg) var(--spacing-md);
+}

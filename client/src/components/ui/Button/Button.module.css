@@ -1,0 +1,504 @@
+/* ========================================
+   Button Component - Enterprise Grade
+   ======================================== */
+
+/* בסיס הכפתור */
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-normal),
+    filter var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    opacity var(--transition-fast);
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  will-change: transform;
+  overflow: hidden; /* for ripple effect */
+}
+
+/* Focus state לנגישות */
+.button:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-sm);
+}
+
+@supports (color: color-mix(in srgb, black, white)) {
+  .button:focus-visible {
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--brand-primary) 25%, transparent),
+      var(--shadow-sm);
+  }
+}
+
+/* Press feedback (shared across variants) */
+.button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ========================================
+   Sizes - גדלים
+   ======================================== */
+
+.xs {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  height: 28px;
+  min-width: 60px;
+}
+
+.sm {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  height: 36px;
+  min-width: 80px;
+}
+
+.md {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-base);
+  height: 44px;
+  min-width: 100px;
+}
+
+.lg {
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  font-size: var(--font-size-lg);
+  height: 52px;
+  min-width: 120px;
+}
+
+.xl {
+  padding: var(--spacing-xl) var(--spacing-3xl);
+  font-size: var(--font-size-xl);
+  height: 60px;
+  min-width: 140px;
+}
+
+/* ========================================
+   Variants - סוגים
+   ======================================== */
+
+/* Primary - כפתור ראשי */
+.primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--gradient-primary);
+  filter: brightness(1.1) saturate(1.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Secondary - כפתור משני */
+.secondary {
+  background: linear-gradient(135deg, var(--brand-cyan) 0%, var(--brand-emerald) 100%);
+  color: white;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--brand-cyan) 0%, var(--brand-emerald) 100%);
+  filter: brightness(1.1) saturate(1.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+.secondary:active:not(:disabled) {
+  background: var(--color-bg-hover);
+  border-color: var(--border-hover);
+}
+
+/* Outline - מתאר */
+.outline {
+  background: transparent;
+  color: var(--brand-primary);
+  border: 2px solid var(--brand-primary);
+}
+
+.outline:hover:not(:disabled) {
+  /* כחול בהיר - צבע נראה בהיר אבל קונטרסט מוגן (5.5:1) */
+  background: linear-gradient(135deg, #4f7dd1 0%, #64b5f6 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(79, 125, 209, 0.3);
+}
+
+.outline:active:not(:disabled) {
+  background: var(--brand-primary);
+  color: white;
+  filter: brightness(0.98);
+}
+
+/* Ghost - שקוף */
+.ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 2px solid transparent;
+  box-shadow: none;
+}
+
+.ghost:hover:not(:disabled) {
+  /* סגול-מגנטה בהיר - צבע נראה בהיר עם קונטרסט מוגן (4.8:1) */
+  background: linear-gradient(135deg, #a676e8 0%, #e689c0 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-lg), 0 0 15px rgba(166, 118, 232, 0.25);
+}
+
+.ghost:active:not(:disabled) {
+  background: var(--color-bg-hover);
+  border-color: var(--border-hover);
+}
+
+/* Danger - מסוכן */
+.danger {
+  background: linear-gradient(135deg, var(--state-error) 0%, var(--brand-red) 100%);
+  color: white;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--state-error) 0%, var(--brand-red) 100%);
+  filter: brightness(1.1) saturate(1.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+.danger:active:not(:disabled) {
+  filter: brightness(0.98);
+}
+
+/* Success - הצלחה */
+.success {
+  /* darker emerald green for sufficient contrast with white text (WCAG 4.5:1) */
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  color: white;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  filter: brightness(1.15) saturate(1.2);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.success:active:not(:disabled) {
+  filter: brightness(0.98);
+}
+
+/* ========================================
+   Modifiers - שינויים
+   ======================================== */
+
+/* Full Width */
+.fullWidth {
+  width: 100%;
+  min-width: 100%;
+}
+
+/* Mobile-only full width helper - use via Button prop mobileFull */
+.mobileFullWidth {
+  /* default: behave like normal button on large screens */
+  width: auto;
+  min-width: 0;
+}
+
+/* Rounded - עגול לגמרי */
+.rounded {
+  border-radius: var(--radius-full);
+}
+
+/* Elevated - מורם עם צל */
+.elevated {
+  box-shadow: var(--shadow-xl);
+}
+
+.elevated:hover:not(:disabled) {
+  box-shadow: var(--shadow-2xl);
+}
+
+/* ========================================
+   States - מצבים
+   ======================================== */
+
+/* Disabled */
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Loading */
+.loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.loading .content {
+  opacity: 0.6;
+}
+
+/* ========================================
+   Icons - אייקונים
+   ======================================== */
+
+.iconLeft,
+.iconRight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconLeft {
+  margin-inline-start: calc(var(--spacing-xs) * -1);
+}
+
+.iconRight {
+  margin-inline-end: calc(var(--spacing-xs) * -1);
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  transition: var(--transition-fast);
+}
+
+/* ========================================
+   Loading Spinner - ספינר טעינה
+   ======================================== */
+
+.spinner {
+  position: absolute;
+  left: var(--spacing-md);
+  inset-inline-start: var(--spacing-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Touch devices: avoid hover “jump” on tap; rely on active instead */
+@media (hover: none) {
+  .primary:hover:not(:disabled),
+  .secondary:hover:not(:disabled),
+  .outline:hover:not(:disabled),
+  .danger:hover:not(:disabled),
+  .success:hover:not(:disabled),
+  .ghost:hover:not(:disabled) {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    filter: none;
+  }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .content,
+  .spinnerIcon,
+  .spinnerCircle {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .button:active:not(:disabled),
+  .primary:hover:not(:disabled),
+  .secondary:hover:not(:disabled),
+  .outline:hover:not(:disabled),
+  .danger:hover:not(:disabled),
+  .success:hover:not(:disabled),
+  .ghost:hover:not(:disabled) {
+    transform: none !important;
+  }
+
+  .button::before {
+    display: none;
+  }
+}
+
+.spinnerIcon {
+  width: 16px;
+  height: 16px;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinnerCircle {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 25;
+  animation: spinnerDash 1.5s ease-in-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Ripple effect */
+.button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  pointer-events: none;
+}
+
+.button:active::before {
+  width: 300px;
+  height: 300px;
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes spinnerDash {
+  0% {
+    stroke-dashoffset: 50;
+  }
+  50% {
+    stroke-dashoffset: 10;
+  }
+  100% {
+    stroke-dashoffset: 50;
+  }
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+/* Medium breakpoint - allow buttons to shrink and reduce padding */
+@media (max-width: 768px) {
+  .button {
+    min-width: 0; /* allow shrinking to content */
+    padding: 6px 10px; /* slightly smaller padding */
+    gap: var(--spacing-xs);
+    white-space: nowrap; /* keep single line but allow smaller min-width */
+  }
+
+  /* scale down size tokens slightly so buttons don't force large layout */
+  .xs {
+    height: 28px;
+    min-width: 44px;
+    padding: 4px 8px;
+  }
+
+  .sm {
+    height: 34px;
+    min-width: 64px;
+    padding: 6px 10px;
+  }
+
+  .md {
+    height: 40px;
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: var(--font-size-sm);
+  }
+
+  .lg {
+    height: 46px;
+    min-width: 96px;
+    padding: 10px 14px;
+    font-size: var(--font-size-base);
+  }
+
+  .xl {
+    height: 52px;
+    min-width: 110px;
+    font-size: var(--font-size-lg);
+  }
+
+  /* keep fullWidth behavior consistent on smaller screens */
+  .fullWidth {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* mobile-only helper -> make button block/full width on smaller devices */
+  .mobileFullWidth {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* compact content: clamp overflow to single line */
+  .content {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+}
+
+/* Small screens - aggressive shrink so button never forces layout */
+@media (max-width: 480px) {
+  .button {
+    min-width: 0;
+    padding: 6px 8px;
+    gap: 6px;
+    height: 36px;
+    font-size: var(--font-size-sm);
+  }
+
+  .xs { height: 28px; min-width: 40px; padding: 4px 6px; }
+  .sm { height: 32px; min-width: 48px; padding: 6px 8px; }
+  .md { height: 36px; min-width: 64px; padding: 6px 8px; }
+  .lg { height: 40px; min-width: 80px; padding: 8px 10px; }
+
+  .content { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .spinner {
+    left: var(--spacing-sm);
+    inset-inline-start: var(--spacing-sm);
+  }
+
+  /* ensure mobileFullWidth is full-width on very small screens too */
+  .mobileFullWidth {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+}

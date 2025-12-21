@@ -1,0 +1,303 @@
+/* Product Images Component Styles */
+/* מטרת הקובץ: עיצוב קומפוננטת ניהול תמונות המוצר */
+
+/* Container ראשי */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-background);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* כותרת */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Wrapper ל-ImageUploader */
+.uploaderWrapper {
+  width: 100%;
+}
+
+/* אינדיקטור תמונה ראשית */
+.primaryIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+  animation: slideIn 0.3s ease;
+}
+
+.primaryIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: starPulse 2s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.primaryText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* מונה תמונות */
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-background-secondary, #f8f9fa);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+  width: fit-content;
+}
+
+.counterCurrent {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary, #007bff);
+}
+
+.counterSeparator {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.counterMax {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.counterLabel {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-right: 0.5rem;
+}
+
+/* הודעת שגיאה */
+.error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-danger-background, #fee2e2);
+  color: var(--color-danger, #dc2626);
+  border: 1px solid var(--color-danger-alpha, rgba(220, 53, 69, 0.3));
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  animation: slideIn 0.3s ease;
+}
+
+.error svg {
+  flex-shrink: 0;
+}
+
+/* סקציית טיפים */
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--color-info-background, #d1ecf1);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-info-alpha, rgba(23, 162, 184, 0.3));
+}
+
+.tipsHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-info, #17a2b8);
+}
+
+.tipsHeader svg {
+  flex-shrink: 0;
+}
+
+.tipsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.tipsList li {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  padding-right: 1.25rem;
+  position: relative;
+}
+
+.tipsList li::before {
+  content: '•';
+  position: absolute;
+  right: 0;
+  color: var(--color-info, #17a2b8);
+  font-weight: bold;
+  font-size: 1.125rem;
+}
+
+.tipsList li strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* אזהרה - אין תמונות */
+.warningBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--color-warning-background, #fff3cd);
+  border: 1px solid var(--color-warning-alpha, rgba(255, 193, 7, 0.3));
+  border-radius: var(--border-radius-md);
+  color: var(--color-warning-dark, #856404);
+  animation: slideIn 0.3s ease;
+}
+
+.warningBox svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.warningContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.warningContent strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-warning-dark, #856404);
+}
+
+.warningContent span {
+  font-size: 0.8125rem;
+  color: var(--color-warning-dark, #856404);
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* אנימציות */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .primaryIndicator {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .primaryText {
+    font-size: 0.8125rem;
+  }
+
+  .counter {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .counterCurrent {
+    font-size: 1.25rem;
+  }
+
+  .counterMax {
+    font-size: 1rem;
+  }
+
+  .tips {
+    padding: 0.875rem;
+  }
+
+  .tipsList li {
+    font-size: 0.8125rem;
+  }
+}
+
+/* מצב Disabled */
+.container:has(input:disabled) {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Focus States */
+.uploaderWrapper:focus-within {
+  outline: 2px solid var(--color-primary-alpha, rgba(0, 123, 255, 0.3));
+  outline-offset: 2px;
+  border-radius: var(--border-radius-md);
+}
+
+/* Empty State Enhancement */
+.container:has(.warningBox) .uploaderWrapper {
+  border: 2px dashed var(--color-warning-alpha, rgba(255, 193, 7, 0.5));
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem;
+}

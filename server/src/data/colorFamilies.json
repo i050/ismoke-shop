@@ -1,0 +1,134 @@
+[
+  {
+    "family": "red",
+    "displayName": "אדום",
+    "variants": [
+      { "name": "Crimson", "hex": "#DC143C" },
+      { "name": "Scarlet", "hex": "#FF2400" },
+      { "name": "Ruby", "hex": "#E0115F" },
+      { "name": "Burgundy", "hex": "#800020" },
+      { "name": "Maroon", "hex": "#800000" }
+    ]
+  },
+  {
+    "family": "blue",
+    "displayName": "כחול",
+    "variants": [
+      { "name": "Navy", "hex": "#000080" },
+      { "name": "Sky Blue", "hex": "#87CEEB" },
+      { "name": "Deep Sky Blue", "hex": "#00BFFF" },
+      { "name": "Azure", "hex": "#007FFF" },
+      { "name": "Cobalt", "hex": "#0047AB" },
+      { "name": "Royal Blue", "hex": "#4169E1" },
+      { "name": "Dodger Blue", "hex": "#1E90FF" },
+      { "name": "Steel Blue", "hex": "#4682B4" },
+      { "name": "Cyan", "hex": "#00FFFF" },
+      { "name": "Teal", "hex": "#008080" }
+    ]
+  },
+  {
+    "family": "green",
+    "displayName": "ירוק",
+    "variants": [
+      { "name": "Emerald", "hex": "#50C878" },
+      { "name": "Lime", "hex": "#00FF00" },
+      { "name": "Olive", "hex": "#808000" },
+      { "name": "Forest", "hex": "#228B22" },
+      { "name": "Mint", "hex": "#98FF98" }
+    ]
+  },
+  {
+    "family": "yellow",
+    "displayName": "צהוב",
+    "variants": [
+      { "name": "Gold", "hex": "#FFD700" },
+      { "name": "Lemon", "hex": "#FFF44F" },
+      { "name": "Canary", "hex": "#FFFF99" },
+      { "name": "Mustard", "hex": "#FFDB58" }
+    ]
+  },
+  {
+    "family": "orange",
+    "displayName": "כתום",
+    "variants": [
+      { "name": "Orange", "hex": "#FFA500" },
+      { "name": "Coral", "hex": "#FF7F50" },
+      { "name": "Amber", "hex": "#FFBF00" },
+      { "name": "Tangerine", "hex": "#F28500" },
+      { "name": "Dark Orange", "hex": "#FF8C00" },
+      { "name": "Orange Red", "hex": "#FF4500" },
+      { "name": "Burnt Orange", "hex": "#CC5500" },
+      { "name": "Peach", "hex": "#FFCBA4" }
+    ]
+  },
+  {
+    "family": "purple",
+    "displayName": "סגול",
+    "variants": [
+      { "name": "Violet", "hex": "#8F00FF" },
+      { "name": "Lavender", "hex": "#E6E6FA" },
+      { "name": "Plum", "hex": "#8E4585" },
+      { "name": "Indigo", "hex": "#4B0082" }
+    ]
+  },
+  {
+    "family": "pink",
+    "displayName": "ורוד",
+    "variants": [
+      { "name": "Rose", "hex": "#FF007F" },
+      { "name": "Magenta", "hex": "#FF00FF" },
+      { "name": "Fuchsia", "hex": "#FF00FF" },
+      { "name": "Hot Pink", "hex": "#FF69B4" },
+      { "name": "Deep Pink", "hex": "#FF1493" },
+      { "name": "Bright Pink", "hex": "#FA4FE1" },
+      { "name": "Neon Pink", "hex": "#FF6EC7" },
+      { "name": "Light Pink", "hex": "#FFB6C1" },
+      { "name": "Salmon Pink", "hex": "#FF91A4" }
+    ]
+  },
+  {
+    "family": "brown",
+    "displayName": "חום",
+    "variants": [
+      { "name": "Brown", "hex": "#964B00" },
+      { "name": "Tan", "hex": "#D2B48C" },
+      { "name": "Beige", "hex": "#F5F5DC" },
+      { "name": "Chocolate", "hex": "#D2691E" }
+    ]
+  },
+  {
+    "family": "gray",
+    "displayName": "אפור",
+    "variants": [
+      { "name": "Gray", "hex": "#808080" },
+      { "name": "Silver", "hex": "#C0C0C0" },
+      { "name": "Charcoal", "hex": "#36454F" },
+      { "name": "Slate", "hex": "#708090" },
+      { "name": "Dark Gray", "hex": "#A9A9A9" },
+      { "name": "Light Gray", "hex": "#D3D3D3" },
+      { "name": "Dim Gray", "hex": "#696969" },
+      { "name": "Smoke", "hex": "#BEBEBE" }
+    ]
+  },
+  {
+    "family": "black",
+    "displayName": "שחור",
+    "variants": [
+      { "name": "Black", "hex": "#000000" },
+      { "name": "Ebony", "hex": "#0C0C0C" },
+      { "name": "Jet Black", "hex": "#1A1A1A" },
+      { "name": "Dark Gray", "hex": "#2C2C2C" },
+      { "name": "Onyx", "hex": "#353839" },
+      { "name": "Midnight", "hex": "#191970" }
+    ]
+  },
+  {
+    "family": "white",
+    "displayName": "לבן",
+    "variants": [
+      { "name": "White", "hex": "#FFFFFF" },
+      { "name": "Ivory", "hex": "#FFFFF0" },
+      { "name": "Cream", "hex": "#FFFDD0" }
+    ]
+  }
+]

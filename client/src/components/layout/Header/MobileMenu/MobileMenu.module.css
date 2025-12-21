@@ -1,0 +1,247 @@
+/* ==============================================
+   MobileMenu - תפריט המבורגר למובייל
+   ============================================== */
+
+/* ==================== שכבת רקע כהה ==================== */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.overlayActive {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==================== התפריט עצמו ==================== */
+.menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(100vw, 320px); /* רוחב מקסימלי 320px או כל המסך אם קטן יותר */
+  height: 100%;
+  background-color: var(--color-bg-elevated, #ffffff);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  direction: rtl;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  /* RTL: translateX שלילי כדי להזיז ימינה (מחוץ למסך) */
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  pointer-events: none; /* לא ניתן ללחוץ כשמוסתר */
+  visibility: hidden; /* הסתרה מלאה מ-screen readers */
+}
+
+.menuActive {
+  transform: translateX(0); /* נכנס למסך */
+  pointer-events: auto; /* ניתן ללחוץ */
+  visibility: visible; /* גלוי */
+}
+
+/* ==================== הדר התפריט ==================== */
+.menuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background-color: var(--color-bg-elevated, #ffffff);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 60px;
+}
+
+/* כפתור חזרה */
+.backButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--color-text-primary, #333);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.backButton:hover {
+  background-color: var(--color-bg-hover, #f3f4f6);
+  color: var(--primary, #3b82f6);
+}
+
+.backButton:active {
+  background-color: var(--color-bg-tertiary, #e5e7eb);
+}
+
+/* מחזיק מקום כשאין כפתור חזרה */
+.backButtonPlaceholder {
+  width: 40px;
+  height: 40px;
+}
+
+/* כותרת התפריט */
+.menuTitle {
+  flex: 1;
+  text-align: center;
+  font-size: var(--font-size-lg, 18px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-primary, #333);
+  margin: 0;
+  padding: 0 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* כפתור סגירה */
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--color-text-secondary, #666);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.closeButton:hover {
+  background-color: var(--color-bg-hover, #f3f4f6);
+  color: var(--danger, #ef4444);
+}
+
+.closeButton:active {
+  background-color: var(--color-bg-tertiary, #e5e7eb);
+}
+
+/* ==================== תוכן התפריט ==================== */
+.menuContent {
+  flex: 1;
+  overflow-y: auto;
+  /* גלילה חלקה - overscroll-behavior מונע גלילה של הדף מאחורי התפריט */
+  overscroll-behavior: contain;
+}
+
+/* מצב טעינה */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--color-text-secondary, #666);
+  font-size: var(--font-size-base, 16px);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ==================== רמת תפריט ==================== */
+.menuLevel {
+  animation: slideIn 0.25s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==================== פריט בתפריט ==================== */
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-light, #f0f0f0);
+  cursor: pointer;
+  font-size: var(--font-size-base, 16px);
+  color: var(--color-text-primary, #333);
+  text-align: right;
+  transition: background-color 0.2s ease;
+  min-height: var(--touch-target-min, 44px);
+}
+
+.menuItem:hover {
+  background-color: var(--color-bg-hover, #f8f8f8);
+}
+
+.menuItem:active {
+  background-color: var(--color-bg-tertiary, #f0f0f0);
+}
+
+/* טקסט הפריט */
+.menuItemText {
+  flex: 1;
+  text-align: right;
+}
+
+/* חץ לתת-קטגוריות */
+.menuItemArrow {
+  color: var(--color-text-tertiary, #999);
+  margin-right: auto;
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+/* אייקון "כל המוצרים" */
+.menuItemIcon {
+  color: var(--primary, #0066cc);
+  margin-right: auto;
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+/* ==================== כפתור "כל המוצרים ב..." ==================== */
+.viewAllItem {
+  background-color: rgba(59, 130, 246, 0.08);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--primary, #0066cc);
+}
+
+.viewAllItem:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.viewAllItem:active {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* ==================== Safe Area לאייפון ==================== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .menuContent {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

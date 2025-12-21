@@ -1,0 +1,472 @@
+.customerGroupsList {
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.createButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.createButton:hover {
+  background: #2563eb;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.searchInput {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  width: 250px;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.statusFilter {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tableHeader {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tableHeader th {
+  padding: 0.75rem 1rem;
+  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.tableBody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.groupName {
+  font-weight: 500;
+  color: #111827;
+}
+
+.discountBadge {
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.statusActive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusInactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.actionButton {
+  padding: 0.375rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editButton {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.editButton:hover {
+  background: #e5e7eb;
+}
+
+.deleteButton {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.deleteButton:hover {
+  background: #fecaca;
+}
+
+.toggleButton {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.toggleButton:hover {
+  background: #fde68a;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border: 1px solid #fecaca;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+}
+
+.empty h3 {
+  margin: 0 0 0.5rem 0;
+  color: #374151;
+}
+
+.empty p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.pageButton {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.pageButton:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.pageButton.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.description {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+/* ========================================
+   Responsive - מובייל קטן
+   ======================================== */
+
+@media (max-width: 768px) {
+  .customerGroupsList {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .createButton {
+    width: 100%;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .searchInput,
+  .statusFilter {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   Mobile Card Layout - בהשראת CartItem
+   תצוגת כרטיס במקום שורת טבלה
+   ======================================== */
+
+@media (max-width: 768px) {
+  .customerGroupsList {
+    padding: 8px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+    width: 100%;
+  }
+
+  .createButton {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .searchInput,
+  .statusFilter {
+    width: 100%;
+    padding: 0.625rem;
+  }
+
+  /* הסתרת טבלה ההדר */
+  .tableHeader {
+    display: none;
+  }
+
+  /* הפיכת הטבלה לכרטיסים */
+  .table {
+    display: block;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .tableBody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tableBody tr {
+    /* הפיכה מ-table-row לכרטיס grid */
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(249, 250, 251, 0.9);
+    border: 1px solid var(--color-gray-200, #e5e7eb);
+    border-radius: 12px;
+    border-bottom: none;
+  }
+
+  .tableBody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .tableBody td {
+    border-bottom: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* שם הקבוצה */
+  .tableBody td:nth-child(1) {
+    display: block;
+    padding: 0;
+  }
+
+  .groupName {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .description {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  /* הנחה */
+  .tableBody td:nth-child(2) {
+    justify-content: flex-start;
+    padding: 0;
+    gap: 8px;
+  }
+
+  .tableBody td:nth-child(2)::before {
+    content: 'הנחה: ';
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .discountBadge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  /* סטטוס */
+  .tableBody td:nth-child(3) {
+    justify-content: flex-start;
+    padding: 0;
+    gap: 8px;
+  }
+
+  .tableBody td:nth-child(3)::before {
+    content: 'סטטוס: ';
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .statusActive,
+  .statusInactive {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* חברים */
+  .tableBody td:nth-child(4) {
+    justify-content: flex-start;
+    padding: 0;
+    gap: 4px;
+    font-size: 0.875rem;
+  }
+
+  .tableBody td:nth-child(4)::before {
+    content: 'חברים: ';
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  /* תאריך יצירה - הסתרה */
+  .tableBody td:nth-child(5) {
+    display: none;
+  }
+
+  /* פעולות */
+  .tableBody td:nth-child(6) {
+    grid-column: 1;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 0;
+    margin-top: 4px;
+    border-top: 1px solid var(--color-gray-100, #f3f4f6);
+    padding-top: 8px;
+  }
+
+  .actions {
+    gap: 4px;
+    width: 100%;
+  }
+
+  .actionButton,
+  .editButton,
+  .deleteButton,
+  .toggleButton {
+    flex: 1;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
+  }
+
+  /* Pagination */
+  .pagination {
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pageButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}

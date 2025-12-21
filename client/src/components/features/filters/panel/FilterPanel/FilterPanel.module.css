@@ -1,0 +1,333 @@
+/* פאנל סינון - wrapper לוגי בלבד (עיצוב חיצוני ב-ProductsPage) */
+.panel {
+  direction: rtl;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+  color: var(--color-text-secondary);
+}
+
+.section {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font: inherit;
+  direction: rtl;
+  transition: var(--transition-fast);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.inlineRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.numberInput {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font: inherit;
+  direction: ltr;
+  transition: var(--transition-fast);
+}
+
+.numberInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.to {
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium);
+}
+
+.resetBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+  font-weight: var(--font-weight-medium);
+}
+
+.resetBtn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.activeChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.chip {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1));
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.clickableChip {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clickableChip:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* סגנונות מאפיינים דינמיים */
+.attributeHeader {
+  display: flex;
+  width: 100%;
+}
+
+.labelWithIcon {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.attributeIcon {
+  font-size: 1.1em;
+}
+
+.clearAttributeBtn {
+  background: var(--error-light, #fee2e2);
+  color: var(--error, #ef4444);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.clearAttributeBtn:hover {
+  background: var(--error, #ef4444);
+  color: white;
+}
+
+/* גריד משפחות צבעים */
+.colorFamiliesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.colorFamilyOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-sm);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  background: var(--color-bg-elevated);
+}
+
+.colorFamilyOption:hover {
+  border-color: var(--primary);
+  background: var(--color-bg-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.colorFamilyOption.selected {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.hiddenCheckbox {
+  display: none;
+}
+
+.colorSwatches {
+  width: 100%;
+  height: 32px;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-xs);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+/* שכבה לבנה חצי-שקופה למראה מודרני ופסטלי */
+.colorSwatches::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  transition: var(--transition-fast);
+}
+
+.colorFamilyOption:hover .colorSwatches {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.colorFamilyOption:hover .colorSwatches::after {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.colorFamilyOption.selected .colorSwatches {
+  border-width: 2px;
+  border-color: var(--primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.colorFamilyOption.selected .colorSwatches::after {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.colorFamilyLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* רשימת ערכים טקסטואליים */
+.valuesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.valueOption {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.valueOption:hover {
+  background: var(--color-bg-hover);
+}
+
+.valueOption.selected {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.checkbox {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.valueLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.valueOption.selected .valueLabel {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* סגנונות לסקשנים מתקפלים */
+.sectionHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  color: var(--color-text-primary);
+}
+
+.sectionHeader:hover {
+  color: var(--primary);
+}
+
+.sectionHeader:hover .label {
+  color: var(--primary);
+}
+
+.sectionContent {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin-top 0.3s ease-out;
+  opacity: 0;
+}
+
+.sectionContent.open {
+  max-height: 1000px;
+  opacity: 1;
+  margin-top: var(--spacing-md);
+}
+
+/* עיצוב מיוחד לעץ קטגוריות בתוך הסקשן */
+.sectionContent > div:first-child {
+  width: 100%;
+}

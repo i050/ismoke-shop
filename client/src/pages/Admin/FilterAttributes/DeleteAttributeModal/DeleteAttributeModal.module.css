@@ -1,0 +1,237 @@
+/* קונטיינר ראשי */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+/* עטיפת האייקון */
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  margin-bottom: 0.5rem;
+}
+
+.warningIcon {
+  color: #d97706;
+}
+
+.deleteIcon {
+  color: #dc2626;
+}
+
+.iconWrapper:has(.deleteIcon) {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+/* שם המאפיין */
+.attributeName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  direction: rtl;
+}
+
+/* קופסת אזהרה */
+.warningBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  width: 100%;
+  direction: rtl;
+  text-align: right;
+}
+
+.warningBox svg {
+  flex-shrink: 0;
+  color: #d97706;
+  margin-top: 2px;
+}
+
+.warningBox p {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.warningBox strong {
+  color: #78350f;
+  font-weight: 700;
+}
+
+/* טקסט ללא שימוש */
+.noUsageText {
+  color: #6b7280;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* כפתורי פעולה */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.actions button {
+  width: 100%;
+}
+
+.removeButton {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.removeButton:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+}
+
+/* סקשן ספירה לאחור */
+.countdownSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid #fca5a5;
+  border-radius: 12px;
+  width: 100%;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    border-color: #fca5a5;
+  }
+  50% {
+    border-color: #f87171;
+  }
+}
+
+/* עיגול הספירה */
+.countdownCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+}
+
+.countdownNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Courier New', monospace;
+}
+
+.countdownText {
+  margin: 0;
+  color: #991b1b;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.cancelButton {
+  min-width: 120px;
+}
+
+/* סקשן עיבוד */
+.processingSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.processingSection p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9375rem;
+}
+
+/* ספינר */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* הערת אזהרה */
+.warningNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+}
+
+.warningNote svg {
+  flex-shrink: 0;
+}
+
+/* התאמה למובייל */
+@media (max-width: 480px) {
+  .container {
+    padding: 0.5rem 0;
+  }
+
+  .iconWrapper {
+    width: 64px;
+    height: 64px;
+  }
+
+  .iconWrapper svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .attributeName {
+    font-size: 1.125rem;
+  }
+
+  .warningBox {
+    padding: 0.875rem;
+  }
+
+  .countdownCircle {
+    width: 64px;
+    height: 64px;
+  }
+
+  .countdownNumber {
+    font-size: 1.5rem;
+  }
+}

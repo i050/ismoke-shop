@@ -1,0 +1,458 @@
+/**
+ * דף דוחות ואנליטיקה - סטיילים
+ * עיצוב מודרני עם כרטיסים בגריד
+ */
+
+/* ===== Layout הראשי ===== */
+.reportsPage {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  animation: fadeIn 0.4s ease-out;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== כותרת הדף ===== */
+.pageHeader {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.titleIcon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 4px 0;
+}
+
+.pageSubtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.dateRangeSection {
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* ===== גריד הכרטיסים ===== */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--spacing-lg);
+  padding-bottom: var(--spacing-xl);
+}
+
+/* ===== תוכן כרטיס מכירות ===== */
+.salesPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.statRow {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.statItem {
+  flex: 1;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.chartPlaceholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-tertiary);
+  min-height: 120px;
+}
+
+/* ===== תוכן כרטיס מוצרים ===== */
+.productPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.productList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.productPlaceholder {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.productRank {
+  width: 24px;
+  height: 24px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.productBar {
+  height: 8px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: var(--radius-full);
+  opacity: 0.3;
+}
+
+.placeholderText {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  margin-top: auto;
+}
+
+/* ===== תוכן כרטיס לקוחות ===== */
+.customerPreview {
+  height: 100%;
+}
+
+.customerStats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.customerStat {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+}
+
+.customerStat strong {
+  margin-right: auto;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+/* ===== תוכן כרטיס גרפים ===== */
+.chartsPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.chartTypes {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.chartTypeBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chartTypeBtn:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* ===== תוכן כרטיס יצוא ===== */
+.exportPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.exportOptions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.exportBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transition: all 0.15s ease;
+}
+
+.exportBtn span {
+  font-weight: var(--font-weight-semibold);
+}
+
+.exportBtn small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.exportNote {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  margin-top: auto;
+}
+
+/* ===== תוכן כרטיס השוואה ===== */
+.comparisonPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  height: 100%;
+}
+
+.comparisonPeriods {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.periodBox {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+}
+
+.periodBox small {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.vsIcon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.comparisonResult {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.resultItem {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.resultPlaceholder {
+  color: var(--color-text-tertiary);
+}
+
+/* ===== תוכן כרטיס תחזיות ===== */
+.forecastPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  height: 100%;
+}
+
+.forecastMetric {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.05));
+  border-radius: var(--radius-md);
+}
+
+.forecastIcon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.forecastData {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.forecastLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.forecastValue {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.forecastChange {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+.forecastNote {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  justify-content: center;
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  margin-top: auto;
+}
+
+/* ===== רספונסיביות ===== */
+@media (max-width: 1024px) {
+  .cardsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .reportsPage {
+    gap: var(--spacing-md);
+  }
+
+  .pageHeader {
+    padding: var(--spacing-md);
+  }
+
+  .titleSection {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pageTitle {
+    font-size: var(--font-size-xl);
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .statRow {
+    flex-direction: column;
+  }
+
+  .exportOptions {
+    flex-direction: column;
+  }
+
+  .comparisonPeriods {
+    flex-direction: column;
+  }
+
+  .vsIcon {
+    transform: rotate(90deg);
+  }
+}

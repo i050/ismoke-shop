@@ -1,0 +1,382 @@
+/* ============================================
+   ניהול באנרים - ממשק אדמין
+   ============================================ */
+
+.banner-management {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  direction: rtl;
+  text-align: right;
+}
+
+/* כותרת עמוד */
+.banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.banner-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.text-muted {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* מצב טעינה */
+.banner-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* מצב שגיאה */
+.banner-error {
+  background: #f8d7da;
+  border: 1px solid #f5c2c7;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.banner-error p {
+  color: #842029;
+  margin: 0;
+}
+
+/* מצב ריק */
+.banner-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+.banner-empty p {
+  color: #6c757d;
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ============================================
+   רשימת הבאנרים
+   ============================================ */
+
+.banner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.banner-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  cursor: grab;
+  direction: rtl;
+}
+
+.banner-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.banner-item.inactive {
+  opacity: 0.6;
+}
+
+.banner-item.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+/* ידית גרירה */
+.banner-drag-handle {
+  display: flex;
+  align-items: center;
+  color: #adb5bd;
+  cursor: grab;
+  padding: 0.5rem;
+}
+
+.banner-drag-handle:hover {
+  color: #667eea;
+}
+
+/* תצוגה מקדימה */
+.banner-preview {
+  width: 120px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f8f9fa;
+}
+
+.banner-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #adb5bd;
+  font-size: 0.875rem;
+}
+
+/* מידע על הבאנר */
+.banner-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-info h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banner-description {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banner-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.banner-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.banner-status.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.banner-status.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.banner-cta-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #cfe2ff;
+  color: #084298;
+}
+
+/* סטטיסטיקות באנר */
+.banner-stats {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0 1rem;
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat svg {
+  color: #667eea;
+}
+
+.stat > span:nth-child(2) {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #212529;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+/* פעולות על הבאנר */
+.banner-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  flex-direction: row-reverse;
+}
+
+/* ============================================
+   התאמה למסכים שונים
+   ============================================ */
+
+/* טאבלטים */
+@media (max-width: 1024px) {
+  .banner-item {
+    flex-wrap: wrap;
+  }
+
+  .banner-preview {
+    width: 100px;
+    height: 66px;
+  }
+
+  .banner-stats {
+    border: none;
+    padding: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .banner-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* מובייל */
+@media (max-width: 768px) {
+  .banner-management {
+    padding: 1rem;
+  }
+
+  .banner-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .banner-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .banner-item {
+    padding: 0.75rem;
+  }
+
+  .banner-preview {
+    width: 80px;
+    height: 53px;
+  }
+
+  .banner-info h3 {
+    font-size: 1rem;
+  }
+
+  .banner-stats {
+    gap: 1rem;
+  }
+
+  .stat > span:nth-child(2) {
+    font-size: 1rem;
+  }
+
+  .banner-actions {
+    gap: 0.25rem;
+  }
+
+  .banner-actions button span {
+    display: none;
+  }
+}
+
+/* מובייל קטן */
+@media (max-width: 480px) {
+  .banner-drag-handle {
+    display: none;
+  }
+
+  .banner-preview {
+    width: 60px;
+    height: 40px;
+  }
+
+  .banner-description {
+    display: none;
+  }
+
+  .banner-stats {
+    display: none;
+  }
+}
+
+/* ============================================
+   נגישות
+   ============================================ */
+
+/* מצב פוקוס */
+.banner-item:focus-within {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* הפחתת אנימציה */
+@media (prefers-reduced-motion: reduce) {
+  .banner-item,
+  .spinner {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* ניגודיות גבוהה */
+@media (prefers-contrast: high) {
+  .banner-item {
+    border: 2px solid;
+  }
+
+  .banner-status.active,
+  .banner-status.inactive {
+    border: 1px solid currentColor;
+  }
+}

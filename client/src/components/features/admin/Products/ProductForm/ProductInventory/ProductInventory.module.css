@@ -1,0 +1,500 @@
+/* Product Inventory Component Styles */
+/* מטרת הקובץ: עיצוב קומפוננטת ניהול המלאי */
+
+/* Container ראשי */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: var(--color-background);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* כותרת */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* סקציית SKU */
+.skuSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skuInputWrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.skuInputWrapper > div:first-child {
+  flex: 1;
+}
+
+.checkButton {
+  padding: 0.625rem 1.25rem;
+  margin-top: 1.75rem; /* מיושר עם ה-Input */
+  background: var(--color-primary, #007bff);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.checkButton:hover:not(:disabled) {
+  background: var(--color-primary-dark, #0056b3);
+  transform: translateY(-1px);
+}
+
+.checkButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.checkButton:disabled {
+  background: var(--color-border);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* הודעת זמינות SKU */
+.availabilityMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+.availabilitySuccess {
+  background: var(--color-success-background, #d4edda);
+  color: var(--color-success, #28a745);
+  border: 1px solid var(--color-success-alpha, rgba(40, 167, 69, 0.3));
+}
+
+.availabilityError {
+  background: var(--color-danger-background, #f8d7da);
+  color: var(--color-danger, #dc3545);
+  border: 1px solid var(--color-danger-alpha, rgba(220, 53, 69, 0.3));
+}
+
+.availabilityIcon {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* סקציית Checkbox */
+.trackInventorySection {
+  padding: 1rem;
+  background: var(--color-background-secondary, #f8f9fa);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+/* שדות מלאי */
+.inventoryFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  animation: slideIn 0.3s ease;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+/* סטטוס מלאי */
+.stockStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  animation: slideIn 0.3s ease;
+}
+
+.stockStatusInStock {
+  background: var(--color-success-background, #d4edda);
+  color: var(--color-success, #28a745);
+  border: 1px solid var(--color-success-alpha, rgba(40, 167, 69, 0.3));
+}
+
+.stockStatusLowStock {
+  background: var(--color-warning-background, #fff3cd);
+  color: var(--color-warning, #ffc107);
+  border: 1px solid var(--color-warning-alpha, rgba(255, 193, 7, 0.3));
+}
+
+.stockStatusOutOfStock {
+  background: var(--color-danger-background, #f8d7da);
+  color: var(--color-danger, #dc3545);
+  border: 1px solid var(--color-danger-alpha, rgba(220, 53, 69, 0.3));
+}
+
+.stockIcon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.stockMessage {
+  flex: 1;
+}
+
+/* כרטיס סה"כ מלאי */
+.totalStockCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--border-radius-lg);
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease;
+}
+
+.totalStockHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.totalStockIcon {
+  font-size: 1.5rem;
+}
+
+.totalStockTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.totalStockValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.totalStockSubtitle {
+  font-size: 0.8125rem;
+  opacity: 0.8;
+}
+
+/* פירוט וריאנטים */
+.skusBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--color-background-secondary, #f8f9fa);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+  animation: slideIn 0.3s ease;
+}
+
+.breakdownTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.skusList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skuItem {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  background: white;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.skuItem:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transform: translateX(-2px);
+}
+
+.skuItemSuccess {
+  border-right: 3px solid var(--color-success, #28a745);
+}
+
+.skuItemWarning {
+  border-right: 3px solid var(--color-warning, #ffc107);
+  background: var(--color-warning-background, #fff3cd);
+}
+
+.skuItemError {
+  border-right: 3px solid var(--color-danger, #dc3545);
+  background: var(--color-danger-background, #f8d7da);
+}
+
+.skuName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.skuStock {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.skuStatus {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.skuStatusIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.skuStatusLabel {
+  white-space: nowrap;
+}
+
+/* סקציית רף אזהרה */
+.thresholdSection {
+  padding: 1rem;
+  background: var(--color-background-secondary, #f8f9fa);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+/* סיכום מצב מלאי */
+.inventorySummary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-warning-background, #fff3cd);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-warning-alpha, rgba(255, 193, 7, 0.3));
+  animation: slideIn 0.3s ease;
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.summaryIcon {
+  font-size: 1.25rem;
+}
+
+.summaryTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.summaryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.summaryList li {
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border-radius: var(--border-radius-sm);
+}
+
+.summaryItemWarning {
+  color: var(--color-warning-dark, #d39e00);
+  border-right: 2px solid var(--color-warning, #ffc107);
+}
+
+.summaryItemError {
+  color: var(--color-danger-dark, #bd2130);
+  border-right: 2px solid var(--color-danger, #dc3545);
+}
+
+/* סקציית טיפים */
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--color-info-background, #d1ecf1);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-info-alpha, rgba(23, 162, 184, 0.3));
+}
+
+.tipsHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-info, #17a2b8);
+}
+
+.tipsHeader svg {
+  flex-shrink: 0;
+}
+
+.tipsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tipsList li {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  padding-right: 1.25rem;
+  position: relative;
+}
+
+.tipsList li::before {
+  content: '•';
+  position: absolute;
+  right: 0;
+  color: var(--color-info, #17a2b8);
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .skuInputWrapper {
+    flex-direction: column;
+  }
+
+  .checkButton {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .inventoryFields {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .tips {
+    padding: 0.875rem;
+  }
+
+  .totalStockValue {
+    font-size: 2rem;
+  }
+
+  .skuItem {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .skuStock,
+  .skuStatus {
+    justify-content: flex-start;
+  }
+}
+
+/* מצב Disabled */
+.container:has(input:disabled) {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* אנימציות */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus States */
+.formGroup:focus-within {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hover Effects */
+.trackInventorySection:hover {
+  border-color: var(--color-primary-alpha, rgba(0, 123, 255, 0.3));
+  transition: border-color 0.2s ease;
+}
+
+/* סטייל לשדה SKU עם validation */
+.skuInputWrapper input {
+  text-transform: uppercase;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}

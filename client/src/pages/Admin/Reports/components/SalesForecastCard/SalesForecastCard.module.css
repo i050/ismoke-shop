@@ -1,0 +1,234 @@
+/* כרטיס תחזיות מכירות - סטיילים */
+
+.forecastContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+/* ===== תחזית ראשית ===== */
+.mainForecast {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.02));
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+.forecastIcon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.forecastData {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.forecastLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.forecastValue {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.forecastChange {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.forecastChange[data-direction="up"] {
+  color: #10b981;
+}
+
+.forecastChange[data-direction="down"] {
+  color: #ef4444;
+}
+
+/* ===== מגמת חודשים ===== */
+.trendSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.trendHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.trendBars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+  height: 80px;
+  padding-top: var(--spacing-sm);
+}
+
+.trendBar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  position: relative;
+}
+
+.barFill {
+  width: 100%;
+  max-width: 40px;
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.5s ease;
+  min-height: 4px;
+  margin-top: auto;
+}
+
+.trendBar[data-forecast] .barFill {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.4), rgba(245, 158, 11, 0.2));
+  border: 2px dashed #f59e0b;
+  background-clip: padding-box;
+}
+
+.barLabel {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.trendBar[data-forecast] .barLabel {
+  color: #f59e0b;
+  font-weight: var(--font-weight-semibold);
+}
+
+.barValue {
+  font-size: 9px;
+  color: var(--color-text-tertiary);
+  position: absolute;
+  top: -18px;
+  white-space: nowrap;
+}
+
+/* ===== הסבר חישוב ===== */
+.calculationExplanation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border-right: 3px solid #f59e0b;
+}
+
+.explanationHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.explanationHeader svg {
+  color: #f59e0b;
+}
+
+.explanationContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.explanationStep {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+.stepText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* ===== הערת ביטחון ===== */
+.forecastNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.forecastNote svg {
+  color: #f59e0b;
+}
+
+/* ===== מצב שגיאה ===== */
+.errorState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  text-align: center;
+  color: var(--color-error);
+}
+
+/* ===== רספונסיביות ===== */
+@media (max-width: 480px) {
+  .mainForecast {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .trendBars {
+    height: 60px;
+  }
+
+  .barValue {
+    display: none;
+  }
+}

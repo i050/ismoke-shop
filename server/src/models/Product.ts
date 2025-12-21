@@ -1,0 +1,499 @@
+import mongoose, { Document, Schema } from 'mongoose';
+
+// ============================================================================
+// Phase 1.4: Image interface עם Cloudinary public_id
+// ============================================================================
+
+// Interface for Cloudinary images
+export interface IImage {
+  url: string;
+  public_id: string; // נחוץ למחיקה מCloudinary
+  width?: number;
+  height?: number;
+  format?: string;
+  // שדות ל-Soft Delete (Phase 3.1)
+  isDeleted?: boolean;   // האם התמונה מסומנת למחיקה
+  deletedAt?: Date;      // מתי נמחקה (למעקב ולניקוי)
+}
+
+// Interface for the flexible attributes
+export interface IAttribute {
+  key: string;
+  value: string;
+}
+
+// Interface for technical specifications (מפרט טכני)
+// מאפשר למנהל להזין מפרט key-value דינמי
+export interface ISpecification {
+  key: string;
+  value: string;
+}
+
+// Interface for product dimensions
+export interface IDimensions {
+  length: number;
+  width: number;
+  height: number;
+}
+
+// Interface for product variants
+export interface IVariant {
+  name: string;
+  priceModifier: number;
+  stockQuantity: number;
+  sku?: string;
+  images: IImage[]; // Phase 1.4: שינוי ל-IImage[]
+  attributes: {
+    color?: string;
+    size?: string;
+    material?: string;
+  };
+}
+
+// Interface for the Product document
+export interface IProduct extends Document {
+  // Basic information
+  name: string;
+  description: string;
+  basePrice: number;
+  quantityInStock: number;
+  images: IImage[]; // Phase 1.4: שינוי ל-IImage[]
+  attributes: IAttribute[];
+  categoryId?: mongoose.Types.ObjectId;
+
+  // Status and visibility
+  isActive: boolean;
+
+  // 🆕 SKU Management - האם למוצר יש וריאנטים מרובים
+  // false = מוצר פשוט → יווצר SKU בסיס אוטומטי
+  // true = מוצר מורכב → SKUs ידניים (צבעים, מידות וכו')
+  hasVariants: boolean;
+
+  // Popularity and analytics
+  viewCount: number;
+  salesCount: number;
+  isFeatured: boolean;
+
+  // Pricing and discounts
+  isOnSale: boolean;
+  discountPercentage: number;
+  salePrice?: number;
+  costPrice?: number;
+  taxRate: number;
+
+  // Filtering and categorization
+  colors: string[];
+  sizes: string[];
+  tags: string[];
+  brand?: string;
+
+  // Inventory management
+  stockQuantity: number;
+  lowStockThreshold: number;
+  sku?: string;
+
+  // Shipping and logistics
+  weight?: number;
+  dimensions?: IDimensions;
+  shippingWeight?: number;
+  shippingDimensions?: IDimensions;
+
+  // Reviews and ratings
+  rating: number;
+  reviewCount: number;
+
+  // SEO and optimization
+  seoTitle?: string;
+  seoDescription?: string;
+  slug?: string;
+
+  // Technical Specifications (מפרט טכני)
+  // מאפשר למנהל להזין מפרט key-value דינמי
+  specifications: ISpecification[];
+
+  // Digital products
+  isDigital: boolean;
+  downloadUrl?: string;
+
+  // Variants and options
+  variants: IVariant[];
+
+  // Time-based features
+  featuredUntil?: Date;
+  saleUntil?: Date;
+  lastViewed?: Date;
+  lastSold?: Date;
+
+  // Timestamps
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AttributeSchema: Schema = new Schema({
+  key: { type: String, required: true },
+  value: { type: String, required: true },
+}, { _id: false });
+
+// Schema for technical specifications (מפרט טכני)
+const SpecificationSchema: Schema = new Schema({
+  key: { type: String, required: true },
+  value: { type: String, required: true },
+}, { _id: false });
+
+// Phase 1.4: Image Schema עם Cloudinary public_id
+const ImageSchema: Schema = new Schema({
+  url: { type: String, required: true },
+  public_id: { type: String, required: false, default: '' }, // אופציונלי - תמונות חיצוניות (Unsplash) לא צריכות public_id
+  width: { type: Number },
+  height: { type: Number },
+  format: { type: String },
+}, { _id: false });
+
+const DimensionsSchema: Schema = new Schema({
+  length: { type: Number, required: true },
+  width: { type: Number, required: true },
+  height: { type: Number, required: true },
+}, { _id: false });
+
+const VariantSchema: Schema = new Schema({
+  name: { type: String, required: true },
+  priceModifier: { type: Number, default: 0 },
+  stockQuantity: { type: Number, default: 0 },
+  sku: { type: String },
+  images: { type: [ImageSchema], default: [] }, // Phase 1.4: שינוי ל-ImageSchema
+  attributes: {
+    color: { type: String },
+    size: { type: String },
+    material: { type: String },
+  },
+}, { _id: false });
+
+const ProductSchema: Schema = new Schema({
+  // Basic information
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  // תיאור המוצר - אופציונלי (משתמש לא חייב למלא)
+  description: {
+    type: String,
+    required: false,
+  },
+  basePrice: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  quantityInStock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
+  },
+  images: {
+    type: [ImageSchema], // Phase 1.4: שינוי ל-ImageSchema
+    default: [],
+  },
+  attributes: {
+    type: [AttributeSchema],
+    default: [],
+  },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: false,
+  },
+
+  // Status and visibility
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+
+  // 🆕 SKU Management - האם למוצר יש וריאנטים מרובים
+  hasVariants: {
+    type: Boolean,
+    default: false, // ברירת מחדל: מוצר פשוט (SKU בסיס אוטומטי)
+  },
+
+  // Popularity and analytics
+  viewCount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  salesCount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  isFeatured: {
+    type: Boolean,
+    default: false,
+  },
+
+  // Pricing and discounts
+  isOnSale: {
+    type: Boolean,
+    default: false,
+  },
+  discountPercentage: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100,
+  },
+  salePrice: {
+    type: Number,
+    min: 0,
+  },
+  costPrice: {
+    type: Number,
+    min: 0,
+  },
+  taxRate: {
+    type: Number,
+    default: 17,
+    min: 0,
+    max: 100,
+  },
+
+  // Filtering and categorization
+  colors: {
+    type: [String],
+    default: [],
+  },
+  sizes: {
+    type: [String],
+    default: [],
+  },
+  tags: {
+    type: [String],
+    default: [],
+  },
+  brand: {
+    type: String,
+    trim: true,
+  },
+
+  // Inventory management
+  stockQuantity: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  lowStockThreshold: {
+    type: Number,
+    default: 5,
+    min: 0,
+  },
+  sku: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+
+  // Shipping and logistics
+  weight: {
+    type: Number,
+    min: 0,
+  },
+  dimensions: {
+    type: DimensionsSchema,
+  },
+  shippingWeight: {
+    type: Number,
+    min: 0,
+  },
+  shippingDimensions: {
+    type: DimensionsSchema,
+  },
+
+  // Reviews and ratings
+  rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5,
+  },
+  reviewCount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+
+  // SEO and optimization
+  seoTitle: {
+    type: String,
+    trim: true,
+  },
+  seoDescription: {
+    type: String,
+    trim: true,
+  },
+  slug: {
+    type: String,
+    unique: true,
+    sparse: true,
+    lowercase: true,
+  },
+
+  // Technical Specifications (מפרט טכני)
+  // מאפשר למנהל להזין מפרט key-value דינמי
+  specifications: {
+    type: [SpecificationSchema],
+    default: [],
+  },
+
+  // Digital products
+  isDigital: {
+    type: Boolean,
+    default: false,
+  },
+  downloadUrl: {
+    type: String,
+  },
+
+  // Variants and options
+  variants: {
+    type: [VariantSchema],
+    default: [],
+  },
+
+  // Time-based features
+  featuredUntil: {
+    type: Date,
+  },
+  saleUntil: {
+    type: Date,
+  },
+  lastViewed: {
+    type: Date,
+  },
+  lastSold: {
+    type: Date,
+  },
+}, {
+  timestamps: true, // Automatically adds createdAt and updatedAt fields
+});
+
+// ============================================================================
+// 🚀 Phase 0.5.10: Performance Indexes
+// ============================================================================
+
+/**
+ * Indexes למיטוב ביצועים:
+ * 
+ * 1. name (text) - חיפוש טקסטואלי מהיר
+ * 2. basePrice - מיון וסינון לפי מחיר
+ * 3. categoryId - סינון לפי קטגוריה
+ * 4. isActive - הפרדת מוצרים פעילים/לא פעילים
+ * 5. createdAt - מיון לפי תאריך יצירה (חדשים/ישנים)
+ * 6. viewCount - מיון לפי פופולריות
+ * 7. salesCount - מיון לפי מכירות
+ * 8. isFeatured - סינון מוצרים מומלצים
+ * 9. compound index (isActive + createdAt) - שאילתות נפוצות
+ */
+
+// Index טקסטואלי לחיפוש במוצרים
+ProductSchema.index({ name: 'text', description: 'text' });
+
+// Indexes בודדים לסינון ומיון
+ProductSchema.index({ basePrice: 1 }); // מחיר
+ProductSchema.index({ categoryId: 1 }); // קטגוריה
+ProductSchema.index({ isActive: 1 }); // סטטוס
+ProductSchema.index({ createdAt: -1 }); // תאריך יצירה (חדשים קודם)
+ProductSchema.index({ viewCount: -1 }); // צפיות
+ProductSchema.index({ salesCount: -1 }); // מכירות
+ProductSchema.index({ isFeatured: 1 }); // מוצרים מומלצים
+
+// Compound indexes לשאילתות נפוצות
+ProductSchema.index({ isActive: 1, createdAt: -1 }); // מוצרים פעילים ממוינים לפי תאריך
+ProductSchema.index({ isActive: 1, basePrice: 1 }); // מוצרים פעילים ממוינים לפי מחיר
+ProductSchema.index({ categoryId: 1, isActive: 1, createdAt: -1 }); // מוצרים בקטגוריה ממוינים
+
+// ============================================================================
+// Pre/Post Hooks - Cascade Operations
+// ============================================================================
+
+/**
+ * Pre-delete middleware: מחיקת כל ה-SKUs של המוצר לפני מחיקתו
+ * 
+ * CRITICAL: מבטיח referential integrity - לא נשארים SKUs יתומים.
+ * פועל על deleteOne, deleteMany, findOneAndDelete.
+ * 
+ * הערה: Soft delete (isActive: false) מטופל ב-service layer, לא כאן.
+ */
+ProductSchema.pre('deleteOne', async function(next) {
+  try {
+    // @ts-ignore - this מצביע על ה-query
+    const productId = this.getQuery()._id;
+    
+    if (productId) {
+      // ייבוא דינמי למניעת circular dependency
+      const Sku = (await import('./Sku')).default;
+      
+      const result = await Sku.deleteMany({ productId });
+      console.log(`🗑️ Cascade delete: Removed ${result.deletedCount} SKUs for product ${productId}`);
+    }
+    
+    next();
+  } catch (error) {
+    console.error('❌ Error in pre-delete cascade:', error);
+    next(error as Error);
+  }
+});
+
+/**
+ * Pre-delete middleware עבור findOneAndDelete
+ */
+ProductSchema.pre('findOneAndDelete', async function(next) {
+  try {
+    // @ts-ignore
+    const productId = this.getQuery()._id;
+    
+    if (productId) {
+      const Sku = (await import('./Sku')).default;
+      
+      const result = await Sku.deleteMany({ productId });
+      console.log(`🗑️ Cascade delete: Removed ${result.deletedCount} SKUs for product ${productId}`);
+    }
+    
+    next();
+  } catch (error) {
+    console.error('❌ Error in pre-delete cascade:', error);
+    next(error as Error);
+  }
+});
+
+/**
+ * Pre-delete middleware עבור deleteMany
+ */
+ProductSchema.pre('deleteMany', async function(next) {
+  try {
+    // @ts-ignore
+    const query = this.getQuery();
+    
+    // מציאת כל ה-Products שיימחקו
+    const products = await mongoose.model('Product').find(query).select('_id').lean();
+    const productIds = products.map(p => p._id);
+    
+    if (productIds.length > 0) {
+      const Sku = (await import('./Sku')).default;
+      
+      const result = await Sku.deleteMany({ productId: { $in: productIds } });
+      console.log(`🗑️ Cascade delete: Removed ${result.deletedCount} SKUs for ${productIds.length} products`);
+    }
+    
+    next();
+  } catch (error) {
+    console.error('❌ Error in pre-deleteMany cascade:', error);
+    next(error as Error);
+  }
+});
+
+const Product = mongoose.model<IProduct>('Product', ProductSchema);
+
+export { Product };
+export default Product;

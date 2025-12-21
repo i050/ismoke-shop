@@ -1,0 +1,266 @@
+/* ProductBasicInfo.module.css - עיצוב קומפוננטת המידע הבסיסי */
+
+/* ==========================================
+   Container - מיכל ראשי
+   ========================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: var(--color-background);
+  border-radius: var(--border-radius-lg);
+}
+
+/* ==========================================
+   Header - כותרת וסאבטייטל
+   ========================================== */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ==========================================
+   Form - שדות הטופס
+   ========================================== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ==========================================
+   Label - תוויות שדות
+   ========================================== */
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.required {
+  color: var(--color-error);
+  font-weight: bold;
+}
+
+/* ==========================================
+   Textarea - שדה תיאור
+   ========================================== */
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  resize: vertical;
+  min-height: 120px;
+  transition: all 0.2s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha);
+}
+
+.textarea:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+}
+
+.textarea.error {
+  border-color: var(--color-error);
+}
+
+.textarea.error:focus {
+  box-shadow: 0 0 0 3px var(--color-error-alpha);
+}
+
+.textarea.disabled {
+  background: var(--color-background-disabled);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.textarea::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+/* ==========================================
+   Textarea Footer - מונה תווים ושגיאות
+   ========================================== */
+
+.textareaFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* מונה תווים */
+.charCounter {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.charCounter span:first-child {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.charCounter span:first-child.warning {
+  color: var(--color-warning);
+}
+
+.charCounter span:first-child.danger {
+  color: var(--color-error);
+}
+
+.charCounterSeparator {
+  color: var(--color-text-tertiary);
+}
+
+/* טקסטים עזר ושגיאות */
+.helperText {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: var(--color-error);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ==========================================
+   Tips - טיפים והמלצות
+   ========================================== */
+
+.tips {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-info-background);
+  border: 1px solid var(--color-info);
+  border-radius: var(--border-radius-md);
+  margin-top: 0.5rem;
+}
+
+.tipIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.tipContent {
+  flex: 1;
+}
+
+.tipContent strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.tipContent ul {
+  margin: 0;
+  padding-right: 1.25rem;
+  list-style-type: disc;
+}
+
+.tipContent li {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0.25rem;
+}
+
+.tipContent li:last-child {
+  margin-bottom: 0;
+}
+
+/* ==========================================
+   Responsive - התאמה למסכים קטנים
+   ========================================== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .form {
+    gap: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .textarea {
+    min-height: 100px;
+    font-size: 0.8125rem;
+  }
+
+  .textareaFooter {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .tips {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .tipContent strong {
+    font-size: 0.8125rem;
+  }
+
+  .tipContent li {
+    font-size: 0.75rem;
+  }
+}
