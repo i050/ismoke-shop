@@ -44,6 +44,10 @@ import { setIO } from './socket';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CRITICAL: Trust proxy for Railway - חובה לפני rate limiters!
+// Railway uses a reverse proxy, so we need to trust the X-Forwarded-* headers
+app.set('trust proxy', 1);
+
 // יצירת httpServer וחיבור socket.io
 const httpServer = http.createServer(app);
 
