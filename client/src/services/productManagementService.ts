@@ -14,7 +14,7 @@ import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BAS
  * Phase 5: יתווספו createProduct, updateProduct, duplicateProduct, restoreProduct, uploadImages
  */
 class ProductManagementService {
-  private baseUrl = `${API_BASE_URL}/products`; // 🔧 FIX: שימוש ב-URL המלא של Backend
+  private baseUrl = `${API_BASE_URL}/api/products`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   /**
    * Helper: keep image objects as-is (no conversion to strings)

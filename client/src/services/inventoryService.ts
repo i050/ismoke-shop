@@ -61,7 +61,7 @@ export interface InventoryFilters {
 
 class InventoryService {
   /** בסיס ה-URL של כל קריאות המלאי */
-  private baseUrl = `${API_BASE_URL}/skus`; // 🔧 FIX: שימוש ב-URL המלא של Backend
+  private baseUrl = `${API_BASE_URL}/api/skus`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   /**
    * עוטף קריאת fetch ומוודא טיפול מסודר בשגיאות מהשרת.

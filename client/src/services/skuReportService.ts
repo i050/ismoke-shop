@@ -35,7 +35,7 @@ export interface MissedOpportunity {
 
 class SkuReportService {
   /** בסיס ה-URL של כל קריאות הדוחות עבור SKUs */
-  private baseUrl = `${API_BASE_URL}/skus`; // 🔧 FIX: שימוש ב-URL המלא של Backend
+  private baseUrl = `${API_BASE_URL}/api/skus`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   /**
    * עוטף קריאת fetch ומוודא טיפול מסודר בשגיאות מהשרת.

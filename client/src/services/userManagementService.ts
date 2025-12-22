@@ -26,7 +26,7 @@ import { ApiError } from '../utils/ApiError';
 import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
 
 class UserManagementService {
-  private baseUrl = `${API_BASE_URL}/users`; // 🔧 FIX: שימוש ב-URL המלא של Backend
+  private baseUrl = `${API_BASE_URL}/api/users`; // 🔧 FIX: שימוש ב-URL המלא של Backend
 
   // ==========================================
   // Helper Methods - מתודות עזר
