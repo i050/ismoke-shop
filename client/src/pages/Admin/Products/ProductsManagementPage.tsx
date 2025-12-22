@@ -26,6 +26,7 @@ import ProductsTable from '../../../components/features/admin/Products/ProductsT
 import { ProductForm } from '../../../components/features/admin/Products/ProductForm';
 import type { ProductFormData } from '../../../schemas/productFormSchema';
 import { ProductService } from '../../../services/productService'; // 🔧 FIX: הוספת import לטעינת מוצר עם SKUs
+import productManagementService from '../../../services/productManagementService'; // Phase 7.2: עבור מחיקה לצמיתות
 import styles from './ProductsManagementPage.module.css';
 import { useLocation } from 'react-router-dom';
 
@@ -373,6 +374,49 @@ const ProductsManagementPage: React.FC = () => {
     }
   };
 
+  // Phase 7.2: מחיקה לצמיתות (Hard Delete)
+  const handlePermanentlyDeleteProduct = async (productId: string) => {
+    console.log('🗑️ מחיקה לצמיתות:', productId);
+    const product = products.find((p) => p._id === productId);
+    
+    if (!product) {
+      console.error('❌ מוצר לא נמצא');
+      return;
+    }
+    
+    // אישור מחיקה לצמיתות באמצעות מודאל (עם warning כי זה בלתי הפיך)
+    const confirmed = await confirm({
+      title: '⚠️ מחיקה לצמיתות',
+      message: `פעולה זו תמחק את המוצר "${product.name}" מהשרת ומ-Cloudinary בצורה בלתי הפיכה!
+      
+לא ניתן לשחזר את המוצר לאחר מכן. האם אתה בטוח?`,
+      confirmText: 'מחק לצמיתות',
+      cancelText: 'ביטול',
+      danger: true,
+    });
+
+    if (confirmed) {
+      try {
+        // שליחת בקשה מחיקה לצמיתות לשרת
+        const result = await productManagementService.deleteProductPermanently(productId);
+        
+        if (result.success) {
+          // הצלחה - הודעה ידידותית
+          console.log('✅ מוצר נמחק לצמיתות בהצלחה');
+          showToast('success', `המוצר "${product.name}" נמחק לצמיתות`);
+          
+          // טעינה מחדש של הרשימה (נמחקים)
+          dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection }));
+        }
+      } catch (error) {
+        // טיפול בשגיאה
+        console.error('❌ שגיאה במחיקת המוצר לצמיתות:', error);
+        const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה';
+        showToast('error', `שגיאה במחיקת המוצר: ${errorMessage}`);
+      }
+    }
+  };
+
   // Phase 7: שינוי מצב תצוגה (פעילים / נמחקים)
   const handleViewModeChange = (newMode: 'active' | 'deleted') => {
     console.log('🔄 שינוי תצוגה ל:', newMode);
@@ -503,6 +547,7 @@ const ProductsManagementPage: React.FC = () => {
             onDelete={handleDeleteProduct}
             onBulkDelete={handleBulkDelete}
             onRestore={handleRestoreProduct}
+            onPermanentlyDelete={handlePermanentlyDeleteProduct}
             isDeletedView={isDeletedView}
             globalLowStockThreshold={globalLowStockThreshold}
           />

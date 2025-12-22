@@ -721,6 +721,40 @@ class ProductManagementService {
     }
   }
 
+  // מחיקת מוצר לצמיתות (Hard Delete)
+  // ==========================================
+
+  /**
+   * מחיקת מוצר לצמיתות (hard delete)
+   * מוחק את המוצר לחלוטין מהנתונים ומ-Cloudinary - פעולה בלתי הפיכה!
+   * 
+   * @param productId - מזהה המוצר למחוק
+   * @returns הצלחה/כשלון + הודעה
+   */
+  async deleteProductPermanently(productId: string): Promise<{ success: boolean; message: string }> {
+    try {
+      if (!productId) {
+        throw new ApiError(400, 'מזהה מוצר חסר');
+      }
+      
+      // קריאה ל-endpoint מחיקה לצמיתות בשרת
+      const response = await this.makeRequest<{ success: boolean; message: string }>(
+        `${this.baseUrl}/${productId}/permanent`,
+        {
+          method: 'DELETE',
+        }
+      );
+      
+      return response;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : 'שגיאה לא ידועה';
+      throw new ApiError(500, 'שגיאה במחיקת המוצר', message);
+    }
+  }
+
   // ==========================================
   // Phase 7+: פונקציות נוספות שיתווספו בעתיד
   // ==========================================

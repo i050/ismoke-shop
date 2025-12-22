@@ -1043,6 +1043,7 @@ export const restoreProduct = async (productId: string): Promise<void> => {
 /**
  * מחיקה קשה (Hard Delete) של מוצר.
  * מוחק לצמיתות את המוצר וכל ה-SKUs שלו (באמצעות pre-delete middleware).
+ * כמו כן מוחק את כל התמונות מ-Cloudinary המקושרות למוצר ול-SKUs שלו.
  * 
  * ⚠️ DANGER: פעולה בלתי הפיכה! יש להשתמש רק במקרים נדירים.
  * לרוב המקרים, השתמש ב-softDeleteProduct במקום.
@@ -1057,10 +1058,38 @@ export const hardDeleteProduct = async (productId: string): Promise<void> => {
       throw new Error(`Product with ID ${productId} not found`);
     }
 
-    // המחיקה תפעיל את ה-pre-delete middleware שימחק את ה-SKUs
+    // שלב 1: מחיקת תמונות של המוצר מ-Cloudinary
+    if (product.images && product.images.length > 0) {
+      const { deleteImageFromCloudinary } = await import('../middleware/uploadMiddleware');
+      for (const image of product.images) {
+        try {
+          await deleteImageFromCloudinary(image.public_id);
+        } catch (err) {
+          console.warn(`⚠️ Failed to delete image ${image.public_id} from Cloudinary:`, err);
+          // לא עוצרים את כל התהליך בגלל כשל בתמונה אחת
+        }
+      }
+    }
+
+    // שלב 2: מחיקת תמונות של SKUs מ-Cloudinary
+    const skus = await Sku.find({ productId });
+    for (const sku of skus) {
+      if (sku.images && sku.images.length > 0) {
+        const { deleteImageFromCloudinary } = await import('../middleware/uploadMiddleware');
+        for (const image of sku.images) {
+          try {
+            await deleteImageFromCloudinary(image.public_id);
+          } catch (err) {
+            console.warn(`⚠️ Failed to delete SKU image ${image.public_id} from Cloudinary:`, err);
+          }
+        }
+      }
+    }
+
+    // שלב 3: מחיקת המוצר מ-MongoDB (הpre-delete middleware יוחק את SKUs באופן אוטומטי)
     await Product.deleteOne({ _id: productId });
 
-    console.log(`✅ Product and SKUs permanently deleted (via cascade middleware)`);
+    console.log(`✅ Product, SKUs, and all images permanently deleted`);
 
   } catch (error) {
     console.error('❌ Hard delete failed:', error);

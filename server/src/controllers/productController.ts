@@ -502,6 +502,49 @@ export const restoreProduct = async (req: Request, res: Response) => {
 };
 
 /**
+ * מחיקה לצמיתות (Hard Delete) של מוצר
+ * DELETE /api/products/:id/permanent
+ * 
+ * Phase 8: מחיקה בלתי הפיכה עם מחיקת תמונות Cloudinary
+ * דורש אישור משתמש בפה על בדוק כדי למנוע טעויות
+ */
+export const hardDeleteProductController = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'מזהה מוצר לא תקין' 
+      });
+    }
+
+    // בצע מחיקה קשה (מוחק את המוצר, SKUs, ותמונות Cloudinary)
+    await productService.hardDeleteProduct(id);
+
+    res.json({
+      success: true,
+      message: 'המוצר נמחק לצמיתות (אין אפשרות לשחזר)',
+    });
+  } catch (error: any) {
+    console.error('❌ Error in hardDeleteProductController:', error);
+    
+    if (error.message?.includes('not found') || error.message?.includes('לא נמצא')) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'המוצר לא נמצא' 
+      });
+    }
+
+    res.status(500).json({ 
+      success: false,
+      message: 'שגיאה במחיקה לצמיתות של המוצר',
+      error: error.message 
+    });
+  }
+};
+
+/**
  * בדיקת זמינות SKU (ייחודיות)
  * POST /api/products/check-sku
  * 

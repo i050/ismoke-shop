@@ -13,6 +13,7 @@ import {
   updateProductWithSkus,
   softDeleteProduct,
   restoreProduct,
+  hardDeleteProductController,
   checkSkuAvailability,
   getProductsForManagement,
 } from '../controllers/productController';
@@ -102,6 +103,11 @@ router.delete('/:id/soft', authMiddleware, requireAdmin, deleteProductLimiter, s
 // POST /api/products/:id/restore - Restore soft-deleted product
 // Phase 0.5.7: משחזר גם את ה-SKUs ל-isActive: true
 router.post('/:id/restore', authMiddleware, requireAdmin, restoreProduct);
+
+// DELETE /api/products/:id/permanent - Hard delete product (מחיקה לצמיתות)
+// Phase 1.X: מוחק את המוצר מהנתונים ומ-Cloudinary - פעולה בלתי הפיכה
+// Phase 0.5.3: Rate limiting - 10 מחיקות לדקה (משותף עם soft delete)
+router.delete('/:id/permanent', authMiddleware, requireAdmin, deleteProductLimiter, hardDeleteProductController);
 
 // POST /api/products/check-sku - Check SKU availability (uniqueness)
 // Phase 0.5.6: בודק אם SKU כבר קיים במערכת

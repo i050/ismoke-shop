@@ -22,6 +22,8 @@ interface ProductRowProps {
   onDelete: (productId: string) => void;
   // Phase 7: פח אשפה - callback לשחזור מוצר
   onRestore?: (productId: string) => void;
+  // Phase 7.2: מחיקה לצמיתות - פעולה בלתי הפיכה
+  onPermanentlyDelete?: (productId: string) => void;
   // Phase 7: האם אנחנו בתצוגת מוצרים נמחקים
   isDeletedView?: boolean;
   /** סף מלאי נמוך גלובלי מהגדרות החנות */
@@ -35,6 +37,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
   onEdit,
   onDelete,
   onRestore,
+  onPermanentlyDelete,
   isDeletedView = false,
   globalLowStockThreshold = 5,
 }) => {
@@ -242,17 +245,31 @@ export const ProductRow: React.FC<ProductRowProps> = ({
       {/* עמודת פעולות */}
       <td className={styles.cellActions}>
         <div className={styles.actions}>
-          {/* Phase 7: במצב נמחקים - הצג כפתור שחזור */}
+          {/* Phase 7: במצב נמחקים - הצג כפתורי שחזור ומחיקה לצמיתות */}
           {isDeletedView && onRestore ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onRestore(product._id)}
-              title="שחזר מוצר"
-              className={styles.restoreButton}
-            >
-              <Icon name="RotateCcw" size={16} />
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onRestore(product._id)}
+                title="שחזר מוצר"
+                className={styles.restoreButton}
+              >
+                <Icon name="RotateCcw" size={16} />
+              </Button>
+              {/* Phase 7.2: כפתור מחיקה לצמיתות - פעולה בלתי הפיכה */}
+              {onPermanentlyDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onPermanentlyDelete(product._id)}
+                  title="מחק לצמיתות (אין אפשרות לשחזר)"
+                  className={styles.deleteButton}
+                >
+                  <Icon name="Trash2" size={16} />
+                </Button>
+              )}
+            </>
           ) : (
             <>
               {/* כפתורי עריכה ומחיקה רגילים */}

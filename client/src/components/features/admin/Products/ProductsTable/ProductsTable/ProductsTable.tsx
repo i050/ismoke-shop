@@ -23,6 +23,8 @@ interface ProductsTableProps {
   onBulkDelete?: () => void;
   // Phase 7: פח אשפה - callback לשחזור מוצר
   onRestore?: (productId: string) => void;
+  // Phase 7.2: מחיקה לצמיתות - פעולה בלתי הפיכה
+  onPermanentlyDelete?: (productId: string) => void;
   // Phase 7: האם אנחנו בתצוגת מוצרים נמחקים
   isDeletedView?: boolean;
   /** סף מלאי נמוך גלובלי מהגדרות החנות */
@@ -37,6 +39,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
   onDelete,
   onBulkDelete,
   onRestore,
+  onPermanentlyDelete,
   isDeletedView = false,
   globalLowStockThreshold = 5,
 }) => {
@@ -201,6 +204,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onRestore={onRestore}
+                    onPermanentlyDelete={onPermanentlyDelete}
                     isDeletedView={isDeletedView}
                     globalLowStockThreshold={globalLowStockThreshold}
                   />
