@@ -16,7 +16,7 @@ import type { Product } from '../../../../types';
 import { useAppSelector } from '../../../../hooks/reduxHooks';
 // ייבוא hook ל-WebSocket לעדכון מחירים בזמן אמת
 // Phase 1.4: ייבוא פונקציות עזר לטיפול בתמונות
-import { getImageUrls } from '../../../../utils/imageUtils';
+import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה עם בחירת גודל
 import { useProductsRealtimeContext } from '../ProductsRealtime';
 // הסרת תלויות ב-Framer Motion - נחזור לאנימציות מבוססות CSS במודול
 
@@ -147,21 +147,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   // חישוב דינמי של רשימת תמונות לפי SKU נבחר (אחרי הגדרת ה-state!)
   // אם יש SKU נבחר עם תמונות משלו - השתמש בהן, אחרת השתמש בתמונות המוצר הראשי
-  // Phase 1.4: המרת IImage[] ל-string[] באמצעות getImageUrls
+  // ✅ שימוש במערך IImage[] ישירות - לא צריך להמיר ל-URLs
   const productImages = React.useMemo(() => {
     // בדיקה אם ל-SKU הנבחר יש תמונות
     if (selectedSkuData?.images && selectedSkuData.images.length > 0) {
-      return getImageUrls(selectedSkuData.images); // Phase 1.4: המרה ל-URLs
+      return selectedSkuData.images; // ✅ החזרת IImage[] ישירות
     }
     // אחרת, השתמש בתמונות המוצר הראשי
     if (product.images && product.images.length > 0) {
-      return getImageUrls(product.images); // Phase 1.4: המרה ל-URLs
+      return product.images; // ✅ החזרת IImage[] ישירות
     }
-    // פולבק ל-imageUrl אם קיים
+    // פולבק ל-imageUrl אם קיים (תאימות לאחור)
     if (product.imageUrl) {
-      return [product.imageUrl];
+      return [product.imageUrl]; // string - getImageUrl יטפל בזה
     }
-    return ['/ismoke-placeholder.png'];
+    return []; // אם אין כלום - מערך ריק
   }, [selectedSkuData, product.images, product.imageUrl]);
 
   // לוג מותנה לבדיקת נתוני SKU בעת פיתוח בלבד
@@ -277,6 +277,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
   // איסוף שמות המחלקות לשורש הכרטיס (מנוע טעויות ב־JSX על שימוש ב־template literals מורכבים)
   const rootClassName = [styles.productCard, variant === 'grid' ? styles.grid : styles.carousel, className].filter(Boolean).join(' ');
 
+  // ✅ קבלת URL התמונה הנוכחית ב-thumbnail (200×200) - ביצועים מקסימליים!
+  const currentImageUrl = productImages[currentImageIndex] 
+    ? getImageUrl(productImages[currentImageIndex], 'thumbnail')
+    : '/ismoke-placeholder.png';
+
   return (
     <Link to={`/product/${productId}`} className={styles.productLink}>
       <div
@@ -289,7 +294,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {productImages.length > 0 ? (
             <>
               <img
-                src={productImages[currentImageIndex]}
+                src={currentImageUrl}
                 alt={`${updatedProduct.name} - תמונה ${currentImageIndex + 1}`}
                 className={styles.productImage}
                 loading="lazy"

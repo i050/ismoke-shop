@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import styles from './ProductGallery.module.css';
 import { Button, Icon, ImageMagnifier } from '@ui';
-import { preloadImageAsync } from '../../../../utils/imageUtils';
+import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה
+import { IImage } from '../../../../types/Product'; // ✅ ייבוא IImage
 
 interface ProductGalleryProps {
-  images: string[];
+  images: IImage[]; // ✅ שינוי מ-string[] ל-IImage[]
   productName: string;
   currentIndex: number;
   onImageChange: (index: number) => void;
@@ -24,14 +25,6 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   
   // מצב הזום - האם פעיל כרגע
   const [isZoomActive, setIsZoomActive] = useState(false);
-  
-  // Preload של התמונה הבאה כשנכנסים לגלריה
-  const handleContainerEnter = useCallback(() => {
-    if (images && images.length > 0 && currentIndex < images.length) {
-      // טעינה מוקדמת של התמונה הנוכחית ברזולוציה גבוהה
-      preloadImageAsync(images[currentIndex]);
-    }
-  }, [images, currentIndex]);
   
   // Callbacks לזום
   const handleZoomStart = useCallback(() => {
@@ -76,8 +69,10 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       
       {/* תמונה ראשית עם זום דינמי */}
       <div className={styles.mainImage}>
+        {/* ✅ שימוש ב-medium (800×800) לתצוגה ראשית */}
+        {/* ✅ ImageMagnifier יטען אוטומטית תמונת large (1200×1200) לזום */}
         <ImageMagnifier
-          src={images[currentIndex]}
+          src={getImageUrl(images[currentIndex], 'medium')}
           alt={`${productName} - תמונה ${currentIndex + 1}`}
           zoomScale={2.5}
           lensSize={150}
@@ -130,8 +125,9 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
                 onClick={() => onImageChange(index)}
                 aria-label={`הצג תמונה ${index + 1}`}
               >
+                {/* ✅ שימוש ב-thumbnail (200×200) בתמונות הממוזערות */}
                 <img
-                  src={image}
+                  src={getImageUrl(image, 'thumbnail')}
                   alt={`${productName} - תמונה ממוזערת ${index + 1}`}
                   className={styles.thumbnailImg}
                   onError={(e) => {

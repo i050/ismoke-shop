@@ -12,7 +12,7 @@ import type { Product } from '../../../../types';
 import { ProductService } from '../../../../services/productService';
 import { useAppDispatch, useAppSelector } from '../../../../hooks/reduxHooks';
 import { addItemToCart, openMiniCart } from '../../../../store/slices/cartSlice';
-import { getImageUrls } from '../../../../utils/imageUtils'; // Phase 1.4: ייבוא פונקציית עזר לטיפול בתמונות
+import { IImage } from '../../../../types/Product'; // ✅ שימוש ב-IImage ישירות
 import styles from './ProductDetail.module.css';
 
 interface ProductDetailProps {
@@ -295,16 +295,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   };
 
   // שילוב תמונות וריאנט + מוצר (memo לביצועים - מונע renders מיותרים)
-  // Phase 1.4: המרת IImage[] ל-string[] כדי שהגלריה תוכל להציג את התמונות
+  // ✅ החזרת IImage[] ישירות - ProductGallery יטפל בבחירת הגדלים
   const currentImages = useMemo(() => {
     // תמונות הוריאנט הנבחר (משתנות לפי צבע)
     const variantImages = selectedSkuData?.images && selectedSkuData.images.length > 0
-      ? getImageUrls(selectedSkuData.images)
+      ? selectedSkuData.images // ✅ IImage[] ישירות
       : [];
     
     // תמונות המוצר הכלליות (קבועות לכל הצבעים)
     const productImages = product?.images && product.images.length > 0
-      ? getImageUrls(product.images)
+      ? product.images // ✅ IImage[] ישירות
       : [];
     
     // 🎯 שילוב: תמונות וריאנט קודם, אחר כך תמונות מוצר

@@ -9,6 +9,7 @@ import ConfirmDialog from '../ConfirmDialog';
 import { Icon } from '../Icon';
 import { Button } from '../Button';
 import { useConfirm } from '../../../hooks/useConfirm';
+import { getImageUrl } from '../../../utils/imageUtils'; // ✅ ייבוא הפונקציה החדשה
 import styles from './ImageGalleryManager.module.css';
 
 /**
@@ -511,8 +512,9 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, index)}
               >
+                {/* ✅ שימוש ב-getImageUrl עם 'medium' (800×800) לתצוגה בAdmin */}
                 <img
-                  src={image.url}
+                  src={getImageUrl(image, 'medium')}
                   alt={`תמונה ${index + 1}`}
                   className={styles.image}
                 />
@@ -556,8 +558,9 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
           <h4 className={styles.sectionTitle}>תמונות חדשות ({newImages.length})</h4>
           <div className={styles.imagesGrid}>
             {newImages.map((image, index) => (
-              <div key={image.public_id} className={styles.imageWrapper}>
-                <img src={image.url} alt={`תמונה חדשה ${index + 1}`} className={styles.image} />
+              <div key={image.public_id || index} className={styles.imageWrapper}>
+                {/* ✅ שימוש ב-getImageUrl עם 'medium' */}
+                <img src={getImageUrl(image, 'medium')} alt={`תמונה חדשה ${index + 1}`} className={styles.image} />
                 <div className={styles.newBadge}>חדש</div>
                 <Button
                   type="button"
