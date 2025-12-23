@@ -17,7 +17,7 @@ import MaintenancePage from '../pages/MaintenancePage/index';
 const AdminLayout = lazy(() => import('../pages/Admin/Layout'));
 const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'));
 const OrdersPage = lazy(() => import('../pages/Admin/Orders'));
-const ProductsManagementPage = lazy(() => import('../pages/Admin/Products'));
+const ProductsManagementPage = lazy(() => import('../pages/Admin/Products/ProductsManagementPage'));
 const FilterAttributesPage = lazy(() => import('../pages/Admin/FilterAttributes'));
 const CustomersPage = lazy(() => import('../pages/Admin/Customers'));
 const CustomerGroupsPage = lazy(() => import('../pages/Admin/CustomerGroups'));
