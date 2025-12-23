@@ -319,7 +319,7 @@ export const triggerStockAlerts = async (
           data: {
             productName: (product as any).name,
             productUrl,
-            productImage: (product as any).images?.[0]?.url || sku?.images?.[0]?.url,
+            productImage: (product as any).images?.[0]?.medium || sku?.images?.[0]?.medium,
             skuName: sku?.name,
             skuCode,
             price: sku?.price || (product as any).basePrice,

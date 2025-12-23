@@ -323,7 +323,7 @@ class CartService {
       // Phase 3.2: הוספת פריט חדש מ-SKU Collection
       // Phase 1.4: המרת IImage ל-URL string (סל צריך רק URL)
       const itemImage = skuDoc.images && skuDoc.images.length > 0 
-        ? (typeof skuDoc.images[0] === 'string' ? skuDoc.images[0] : skuDoc.images[0].url)
+        ? (typeof skuDoc.images[0] === 'string' ? skuDoc.images[0] : skuDoc.images[0].medium)
         : '';
 
       const itemName = skuDoc.name || product.name || skuDoc.sku;

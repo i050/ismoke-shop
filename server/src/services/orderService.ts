@@ -284,7 +284,7 @@ class OrderService {
           // שימוש במחיר SKU או מחיר בסיס של המוצר
           price = sku.price ?? product.basePrice;
           skuCode = sku.sku;
-          imageUrl = sku.images?.[0]?.url || product.images?.[0]?.url;
+          imageUrl = sku.images?.[0]?.medium || product.images?.[0]?.medium;
           attributes = {
             color: sku.color,
             size: sku.attributes?.size,
@@ -328,7 +328,7 @@ class OrderService {
           // אם אין SKU - שימוש במחיר הבסיסי של המוצר
           price = product.basePrice;
           skuCode = product.sku || `PROD-${product._id}`;
-          imageUrl = product.images?.[0]?.url;
+          imageUrl = product.images?.[0]?.medium;
           
           // בדיקת מלאי של המוצר עצמו
           if (product.stockQuantity < item.quantity) {

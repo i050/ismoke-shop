@@ -12,7 +12,7 @@ import {
 } from '../controllers/bannerController';
 import { authMiddleware, requireAdmin } from '../middleware/authMiddleware';
 import { trackingLimiter } from '../middleware/rateLimiter';
-import { uploadSingleImage, handleUploadErrors } from '../middleware/uploadMiddleware';
+import { uploadSingleImage } from '../middleware/uploadMiddleware';
 
 // ============================================================================
 // Banner Routes - מערכת ניהול באנרים
@@ -103,7 +103,6 @@ router.post(
   authMiddleware,
   requireAdmin,
   uploadSingleImage, // העלאת תמונה בודדת לבאנר
-  handleUploadErrors, // טיפול בשגיאות העלאה
   uploadBannerImage
 );
 

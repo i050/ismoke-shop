@@ -167,7 +167,7 @@ class AdminWarningsService {
           warnings.push({
             productId,
             productName: product.name,
-            productImage: product.images?.[0]?.url,
+            productImage: product.images?.[0]?.medium,
             issues,
           });
         }

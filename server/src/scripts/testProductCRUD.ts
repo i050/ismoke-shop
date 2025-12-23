@@ -60,8 +60,12 @@ async function runTests() {
       categoryId: new mongoose.Types.ObjectId(), // קטגוריה דמה
       images: [
         {
-          url: 'https://example.com/image1.jpg',
-          public_id: 'test_image_001',
+          thumbnail: 'https://example.com/image1-thumbnail.webp',
+          medium: 'https://example.com/image1-medium.webp',
+          large: 'https://example.com/image1-large.webp',
+          key: 'test_image_001',
+          format: 'webp',
+          uploadedAt: new Date(),
         } satisfies IImage,
       ],
       brand: 'Test Brand',

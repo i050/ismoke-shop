@@ -1058,35 +1058,59 @@ export const hardDeleteProduct = async (productId: string): Promise<void> => {
       throw new Error(`Product with ID ${productId} not found`);
     }
 
-    // שלב 1: מחיקת תמונות של המוצר מ-Cloudinary
+    // שלב 1: מחיקת תמונות של המוצר מ-DigitalOcean Spaces
     if (product.images && product.images.length > 0) {
-      const { deleteImageFromCloudinary } = await import('../middleware/uploadMiddleware');
+      const { deleteBulkFromSpaces } = await import('./spacesService');
+      
+      // בניית מערך של כל ה-keys למחיקה (3 גדלים לכל תמונה)
+      const keysToDelete: string[] = [];
       for (const image of product.images) {
-        try {
-          await deleteImageFromCloudinary(image.public_id);
-        } catch (err) {
-          console.warn(`⚠️ Failed to delete image ${image.public_id} from Cloudinary:`, err);
-          // לא עוצרים את כל התהליך בגלל כשל בתמונה אחת
-        }
+        keysToDelete.push(
+          `${image.key}-thumbnail.webp`,
+          `${image.key}-medium.webp`,
+          `${image.key}-large.webp`
+        );
+      }
+      
+      try {
+        const deletedCount = await deleteBulkFromSpaces(keysToDelete);
+        console.log(`🗑️ Deleted ${deletedCount} image files from Spaces`);
+      } catch (err) {
+        console.warn(`⚠️ Failed to delete some images from Spaces:`, err);
+        // לא עוצרים את כל התהליך בגלל כשל במחיקת תמונות
       }
     }
 
-    // שלב 2: מחיקת תמונות של SKUs מ-Cloudinary
+    // שלב 2: מחיקת תמונות של SKUs מ-DigitalOcean Spaces
     const skus = await Sku.find({ productId });
-    for (const sku of skus) {
-      if (sku.images && sku.images.length > 0) {
-        const { deleteImageFromCloudinary } = await import('../middleware/uploadMiddleware');
-        for (const image of sku.images) {
-          try {
-            await deleteImageFromCloudinary(image.public_id);
-          } catch (err) {
-            console.warn(`⚠️ Failed to delete SKU image ${image.public_id} from Cloudinary:`, err);
+    if (skus.length > 0) {
+      const { deleteBulkFromSpaces } = await import('./spacesService');
+      
+      // בניית מערך של כל ה-keys למחיקה
+      const keysToDelete: string[] = [];
+      for (const sku of skus) {
+        if (sku.images && sku.images.length > 0) {
+          for (const image of sku.images) {
+            keysToDelete.push(
+              `${image.key}-thumbnail.webp`,
+              `${image.key}-medium.webp`,
+              `${image.key}-large.webp`
+            );
           }
         }
       }
+      
+      if (keysToDelete.length > 0) {
+        try {
+          const deletedCount = await deleteBulkFromSpaces(keysToDelete);
+          console.log(`🗑️ Deleted ${deletedCount} SKU image files from Spaces`);
+        } catch (err) {
+          console.warn(`⚠️ Failed to delete some SKU images from Spaces:`, err);
+        }
+      }
     }
 
-    // שלב 3: מחיקת המוצר מ-MongoDB (הpre-delete middleware יוחק את SKUs באופן אוטומטי)
+    // שלב 3: מחיקת המוצר מ-MongoDB (הpre-delete middleware ימחק את SKUs באופן אוטומטי)
     await Product.deleteOne({ _id: productId });
 
     console.log(`✅ Product, SKUs, and all images permanently deleted`);
@@ -1702,136 +1726,5 @@ export const fetchProductsWithCursor = async (
 // Phase 3.1: Soft Delete Functions - מחיקה רכה של תמונות
 // ============================================================================
 
-/**
- * מחיקה רכה של תמונה ממוצר (סימון בלבד, לא מחיקה אמיתית)
- * התמונה תישאר ב-Cloudinary למשך 30 יום לפני מחיקה קשה
- */
-export const softDeleteProductImage = async (
-  productId: string,
-  imagePublicId: string
-): Promise<void> => {
-  const product = await Product.findById(productId);
-  
-  if (!product) {
-    throw new Error(`מוצר לא נמצא: ${productId}`);
-  }
-  
-  // מציאת התמונה ברשימה
-  const image = product.images.find((img) => img.public_id === imagePublicId);
-  
-  if (!image) {
-    throw new Error(`תמונה לא נמצאה: ${imagePublicId}`);
-  }
-  
-  // סימון התמונה כמחוקה
-  image.isDeleted = true;
-  image.deletedAt = new Date();
-  
-  await product.save();
-  
-  console.log(`🗑️ Image soft-deleted: ${imagePublicId}`);
-};
-
-/**
- * שחזור תמונה שנמחקה (ביטול soft delete)
- */
-export const restoreProductImage = async (
-  productId: string,
-  imagePublicId: string
-): Promise<void> => {
-  const product = await Product.findById(productId);
-  
-  if (!product) {
-    throw new Error(`מוצר לא נמצא: ${productId}`);
-  }
-  
-  // מציאת התמונה ברשימה
-  const image = product.images.find((img) => img.public_id === imagePublicId);
-  
-  if (!image) {
-    throw new Error(`תמונה לא נמצאה: ${imagePublicId}`);
-  }
-  
-  // ביטול הסימון
-  image.isDeleted = false;
-  image.deletedAt = undefined;
-  
-  await product.save();
-  
-  console.log(`♻️ Image restored: ${imagePublicId}`);
-};
-
-/**
- * מחיקה קשה (סופית) של תמונות מסומנות שעברו 30 יום
- * פונקציה זו תרוץ אוטומטית בCron Job
- */
-export const permanentlyDeleteMarkedImages = async (): Promise<number> => {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
-  let deletedCount = 0;
-  
-  try {
-    // מחיקה מתוך Products
-    const products = await Product.find({
-      'images.isDeleted': true,
-      'images.deletedAt': { $lte: thirtyDaysAgo }
-    });
-    
-    for (const product of products) {
-      const imagesToDelete = product.images.filter(
-        (img) => img.isDeleted && img.deletedAt && img.deletedAt <= thirtyDaysAgo
-      );
-      
-      for (const image of imagesToDelete) {
-        // מחיקה מCloudinary
-        const { deleteImageFromCloudinary } = await import('../middleware/uploadMiddleware');
-        await deleteImageFromCloudinary(image.public_id);
-        deletedCount++;
-      }
-      
-      // הסרת התמונות מהמערך
-      product.images = product.images.filter(
-        (img) => !img.isDeleted || !img.deletedAt || img.deletedAt > thirtyDaysAgo
-      );
-      
-      await product.save();
-    }
-    
-    // מחיקה מתוך SKUs
-    const skus = await Sku.find({
-      'images.isDeleted': true,
-      'images.deletedAt': { $lte: thirtyDaysAgo }
-    });
-    
-    for (const sku of skus) {
-      // בדיקה שיש מערך תמונות
-      if (!sku.images || sku.images.length === 0) continue;
-      
-      const imagesToDelete = sku.images.filter(
-        (img) => img.isDeleted && img.deletedAt && img.deletedAt <= thirtyDaysAgo
-      );
-      
-      for (const image of imagesToDelete) {
-        // מחיקה מCloudinary
-        const { deleteImageFromCloudinary } = await import('../middleware/uploadMiddleware');
-        await deleteImageFromCloudinary(image.public_id);
-        deletedCount++;
-      }
-      
-      // הסרת התמונות מהמערך
-      sku.images = sku.images.filter(
-        (img) => !img.isDeleted || !img.deletedAt || img.deletedAt > thirtyDaysAgo
-      );
-      
-      await sku.save();
-    }
-    
-    console.log(`🧹 Permanently deleted ${deletedCount} marked images`);
-    return deletedCount;
-  } catch (error) {
-    console.error('❌ Error in permanentlyDeleteMarkedImages:', error);
-    throw error;
-  }
-};
+// ✅ Soft delete functions removed - new schema uses hard delete only (DigitalOcean Spaces)
 

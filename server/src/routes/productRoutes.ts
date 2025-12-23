@@ -32,8 +32,6 @@ import {
 import { mapSizeToAttributes, mapSizeQueryParam } from '../middleware/sizeCompatibility';
 import {
   uploadProductImages,
-  handleUploadErrors,
-  uploadProductImagesController,
 } from '../middleware/uploadMiddleware';
 
 const router = Router();
@@ -117,15 +115,13 @@ router.post('/check-sku', authMiddleware, requireAdmin, validateCheckSku, checkS
 // POST /api/products/upload-images - Upload product images to Cloudinary
 // Phase 1.4: העלאת תמונות עם Multer + Cloudinary
 // Phase 0.5.3: Rate limiting - 10 uploads ב-60 שניות
-// מחזיר: [{ url, public_id, width, height, format }]
+// מחזיר: [{ thumbnail, medium, large, key, format, uploadedAt }]
 router.post(
   '/upload-images',
   authMiddleware,
   requireAdmin,
   uploadLimiter,
-  uploadProductImages,
-  handleUploadErrors,
-  uploadProductImagesController
+  uploadProductImages
 );
 
 // ============================================================================
