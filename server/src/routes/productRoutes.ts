@@ -33,6 +33,7 @@ import { mapSizeToAttributes, mapSizeQueryParam } from '../middleware/sizeCompat
 import {
   uploadProductImages,
 } from '../middleware/uploadMiddleware';
+import { uploadProductImagesController } from '../controllers/imageController';
 
 const router = Router();
 
@@ -112,8 +113,8 @@ router.delete('/:id/permanent', authMiddleware, requireAdmin, deleteProductLimit
 // Phase 1.3: Joi Validation
 router.post('/check-sku', authMiddleware, requireAdmin, validateCheckSku, checkSkuAvailability);
 
-// POST /api/products/upload-images - Upload product images to Cloudinary
-// Phase 1.4: העלאת תמונות עם Multer + Cloudinary
+// POST /api/products/upload-images - Upload product images to DigitalOcean Spaces
+// Phase 1.4: העלאת תמונות עם Multer + Sharp + Spaces
 // Phase 0.5.3: Rate limiting - 10 uploads ב-60 שניות
 // מחזיר: [{ thumbnail, medium, large, key, format, uploadedAt }]
 router.post(
@@ -121,7 +122,8 @@ router.post(
   authMiddleware,
   requireAdmin,
   uploadLimiter,
-  uploadProductImages
+  uploadProductImages,
+  uploadProductImagesController
 );
 
 // ============================================================================
