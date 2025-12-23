@@ -99,15 +99,30 @@ export const skuSchema = yup.object({
     .default(undefined),
 
   // תמונות ספציפיות ל-SKU
+  // תומך במבנה החדש (DigitalOcean Spaces) והישן (Cloudinary)
   images: yup
     .array()
     .of(
-      yup.object({
-        url: yup.string().required('כתובת תמונה היא שדה חובה'),
-        public_id: yup.string().optional().default(''),
-        width: yup.number().optional(),
-        height: yup.number().optional(),
-        format: yup.string().optional(),
+      yup.lazy((value: any) => {
+        // אם יש שדה thumbnail - מבנה חדש (DigitalOcean Spaces)
+        if (value && (value.thumbnail || value.medium || value.large)) {
+          return yup.object({
+            thumbnail: yup.string().required('תמונה ממוזערת היא שדה חובה'),
+            medium: yup.string().required('תמונה בינונית היא שדה חובה'),
+            large: yup.string().required('תמונה גדולה היא שדה חובה'),
+            key: yup.string().required('מפתח התמונה הוא שדה חובה'),
+            format: yup.string().optional().default('webp'),
+            uploadedAt: yup.date().optional(),
+          });
+        }
+        // אחרת - מבנה ישן (Cloudinary) - backward compatibility
+        return yup.object({
+          url: yup.string().required('כתובת תמונה היא שדה חובה'),
+          public_id: yup.string().optional().default(''),
+          width: yup.number().optional(),
+          height: yup.number().optional(),
+          format: yup.string().optional(),
+        });
       })
     )
     .optional()
@@ -190,15 +205,30 @@ export const productSchema = yup.object({
     .nullable(),
 
   // תמונות
+  // תומך במבנה החדש (DigitalOcean Spaces) והישן (Cloudinary)
   images: yup
     .array()
     .of(
-      yup.object({
-        url: yup.string().required('כתובת תמונה היא שדה חובה'),
-        public_id: yup.string().optional().default(''),
-        width: yup.number().optional(),
-        height: yup.number().optional(),
-        format: yup.string().optional(),
+      yup.lazy((value: any) => {
+        // אם יש שדה thumbnail - מבנה חדש (DigitalOcean Spaces)
+        if (value && (value.thumbnail || value.medium || value.large)) {
+          return yup.object({
+            thumbnail: yup.string().required('תמונה ממוזערת היא שדה חובה'),
+            medium: yup.string().required('תמונה בינונית היא שדה חובה'),
+            large: yup.string().required('תמונה גדולה היא שדה חובה'),
+            key: yup.string().required('מפתח התמונה הוא שדה חובה'),
+            format: yup.string().optional().default('webp'),
+            uploadedAt: yup.date().optional(),
+          });
+        }
+        // אחרת - מבנה ישן (Cloudinary) - backward compatibility
+        return yup.object({
+          url: yup.string().required('כתובת תמונה היא שדה חובה'),
+          public_id: yup.string().optional().default(''),
+          width: yup.number().optional(),
+          height: yup.number().optional(),
+          format: yup.string().optional(),
+        });
       })
     )
     .optional()
