@@ -144,16 +144,28 @@ const SpecificationSchema: Schema = new Schema({
 }, { _id: false });
 
 /**
- * סכמת תמונה - DigitalOcean Spaces
- * מכילה 3 גרסאות של כל תמונה באיכויות שונות
+ * סכמת תמונה - Backward Compatible
+ * תומכת במבנה החדש (DigitalOcean Spaces) והישן (Cloudinary)
+ * 
+ * מבנה חדש: {thumbnail, medium, large, key, format, uploadedAt}
+ * מבנה ישן: {url, public_id, width?, height?, format?}
  */
 const ImageSchema: Schema = new Schema({
-  thumbnail: { type: String, required: true },  // תמונה קטנה 200×200
-  medium: { type: String, required: true },     // תמונה בינונית 800×800
-  large: { type: String, required: true },      // תמונה גדולה 1200×1200
-  key: { type: String, required: true },        // Base path ב-Spaces
-  format: { type: String, required: true, default: 'webp' },  // פורמט (webp)
-  uploadedAt: { type: Date, default: Date.now }, // תאריך העלאה
+  // DigitalOcean Spaces - מבנה חדש (אופציונלי לתאימות לאחור)
+  thumbnail: { type: String, required: false },  // תמונה קטנה 200×200
+  medium: { type: String, required: false },     // תמונה בינונית 800×800
+  large: { type: String, required: false },      // תמונה גדולה 1200×1200
+  key: { type: String, required: false },        // Base path ב-Spaces
+  
+  // Cloudinary - מבנה ישן (לתאימות לאחור)
+  url: { type: String, required: false },        // URL ישן של Cloudinary
+  public_id: { type: String, required: false },  // Public ID של Cloudinary
+  
+  // שדות משותפים
+  format: { type: String, required: false, default: 'webp' },
+  width: { type: Number, required: false },
+  height: { type: Number, required: false },
+  uploadedAt: { type: Date, default: Date.now },
 }, { _id: false });
 
 const DimensionsSchema: Schema = new Schema({
