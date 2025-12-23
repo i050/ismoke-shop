@@ -123,10 +123,10 @@
   }
 }
 
-/* מובייל קטן (עד 575px) - עמודה אחת */
+/* מובייל קטן (עד 575px) - שני כרטיסים בשורה */
 @media (max-width: 575px) {
   .productGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-md);
   }
   

@@ -494,12 +494,26 @@ const cartSlice = createSlice({
       })
       .addCase(addItemToCart.fulfilled, (state, action) => {
         state.isLoading = false;
+        
+        // שמירת מצב הבחירה של פריטים קיימים
+        const selectionState: Record<string, boolean> = {};
+        if (state.cart) {
+          state.cart.items.forEach(item => {
+            if (item._id) {
+              selectionState[item._id] = item.isSelected ?? false;
+            }
+          });
+        }
+        
         // Phase 4.1: הוספת isSelected = true לכל פריט שלא נקבע לו ערך קודם
         const cart = action.payload;
         if (cart?.items) {
           cart.items = cart.items.map(item => ({
             ...item,
-            isSelected: item.isSelected ?? true
+            // שחזור מצב הבחירה של פריטים קיימים, או true לפריטים חדשים
+            isSelected: item._id && selectionState[item._id] !== undefined 
+              ? selectionState[item._id] 
+              : (item.isSelected ?? true)
           }));
         }
         state.cart = cart;
@@ -529,7 +543,28 @@ const cartSlice = createSlice({
       })
       .addCase(updateItemQuantity.fulfilled, (state, action) => {
         state.isLoading = false;
+        
+        // שמירת מצב הבחירה של כל פריט לפני עדכון הסל
+        const selectionState: Record<string, boolean> = {};
+        if (state.cart) {
+          state.cart.items.forEach(item => {
+            if (item._id) {
+              selectionState[item._id] = item.isSelected ?? false;
+            }
+          });
+        }
+        
         state.cart = action.payload;
+        
+        // שחזור מצב הבחירה של כל פריט
+        if (state.cart) {
+          state.cart.items.forEach(item => {
+            if (item._id && selectionState[item._id] !== undefined) {
+              item.isSelected = selectionState[item._id];
+            }
+          });
+        }
+        
         state.error = null;
       })
       .addCase(updateItemQuantity.rejected, (state, action) => {
@@ -550,8 +585,28 @@ const cartSlice = createSlice({
         state.fatalError = null;
       })
       .addCase(updateItemQuantityOptimistic.fulfilled, (state, action) => {
+        // שמירת מצב הבחירה של כל פריט לפני עדכון הסל
+        const selectionState: Record<string, boolean> = {};
+        if (state.cart) {
+          state.cart.items.forEach(item => {
+            if (item._id) {
+              selectionState[item._id] = item.isSelected ?? false;
+            }
+          });
+        }
+
         // על הצלחה מעדכנים את הסל לנתוני השרת הסופיים
         state.cart = action.payload;
+        
+        // שחזור מצב הבחירה של כל פריט
+        if (state.cart) {
+          state.cart.items.forEach(item => {
+            if (item._id && selectionState[item._id] !== undefined) {
+              item.isSelected = selectionState[item._id];
+            }
+          });
+        }
+        
         state.error = null;
       })
       .addCase(updateItemQuantityOptimistic.rejected, (state, action) => {

@@ -137,15 +137,15 @@
   }
 }
 
-/* מובייל קטן (380px-479px) - כרטיס אחד */
+/* מובייל קטן (380px-479px) - שני כרטיסים */
 @media (min-width: 380px) and (max-width: 479px) {
   .productGrid {
-    grid-template-columns: 1fr;
-    --grid-min-width: 100%;
-    --grid-max-width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    --grid-min-width: auto;
+    --grid-max-width: auto;
     justify-content: stretch;
     gap: var(--grid-gap-small);
-    padding: 0;
+    padding: 8px;
   }
   
   .gridItem {
