@@ -204,7 +204,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         skus: [initialSku as any],
       } as any;
     })(),
-    mode: 'onChange',
   });
 
   const {

@@ -543,15 +543,15 @@ const InventoryManagementPage: React.FC = () => {
                       </td>
                       <td className={styles.productCell}>
                         <div className={styles.productInfo}>
-                          {sku.images?.[0]?.url ? (
+                          {sku.images?.[0] ? (
                             <img
-                              src={sku.images[0].url}
+                              src={(sku.images[0] as any)?.thumbnail || (sku.images[0] as any)?.medium || (sku.images[0] as any)?.url || '/ismoke-placeholder.png'}
                               alt=""
                               className={styles.productImage}
                             />
                           ) : sku.productId?.images?.[0] ? (
                             <img
-                              src={sku.productId.images[0]}
+                              src={(sku.productId.images[0] as any)?.thumbnail || (sku.productId.images[0] as any)?.medium || (sku.productId.images[0] as any)?.url || '/ismoke-placeholder.png'}
                               alt=""
                               className={styles.productImage}
                             />

@@ -62,10 +62,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   };
 
   return (
-    <div 
-      className={styles.imageContainer}
-      onPointerEnter={handleContainerEnter}
-    >
+    <div className={styles.imageContainer}>
       
       {/* תמונה ראשית עם זום דינמי */}
       <div className={styles.mainImage}>

@@ -342,7 +342,7 @@ const CartItem = ({
           ) : (
             <div className={styles.quantityWrapper}>
               <QuantitySelector
-                value={pendingQuantity ?? item.quantity}
+                value={pendingQuantity !== null ? pendingQuantity : (item.quantity || 1)}
                 min={1}
                 max={availableStock || 99}
                 onChange={handleQuantityChange}
@@ -390,7 +390,7 @@ const CartItem = ({
         <div className={styles.quantityDesktop}>
           <div className={styles.quantityWrapper}>
             <QuantitySelector
-              value={pendingQuantity ?? item.quantity}
+              value={pendingQuantity !== null ? pendingQuantity : (item.quantity || 1)}
               min={1}
               max={availableStock || 99}
               onChange={handleQuantityChange}

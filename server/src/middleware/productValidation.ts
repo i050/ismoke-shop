@@ -65,13 +65,25 @@ const productSchema = Joi.object({
 
   images: Joi.array()
     .items(
-      Joi.object({
-        url: Joi.string().uri().required(),
-        public_id: Joi.string().allow('').default(''),
-        width: Joi.number().min(0).optional(),
-        height: Joi.number().min(0).optional(),
-        format: Joi.string().optional(),
-      })
+      Joi.alternatives().try(
+        // מבנה חדש - DigitalOcean Spaces
+        Joi.object({
+          thumbnail: Joi.string().uri().required(),
+          medium: Joi.string().uri().required(),
+          large: Joi.string().uri().required(),
+          key: Joi.string().required(),
+          format: Joi.string().optional().default('webp'),
+          uploadedAt: Joi.date().optional(),
+        }),
+        // מבנה ישן - Cloudinary (תאימות לאחור)
+        Joi.object({
+          url: Joi.string().uri().required(),
+          public_id: Joi.string().allow('').default(''),
+          width: Joi.number().min(0).optional(),
+          height: Joi.number().min(0).optional(),
+          format: Joi.string().optional(),
+        })
+      )
     )
     .max(10)
     .default([])
@@ -274,13 +286,25 @@ const skuSchema = Joi.object({
 
   images: Joi.array()
     .items(
-      Joi.object({
-        url: Joi.string().uri().required(),
-        public_id: Joi.string().allow('').default(''),
-        width: Joi.number().min(0).optional(),
-        height: Joi.number().min(0).optional(),
-        format: Joi.string().optional(),
-      })
+      Joi.alternatives().try(
+        // מבנה חדש - DigitalOcean Spaces
+        Joi.object({
+          thumbnail: Joi.string().uri().required(),
+          medium: Joi.string().uri().required(),
+          large: Joi.string().uri().required(),
+          key: Joi.string().required(),
+          format: Joi.string().optional().default('webp'),
+          uploadedAt: Joi.date().optional(),
+        }),
+        // מבנה ישן - Cloudinary (תאימות לאחור)
+        Joi.object({
+          url: Joi.string().uri().required(),
+          public_id: Joi.string().allow('').default(''),
+          width: Joi.number().min(0).optional(),
+          height: Joi.number().min(0).optional(),
+          format: Joi.string().optional(),
+        })
+      )
     )
     .max(5)
     .default([])

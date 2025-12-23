@@ -83,7 +83,11 @@ const getStatusLabel = (status: string): { label: string; className: string } =>
 const CartItemRow: React.FC<{ item: CartItem }> = ({ item }) => {
   // חילוץ תמונה - תמיכה גם ב-populate וגם ב-string
   const productImage = item.image || 
-    (typeof item.productId === 'object' && item.productId.images?.[0]) || 
+    (typeof item.productId === 'object' && item.productId.images?.[0] 
+      ? (typeof item.productId.images[0] === 'string' 
+          ? item.productId.images[0] 
+          : (item.productId.images[0] as any)?.thumbnail || (item.productId.images[0] as any)?.medium || (item.productId.images[0] as any)?.url)
+      : '') || 
     '';
 
   return (

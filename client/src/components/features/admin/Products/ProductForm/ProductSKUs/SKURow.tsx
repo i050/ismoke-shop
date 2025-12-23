@@ -236,7 +236,7 @@ const SKURow: React.FC<SKURowProps> = ({
               {sku.images.slice(0, 3).map((img, idx) => (
                 <img
                   key={idx}
-                  src={typeof img === 'string' ? img : (img as any)?.url}
+                  src={typeof img === 'string' ? img : ((img as any)?.thumbnail || (img as any)?.medium || (img as any)?.url)}
                   alt={`${sku.name} - תמונה ${idx + 1}`}
                   className={styles.imageThumbnail}
                   onClick={() => setShowImageManager(true)}
@@ -422,7 +422,7 @@ const SKURow: React.FC<SKURowProps> = ({
             {sku.images.slice(0, 3).map((img, idx) => (
               <img
                 key={idx}
-                src={typeof img === 'string' ? img : (img as any)?.url}
+                src={typeof img === 'string' ? img : ((img as any)?.thumbnail || (img as any)?.medium || (img as any)?.url)}
                 alt={`${sku.name} - תמונה ${idx + 1}`}
                 className={styles.imageThumbnail}
               />
@@ -739,7 +739,7 @@ const SKURow: React.FC<SKURowProps> = ({
             <X size={16} />
             <span>בטל</span>
           </button>
-          {onCheckAvailability && (
+          {/* {onCheckAvailability && (
             <button
               type="button"
               className={styles.btnAction}
@@ -750,7 +750,7 @@ const SKURow: React.FC<SKURowProps> = ({
               {checkingSKU ? <span>...</span> : <CheckCircle size={16} />}
               <span>בדוק</span>
             </button>
-          )}
+          )} */}
         </div>
       </div>
     </div>

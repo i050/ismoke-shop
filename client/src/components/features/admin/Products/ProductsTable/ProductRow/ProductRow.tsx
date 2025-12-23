@@ -72,7 +72,8 @@ export const ProductRow: React.FC<ProductRowProps> = ({
   };
 
   // תמונה ראשונה או placeholder
-  const mainImage = product.images?.[0]?.url || '/ismoke-placeholder.png';
+  // תומך במבנה חדש (Spaces: thumbnail/medium) ומבנה ישן (Cloudinary: url)
+  const mainImage = product.images?.[0]?.thumbnail || product.images?.[0]?.medium || product.images?.[0]?.url || '/ismoke-placeholder.png';
 
   // רף מלאי נמוך - משתמש בערך המותאם אישית של המוצר או ברירת מחדל גלובלית
   const lowStockThreshold = product.lowStockThreshold ?? globalLowStockThreshold;
