@@ -283,10 +283,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       hasManualChanges,
       isFormDirty,
       isSubmitting,
-      buttonWillBeDisabled: !isFormDirty || isSubmitting,
-      dirtyFieldsCount: Object.keys(dirtyFields).length
+      isValid,
+      buttonWillBeDisabled: !isFormDirty || !isValid || isSubmitting,
+      dirtyFieldsCount: Object.keys(dirtyFields).length,
+      errorsCount: Object.keys(errors).length,
+      errors: errors
     });
-  }, [isDirty, hasManualChanges, isFormDirty, mode, dirtyFields, isSubmitting]);
+  }, [isDirty, hasManualChanges, isFormDirty, mode, dirtyFields, isSubmitting, isValid, errors]);
 
   // ==========================================
   // Auto-save Draft (localStorage)

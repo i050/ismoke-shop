@@ -112,7 +112,7 @@ export const skuSchema = yup.object({
             large: yup.string().required('תמונה גדולה היא שדה חובה'),
             key: yup.string().required('מפתח התמונה הוא שדה חובה'),
             format: yup.string().optional().default('webp'),
-            uploadedAt: yup.date().optional(),
+            uploadedAt: yup.mixed().optional(), // mixed - מקבל string (JSON) או Date
           });
         }
         // אחרת - מבנה ישן (Cloudinary) - backward compatibility
@@ -218,7 +218,7 @@ export const productSchema = yup.object({
             large: yup.string().required('תמונה גדולה היא שדה חובה'),
             key: yup.string().required('מפתח התמונה הוא שדה חובה'),
             format: yup.string().optional().default('webp'),
-            uploadedAt: yup.date().optional(),
+            uploadedAt: yup.mixed().optional(), // mixed - מקבל string (JSON) או Date
           });
         }
         // אחרת - מבנה ישן (Cloudinary) - backward compatibility
