@@ -30,7 +30,6 @@
     "@types/argon2": "^0.14.1",
     "argon2": "^0.44.0",
     "bullmq": "^5.64.1",
-    "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",

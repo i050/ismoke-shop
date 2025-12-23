@@ -1,5 +1,5 @@
 import Banner, { IBanner } from '../models/Banner';
-import { uploadImage, deleteImage } from './imageService';
+import { uploadToSpaces, deleteFromSpaces } from './spacesService'; // ✅ שימוש ב-Spaces במקום Cloudinary
 import { logger } from '../utils/logger';
 import mongoose from 'mongoose';
 
@@ -342,19 +342,19 @@ export class BannerService {
     try {
       // יצירת מבנה תיקיות היררכי: banners/YYYY/bannerId
       const year = new Date().getFullYear();
-      const folder = bannerId 
-        ? `banners/${year}/${bannerId}`
-        : `banners/${year}/temp`;
+      const timestamp = Date.now();
+      const key = bannerId 
+        ? `banners/${year}/${bannerId}/${timestamp}`
+        : `banners/${year}/temp/${timestamp}`;
 
-      // העלאה עם טרנספורמציות
-      const result = await uploadImage(buffer, folder);
+      // ✅ העלאה ל-DigitalOcean Spaces (WebP)
+      const url = await uploadToSpaces(buffer, `${key}.webp`, 'image/webp');
 
-      // Cloudinary מחזיר secure_url ו-public_id
-      logger.info(`📤 תמונת באנר הועלתה: ${result.secure_url}`);
+      logger.info(`📤 תמונת באנר הועלתה: ${url}`);
 
       return {
-        url: result.secure_url,
-        publicId: result.public_id,
+        url,
+        publicId: key, // ✅ משתמשים ב-key כ-publicId לתאימות לאחור
       };
     } catch (error) {
       logger.error('❌ שגיאה בהעלאת תמונת באנר:', error);
@@ -363,15 +363,16 @@ export class BannerService {
   }
 
   /**
-   * מחיקת תמונת באנר מ-Cloudinary (גיבוי למחיקה ידנית)
-   * @param publicId - Cloudinary public_id
+   * מחיקת תמונת באנר מ-DigitalOcean Spaces
+   * @param publicId - Key ב-Spaces (היה public_id ב-Cloudinary)
    */
   async deleteBannerImage(publicId: string): Promise<void> {
     try {
-      await deleteImage(publicId);
-      logger.info(`🗑️ תמונת באנר נמחקה מ-Cloudinary: ${publicId}`);
+      // ✅ מחיקת תמונה מ-Spaces (+ .webp extension)
+      await deleteFromSpaces(`${publicId}.webp`);
+      logger.info(`🗑️ תמונת באנר נמחקה מ-Spaces: ${publicId}`);
     } catch (error) {
-      logger.error('❌ שגיאה במחיקת תמונת באנר מ-Cloudinary:', error);
+      logger.error('❌ שגיאה במחיקת תמונת באנר:', error);
       throw error;
     }
   }

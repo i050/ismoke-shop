@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { deleteImage } from '../services/imageService';
+import { deleteFromSpaces } from '../services/spacesService'; // ✅ שימוש ב-Spaces
 import { logger } from '../utils/logger';
 
 // ============================================================================
@@ -317,7 +317,7 @@ BannerSchema.index(
 
 /**
  * Hook שרץ לפני מחיקת באנר
- * אחראי על ניקוי תמונת הבאנר מ-Cloudinary
+ * ✅ אחראי על ניקוי תמונת הבאנר מ-DigitalOcean Spaces
  */
 BannerSchema.pre('findOneAndDelete', async function(next) {
   try {
@@ -325,18 +325,18 @@ BannerSchema.pre('findOneAndDelete', async function(next) {
     const banner = await this.model.findOne(this.getFilter());
     
     if (banner && banner.imagePublicId) {
-      logger.info(`מוחק תמונת באנר מ-Cloudinary: ${banner.imagePublicId}`);
+      logger.info(`מוחק תמונת באנר מ-Spaces: ${banner.imagePublicId}`);
       
-      // מחק את התמונה מ-Cloudinary
-      await deleteImage(banner.imagePublicId);
+      // ✅ מחק את התמונה מ-DigitalOcean Spaces (+ .webp extension)
+      await deleteFromSpaces(`${banner.imagePublicId}.webp`);
       
       logger.info(`תמונת באנר נמחקה בהצלחה: ${banner.imagePublicId}`);
     }
     
     next();
   } catch (error) {
-    logger.error('שגיאה במחיקת תמונת באנר מ-Cloudinary:', error);
-    // המשך עם המחיקה גם אם יש שגיאה ב-Cloudinary
+    logger.error('שגיאה במחיקת תמונת באנר מ-Spaces:', error);
+    // המשך עם המחיקה גם אם יש שגיאה ב-Spaces
     // כדי לא לחסום מחיקת רכורד מה-DB
     next();
   }
