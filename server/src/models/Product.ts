@@ -1,19 +1,22 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 // ============================================================================
-// Phase 1.4: Image interface עם Cloudinary public_id
+// DigitalOcean Spaces Image Interface
 // ============================================================================
 
-// Interface for Cloudinary images
+/**
+ * ממשק תמונה עם 3 גדלים קבועים
+ * - thumbnail: 200×200 - לרשימות וקרוסלות
+ * - medium: 800×800 - תצוגה ראשית
+ * - large: 1200×1200 - זום והגדלה
+ */
 export interface IImage {
-  url: string;
-  public_id: string; // נחוץ למחיקה מCloudinary
-  width?: number;
-  height?: number;
-  format?: string;
-  // שדות ל-Soft Delete (Phase 3.1)
-  isDeleted?: boolean;   // האם התמונה מסומנת למחיקה
-  deletedAt?: Date;      // מתי נמחקה (למעקב ולניקוי)
+  thumbnail: string;  // URL של תמונה קטנה (200×200)
+  medium: string;     // URL של תמונה בינונית (800×800)
+  large: string;      // URL של תמונה גדולה (1200×1200)
+  key: string;        // Base path ב-Spaces (products/productid/timestamp)
+  format: string;     // פורמט הקובץ (webp)
+  uploadedAt: Date;   // תאריך העלאה
 }
 
 // Interface for the flexible attributes
@@ -140,13 +143,17 @@ const SpecificationSchema: Schema = new Schema({
   value: { type: String, required: true },
 }, { _id: false });
 
-// Phase 1.4: Image Schema עם Cloudinary public_id
+/**
+ * סכמת תמונה - DigitalOcean Spaces
+ * מכילה 3 גרסאות של כל תמונה באיכויות שונות
+ */
 const ImageSchema: Schema = new Schema({
-  url: { type: String, required: true },
-  public_id: { type: String, required: false, default: '' }, // אופציונלי - תמונות חיצוניות (Unsplash) לא צריכות public_id
-  width: { type: Number },
-  height: { type: Number },
-  format: { type: String },
+  thumbnail: { type: String, required: true },  // תמונה קטנה 200×200
+  medium: { type: String, required: true },     // תמונה בינונית 800×800
+  large: { type: String, required: true },      // תמונה גדולה 1200×1200
+  key: { type: String, required: true },        // Base path ב-Spaces
+  format: { type: String, required: true, default: 'webp' },  // פורמט (webp)
+  uploadedAt: { type: Date, default: Date.now }, // תאריך העלאה
 }, { _id: false });
 
 const DimensionsSchema: Schema = new Schema({
