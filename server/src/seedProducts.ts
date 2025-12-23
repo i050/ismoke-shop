@@ -94,16 +94,18 @@ interface ProductVariant {
 }
 
 /**
- * פונקציית עזר להמרת URL רגיל ל-IImage object
- * Phase 1.4: תמונות נשמרות כ-{url, public_id} במקום string
+ * פונקציית עזר להמרת URL חיצוני ל-IImage object
+ * ✅ מעודכן למבנה החדש: DigitalOcean Spaces
+ * שימוש: תמונות חיצוניות (Unsplash) שמשמשות כ-placeholder
  */
 function convertToIImage(url: string) {
   return {
-    url,
-    public_id: '', // ריק כי אלו תמונות חיצוניות (Unsplash/Cloudinary)
-    width: undefined,
-    height: undefined,
-    format: undefined
+    thumbnail: url,  // תמונות חיצוניות משמשות לכל הגדלים
+    medium: url,
+    large: url,
+    key: '',         // ריק כי אלו תמונות חיצוניות (לא ב-Spaces שלנו)
+    format: 'jpg',
+    uploadedAt: new Date()
   };
 }
 
