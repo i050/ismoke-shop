@@ -12,7 +12,7 @@ import type { Product } from '../../../../types';
 import { ProductService } from '../../../../services/productService';
 import { useAppDispatch, useAppSelector } from '../../../../hooks/reduxHooks';
 import { addItemToCart, openMiniCart } from '../../../../store/slices/cartSlice';
-import { IImage } from '../../../../types/Product'; // ✅ שימוש ב-IImage ישירות
+import type { IImage } from '../../../../types/Product'; // ✅ שימוש ב-IImage עם type
 import styles from './ProductDetail.module.css';
 
 interface ProductDetailProps {

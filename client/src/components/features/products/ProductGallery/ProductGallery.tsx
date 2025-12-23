@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import styles from './ProductGallery.module.css';
 import { Button, Icon, ImageMagnifier } from '@ui';
 import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה
-import { IImage } from '../../../../types/Product'; // ✅ ייבוא IImage
+import type { IImage } from '../../../../types/Product'; // ✅ ייבוא IImage עם type
 
 interface ProductGalleryProps {
   images: IImage[]; // ✅ שינוי מ-string[] ל-IImage[]
