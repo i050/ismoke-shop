@@ -7,24 +7,49 @@ import type { IImage } from '../types/Product';
 export const PRODUCT_PLACEHOLDER_IMAGE = '/ismoke-placeholder.png';
 
 /**
- * פונקציית עזר לקבלת URL מתמונה
- * Phase 1.4: תומכת גם ב-IImage object וגם ב-string (backward compatibility)
+ * פונקציית עזר לקבלת URL של תמונה לפי גודל מבוקש
+ * ✅ תומכת במבנה החדש (3 גדלים) + backward compatibility למבנה ישן
  * 
- * @param image - IImage object או string
- * @returns URL של התמונה
+ * @param image - IImage object או string או undefined
+ * @param size - גודל התמונה המבוקש: 'thumbnail' (200px), 'medium' (800px), 'large' (1200px)
+ * @returns URL של התמונה בגודל המבוקש
+ * 
+ * @example
+ * // שימוש בכרטיס מוצר (ביצועים)
+ * getImageUrl(product.images[0], 'thumbnail')
+ * 
+ * // שימוש בתצוגה ראשית
+ * getImageUrl(product.images[0], 'medium')
+ * 
+ * // שימוש בזום
+ * getImageUrl(product.images[0], 'large')
  */
-export function getImageUrl(image: IImage | string | undefined): string {
+export function getImageUrl(
+  image: IImage | string | undefined,
+  size: 'thumbnail' | 'medium' | 'large' = 'medium'
+): string {
   if (!image) {
     return PRODUCT_PLACEHOLDER_IMAGE;
   }
   
-  // אם זה string - החזר ישירות
+  // אם זה string - החזר ישירות (backward compatibility)
   if (typeof image === 'string') {
     return image;
   }
   
-  // אם זה IImage object - החזר את ה-url
-  return image.url || PRODUCT_PLACEHOLDER_IMAGE;
+  // אם זה IImage object עם המבנה החדש (3 גדלים)
+  if ('thumbnail' in image || 'medium' in image || 'large' in image) {
+    // נסיון לקבל את הגודל המבוקש, עם fallback חכם
+    const url = image[size] || image.medium || image.large || image.thumbnail;
+    return url || PRODUCT_PLACEHOLDER_IMAGE;
+  }
+  
+  // Backward compatibility - אם זה המבנה הישן עם 'url'
+  if ('url' in image) {
+    return (image as any).url || PRODUCT_PLACEHOLDER_IMAGE;
+  }
+  
+  return PRODUCT_PLACEHOLDER_IMAGE;
 }
 
 /**
@@ -44,11 +69,15 @@ export function getImageUrls(images: (IImage | string)[] | undefined): string[] 
 
 /**
  * פונקציית עזר לקבלת URL ברזולוציה גבוהה לזום
- * מוסיפה פרמטרים אופטימליים ל-Cloudinary או מחזירה את ה-URL המקורי
+ * ✅ עם המבנה החדש - פשוט מחזיר את גרסת 'large' (1200×1200)
  * 
  * @param image - IImage object או string
- * @param options - אופציות להתאמת התמונה
- * @returns URL ברזולוציה גבוהה
+ * @param options - אופציות (לא בשימוש עם המבנה החדש, נשאר לתאימות)
+ * @returns URL של התמונה בגרסה הגדולה ביותר
+ * 
+ * @example
+ * // לזום או modal
+ * const zoomUrl = getHighResImageUrl(product.images[0]);
  */
 export function getHighResImageUrl(
   image: IImage | string | undefined,
@@ -59,45 +88,12 @@ export function getHighResImageUrl(
     dpr?: number;
   } = {}
 ): string {
-  const baseUrl = getImageUrl(image);
+  // עם המבנה החדש - פשוט מחזירים את הגרסה הגדולה
+  // התמונות כבר מעובדות ב-1200×1200 WebP איכותי
+  return getImageUrl(image, 'large');
   
-  // אם זה placeholder או URL חיצוני, מחזירים כמו שהוא
-  if (baseUrl.startsWith('/placeholder') || !baseUrl.includes('cloudinary')) {
-    return baseUrl;
-  }
-  
-  // ברירות מחדל מומלצות לזום
-  const { 
-    width = 2048, 
-    height = 2048, 
-    quality = 'auto:good', 
-    dpr = 2 
-  } = options;
-  
-  try {
-    // אם זה Cloudinary URL, מוסיפים טרנספורמציות
-    if (baseUrl.includes('cloudinary.com')) {
-      // מציאת נקודת ההכנסה של הטרנספורמציות (אחרי /upload/)
-      const uploadIndex = baseUrl.indexOf('/upload/');
-      if (uploadIndex !== -1) {
-        const beforeUpload = baseUrl.substring(0, uploadIndex + 8); // כולל /upload/
-        const afterUpload = baseUrl.substring(uploadIndex + 8);
-        
-        // בניית מחרוזת טרנספורמציות
-        const transforms = [
-          `w_${width}`,
-          `h_${height}`,
-          `q_${quality}`,
-          `dpr_${dpr}`,
-          'f_auto', // פורמט אוטומטי (WebP אם נתמך)
-          'fl_progressive' // progressive loading
-        ].join(',');
-        
-        return `${beforeUpload}${transforms}/${afterUpload}`;
-      }
-    }
-  } catch (error) {
-    console.warn('שגיאה בבניית URL ברזולוציה גבוהה:', error);
+  // הערה: options לא בשימוש יותר כי התמונות מעובדות מראש
+  // נשאר הפרמטר לתאימות לאחור עם קוד קיים
   }
   
   // fallback - מחזירים את ה-URL המקורי

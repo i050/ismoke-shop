@@ -8,13 +8,14 @@ export interface PricingData {
   hasDiscount: boolean;       // האם יש הנחה
 }
 
-// Phase 1.4: ממשק לתמונה עם Cloudinary public_id
+// ✅ ממשק לתמונה עם DigitalOcean Spaces (3 גדלים מעובדים מראש)
 export interface IImage {
-  url: string;
-  public_id: string;
-  width?: number;
-  height?: number;
-  format?: string;
+  thumbnail: string;  // 200×200 WebP - לכרטיסי מוצר
+  medium: string;     // 800×800 WebP - לתצוגה ראשית
+  large: string;      // 1200×1200 WebP - לזום ותצוגה מוגדלת
+  key: string;        // Base path ב-Spaces (לצורך מחיקה)
+  format: string;     // 'webp'
+  uploadedAt: string; // Date string מ-JSON
 }
 
 // ממשק למפרט טכני (Technical Specification)
