@@ -125,8 +125,8 @@ const WebhookEventSchema = new Schema<IWebhookEvent>({
   // MongoDB ימחק את הרשומה אוטומטית כשהזמן יעבור
   expiresAt: { 
     type: Date, 
-    default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 יום
-    index: true 
+    default: () => new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 יום
+    // ✅ Index מוגדר בשורה 143 עם expireAfterSeconds: 0
   }
 }, { 
   timestamps: true 

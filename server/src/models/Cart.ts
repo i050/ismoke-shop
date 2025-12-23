@@ -182,7 +182,8 @@ const CartSchema: Schema = new Schema({
   },
   expiresAt: {
     type: Date,
-    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ימים מהיום
+    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 ימים מהיום
+    // ✅ TTL Index מוגדר בשורה 207 עם expireAfterSeconds: 0
   },
 }, {
   timestamps: true, // הוספה אוטומטית של createdAt ו-updatedAt
