@@ -1061,7 +1061,7 @@ export const hardDeleteProduct = async (productId: string): Promise<void> => {
     // שלב 1: מחיקת תמונות של המוצר מ-DigitalOcean Spaces
     if (product.images && product.images.length > 0) {
       const { deleteBulkFromSpaces } = await import('./spacesService');
-      
+
       // בניית מערך של כל ה-keys למחיקה (3 גדלים לכל תמונה)
       const keysToDelete: string[] = [];
       for (const image of product.images) {
@@ -1071,7 +1071,7 @@ export const hardDeleteProduct = async (productId: string): Promise<void> => {
           `${image.key}-large.webp`
         );
       }
-      
+
       try {
         const deletedCount = await deleteBulkFromSpaces(keysToDelete);
         console.log(`🗑️ Deleted ${deletedCount} image files from Spaces`);
@@ -1085,7 +1085,7 @@ export const hardDeleteProduct = async (productId: string): Promise<void> => {
     const skus = await Sku.find({ productId });
     if (skus.length > 0) {
       const { deleteBulkFromSpaces } = await import('./spacesService');
-      
+
       // בניית מערך של כל ה-keys למחיקה
       const keysToDelete: string[] = [];
       for (const sku of skus) {
@@ -1099,7 +1099,7 @@ export const hardDeleteProduct = async (productId: string): Promise<void> => {
           }
         }
       }
-      
+
       if (keysToDelete.length > 0) {
         try {
           const deletedCount = await deleteBulkFromSpaces(keysToDelete);
@@ -1722,9 +1722,6 @@ export const fetchProductsWithCursor = async (
   };
 };
 
-// ============================================================================
-// Phase 3.1: Soft Delete Functions - מחיקה רכה של תמונות
-// ============================================================================
-
 // ✅ Soft delete functions removed - new schema uses hard delete only (DigitalOcean Spaces)
+
 

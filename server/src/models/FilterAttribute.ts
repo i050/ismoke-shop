@@ -157,7 +157,7 @@ const FilterAttributeSchema = new Schema<IFilterAttribute>(
 // Indexes לביצועים
 // ============================================================================
 
-FilterAttributeSchema.index({ key: 1 });
+// הערה: key כבר יש לו unique index (מוגדר בשדה עצמו)
 FilterAttributeSchema.index({ showInFilter: 1 });
 FilterAttributeSchema.index({ sortOrder: 1 });
 

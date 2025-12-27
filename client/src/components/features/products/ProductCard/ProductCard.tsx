@@ -276,9 +276,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   // איסוף שמות המחלקות לשורש הכרטיס (מנוע טעויות ב־JSX על שימוש ב־template literals מורכבים)
   const rootClassName = [styles.productCard, variant === 'grid' ? styles.grid : styles.carousel, className].filter(Boolean).join(' ');
-
+  
   // ✅ קבלת URL התמונה הנוכחית ב-thumbnail (200×200) - ביצועים מקסימליים!
-  const currentImageUrl = productImages[currentImageIndex] 
+  const currentImageUrl = productImages[currentImageIndex]
     ? getImageUrl(productImages[currentImageIndex], 'thumbnail')
     : '/ismoke-placeholder.png';
 

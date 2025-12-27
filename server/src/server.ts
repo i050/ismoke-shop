@@ -31,11 +31,6 @@ import { scheduleImageCleanup } from './scripts/cleanupDeletedImages';
 import { getQueuesStats, closeQueues } from './queues';
 import { startAllWorkers, stopAllWorkers } from './queues/workers';
 
-console.log('Starting server...');
-
-// Connect to database
-connectDB();
-
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { setIO } from './socket';
@@ -281,27 +276,6 @@ app.get('/api/admin/queues', async (req, res) => {
   }
 });
 
-// הפעלת Cron Jobs
-scheduleImageCleanup();
-
-// Start server עם httpServer (ולא app.listen)
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  logger.info('SERVER_STARTED', {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
-  });
-  
-  // הפעלת Workers לעיבוד תורים - רק אחרי שהשרת עלה
-  try {
-    startAllWorkers();
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה';
-    logger.warn('⚠️ Workers לא הופעלו - האתר יעבוד בלי תורים', { error: errorMessage });
-  }
-});
-
 // =============================================================================
 // Graceful Shutdown
 // =============================================================================
@@ -336,3 +310,53 @@ process.on('SIGINT', async () => {
     process.exit(0);
   });
 });
+
+// ============================================================================= 
+// פונקציית התחלה async לטיפול נכון בחיבור למסד הנתונים
+// =============================================================================
+const startServer = async () => {
+  try {
+    console.log('🚀 Starting server...');
+    
+    // התחברות למסד נתונים - חשוב לחכות להצלחה!
+    await connectDB();
+    
+    console.log('✅ Database connected successfully!');
+    
+    // הפעלת Cron Jobs - רק אחרי חיבור מוצלח ל-DB
+    try {
+      scheduleImageCleanup();
+      console.log('📅 Cron jobs configured');
+    } catch (error) {
+      console.warn('⚠️ Cron jobs setup failed:', error);
+    }
+    
+    console.log('🔊 About to start HTTP server on port', PORT);
+    
+    // התחלת הקשבה לבקשות - רק אחרי שהכל מוכן
+    httpServer.listen(PORT, () => {
+      console.log(`✅ Server is running on port ${PORT}`);
+      logger.info('SERVER_STARTED', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+      });
+      
+      // הפעלת Workers לעיבוד תורים - רק אחרי שהשרת עלה
+      try {
+        startAllWorkers();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה';
+        logger.warn('⚠️ Workers לא הופעלו - האתר יעבוד בלי תורים', { error: errorMessage });
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// הפעלת הסרבר
+startServer();
+

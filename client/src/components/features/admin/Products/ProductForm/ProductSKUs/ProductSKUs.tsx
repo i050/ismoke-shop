@@ -10,11 +10,13 @@ import ConfirmDialog from '../../../../../ui/ConfirmDialog';
 import styles from './ProductSKUs.module.css';
 
 /**
- * פונקציה ליצירת קוד SKU מתוך שם המוצר
+ * פונקציה ליצירת קוד SKU בסיסי מתוך שם המוצר
  * הופכת את השם לאותיות גדולות, מחליפה רווחים במקפים, ומסירה תווים לא תקינים
  * מסירה תווים עבריים כי SKU חייב להיות באנגלית בלבד (A-Z, 0-9, -)
+ * @param name - שם המוצר
+ * @returns קוד SKU בסיסי ללא מספר סידורי (לדוגמה: MINICAN4PLUS)
  */
-const generateSkuFromName = (name: string): string => {
+export const generateSkuFromName = (name: string): string => {
   if (!name) return 'SKU-DEFAULT';
   
   // טרנסליטרציה פשוטה של עברית לאנגלית (אופציונלי)
@@ -37,6 +39,41 @@ const generateSkuFromName = (name: string): string => {
     .replace(/^-+|-+$/g, '')        // הסרת מקפים בהתחלה וסוף
     .substring(0, 50)               // הגבלת אורך
     || 'SKU-DEFAULT';               // fallback אם נשאר ריק
+};
+
+/**
+ * פונקציה ליצירת קוד SKU הבא עם מספר סידורי
+ * בודקת את כל ה-SKUs הקיימים ומוצאת את המספר הבא הפנוי
+ * @param baseName - שם המוצר (לדוגמה: "Minican 4 plus")
+ * @param existingSkus - רשימת ה-SKUs הקיימים
+ * @returns קוד SKU ייחודי עם מספר סידורי (לדוגמה: MINICAN4PLUS-001)
+ */
+export const generateNextSkuCode = (baseName: string, existingSkus: SKUFormData[] = []): string => {
+  // יצירת prefix מהשם
+  const prefix = generateSkuFromName(baseName);
+  
+  // אם אין SKUs קיימים, החזר את הראשון
+  if (existingSkus.length === 0) {
+    return `${prefix}-001`;
+  }
+  
+  // מצא את כל המספרים הסידוריים של SKUs שמתחילים עם אותו prefix
+  const existingNumbers = existingSkus
+    .map(sku => sku.sku)
+    .filter(code => code && code.startsWith(prefix + '-'))
+    .map(code => {
+      const match = code.match(/-0*(\d+)$/);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter(num => !isNaN(num));
+  
+  // מצא את המספר הבא
+  const nextNumber = existingNumbers.length > 0 
+    ? Math.max(...existingNumbers) + 1 
+    : 1;
+  
+  // החזר קוד עם מספר תלת-ספרתי
+  return `${prefix}-${String(nextNumber).padStart(3, '0')}`;
 };
 
 /**
@@ -96,24 +133,41 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   
   /**
    * בניית defaultSku מנתוני הטופס הראשי
-   * משמש למילוי מראש של המודאל בפתיחה אוטומטית
+   * משמש למילוי מראש של המודאל
+   * 🆕 יוצר קוד SKU אוטומטי תמיד, אבל ממלא שאר השדות רק בוריאנט הראשון
    */
   const buildDefaultSku = useCallback((): Partial<SKUFormData> | undefined => {
     if (!productFormData) return undefined;
     
-    const { name = '', basePrice = 0, stockQuantity = 0, images = [] } = productFormData;
+    const { name = '' } = productFormData;
     
+    // אם זה הוריאנט הראשון - נמלא גם מחיר, מלאי ותמונות מהטופס הראשי
+    if (value.length === 0) {
+      const { basePrice = 0, stockQuantity = 0, images = [] } = productFormData;
+      return {
+        sku: generateNextSkuCode(name, value),
+        name: name || 'מוצר ברירת מחדל',
+        price: basePrice || null,
+        stockQuantity: stockQuantity || 0,
+        images: images || [],
+        color: '',
+        attributes: {},
+        isActive: true,
+      };
+    }
+    
+    // אם זה וריאנט נוסף - רק קוד SKU אוטומטי, שאר השדות ריקים
     return {
-      sku: generateSkuFromName(name),
-      name: name || 'מוצר ברירת מחדל',
-      price: basePrice || null,
-      stockQuantity: stockQuantity || 0,
-      images: images || [],
+      sku: generateNextSkuCode(name, value),
+      name: '', // שדה ריק - המשתמש ימלא
+      price: null,
+      stockQuantity: 0,
+      images: [],
       color: '',
       attributes: {},
       isActive: true,
     };
-  }, [productFormData]);
+  }, [productFormData, value]);
 
   /**
    * useEffect - פתיחה אוטומטית של המודאל במצב create
@@ -432,8 +486,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
 
       {/* מודאל הוספה */}
       {/**
-       * רק אם במצב יצירה ואין SKUs כבר, נעביר ערכי default ל־modal
-       * כך: במצב שבו כבר קיימים SKUs, המודאל יפתח שדות ריקים כפי שביקשת
+       * 🆕 תמיד נעביר initialSku עם קוד SKU אוטומטי
+       * זה יבטיח שכל וריאנט חדש יקבל קוד אוטומטי
        */}
       <AddSKUModal
         isOpen={showAddModal}
@@ -446,7 +500,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         }
         existingSkus={value}
         onUploadImages={onUploadImages}
-        initialSku={mode === 'create' && value.length === 0 ? buildDefaultSku() : undefined}
+        initialSku={buildDefaultSku()}
       />
 
       {/* דיאלוג מחיקה */}

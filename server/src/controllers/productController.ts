@@ -504,7 +504,7 @@ export const restoreProduct = async (req: Request, res: Response) => {
 /**
  * מחיקה לצמיתות (Hard Delete) של מוצר
  * DELETE /api/products/:id/permanent
- * 
+ *
  * Phase 8: מחיקה בלתי הפיכה עם מחיקת תמונות Cloudinary
  * דורש אישור משתמש בפה על בדוק כדי למנוע טעויות
  */
@@ -513,9 +513,9 @@ export const hardDeleteProductController = async (req: Request, res: Response) =
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: 'מזהה מוצר לא תקין' 
+        message: 'מזהה מוצר לא תקין'
       });
     }
 
@@ -528,18 +528,18 @@ export const hardDeleteProductController = async (req: Request, res: Response) =
     });
   } catch (error: any) {
     console.error('❌ Error in hardDeleteProductController:', error);
-    
+
     if (error.message?.includes('not found') || error.message?.includes('לא נמצא')) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'המוצר לא נמצא' 
+        message: 'המוצר לא נמצא'
       });
     }
 
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'שגיאה במחיקה לצמיתות של המוצר',
-      error: error.message 
+      error: error.message
     });
   }
 };

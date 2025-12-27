@@ -104,7 +104,25 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
   }, [isOpen]);
 
   /**
-   * 🎨 הוספת צבעי רקע דינמית לאלמנטי צבע
+   * � עדכון הטופס כשהמודאל נפתח עם initialSku חדש
+   * זה חיוני כדי שכל פעם שמוסיפים SKU חדש, קוד SKU אחר יוצר
+   * (למשל PRODUCTNAME-001, אחר כך PRODUCTNAME-002, וכו')
+   */
+  useEffect(() => {
+    if (isOpen) {
+      // כשהמודאל נפתח, אתחל את הטופס עם ה-initialSku החדש
+      setNewSKU({
+        ...defaultSKUValues,
+        ...initialSku,
+      } as SKUFormData);
+      setErrors({});
+      setSkuAvailable(null);
+      console.log('🔄 עדכון initialSku בטופס:', initialSku?.sku);
+    }
+  }, [isOpen, initialSku]);
+
+  /**
+   * �🎨 הוספת צבעי רקע דינמית לאלמנטי צבע
    * מפתרון לבעיית inline styles - משתמש ב-data attributes
    */
   useEffect(() => {
@@ -483,7 +501,8 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
     <Modal isOpen={isOpen} onClose={handleClose} title="הוספת SKU חדש">
       <div className={styles.container}>
         {/* הודעת עזר כשהמודאל נפתח עם ערכים מוקדמים */}
-        {initialSku && (
+        {/* 🆕 הצג את ההודעה רק אם באמת מולאו שדות נוספים מלבד קוד SKU (כלומר וריאנט ראשון) */}
+        {initialSku && (initialSku.name || initialSku.price || (initialSku.images && initialSku.images.length > 0)) && (
           <div className={styles.helperBanner}>
             <svg
               xmlns="http://www.w3.org/2000/svg"

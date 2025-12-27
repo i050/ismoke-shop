@@ -7,7 +7,7 @@ import ProductPricing from './ProductPricing';
 import ProductInventory from './ProductInventory';
 import ProductImages from './ProductImages';
 import ProductCategories from './ProductCategories';
-import ProductSKUs from './ProductSKUs';
+import ProductSKUs, { generateNextSkuCode } from './ProductSKUs'; // ייבוא הפונקציה החדשה
 import ProductFilterAttributes from './ProductFilterAttributes';
 import ProductSpecifications from './ProductSpecifications/ProductSpecifications';
 import { ProductFormActions } from './ProductFormActions';
@@ -183,12 +183,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
       // מצב יצירה: נבנה ערכי ברירת מחדל משופרים הכוללים SKU ראשוני
       // כדי לאפשר למנהל להתחיל למלא מלאי כבר בלי לשמור את המוצר לשרת
-      const tempSkuCode = `SKU-TEMP-${Date.now().toString().slice(-6)}`;
+      // 🆕 שימוש בפונקציה generateNextSkuCode ליצירת קוד SKU מקצועי
+      const initialSkuCode = generateNextSkuCode(defaultProductValues.name || 'Product', []);
       const initialSku = {
         // שילוב ערכי ברירת מחדל להגנה מפני ואלידציה מידית
         // שימו לב: price נשאר null כדי להצביע על "לא הוזן" - תוצג כ'מחיר בסיס'
         // וכאשר המשתמש ישמור את המוצר, נחליף null במחיר הבסיס בפונקציית ה-submit.
-        sku: tempSkuCode,
+        sku: initialSkuCode,
         name: 'וריאנט ראשוני',
         price: null,
         stockQuantity: defaultProductValues.stockQuantity ?? 0,
