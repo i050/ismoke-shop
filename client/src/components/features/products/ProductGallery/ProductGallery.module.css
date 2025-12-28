@@ -73,13 +73,16 @@
   opacity: 0;
 }
 
-.mainImage:hover .navButton {
-  opacity: 1;
-}
+/* Desktop Only - הצגת כפתורי ניווט וגדלתם על hover רק במסכים גדולים */
+@media (min-width: 1024px) {
+  .mainImage:hover .navButton {
+    opacity: 1;
+  }
 
-.navButton:hover {
-  background: rgba(0, 0, 0, 0.7);
-  transform: translateY(-50%) scale(1.1);
+  .navButton:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: translateY(-50%) scale(1.1);
+  }
 }
 
 .navButtonPrev {
@@ -138,10 +141,13 @@
   box-shadow: var(--shadow-sm);
 }
 
-.thumbnail:hover {
-  border-color: var(--brand-primary);
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+/* Desktop Only - אנימציה התמונה הממוזערת רק במסכים גדולים */
+@media (min-width: 1024px) {
+  .thumbnail:hover {
+    border-color: var(--brand-primary);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
 }
 
 .thumbnailActive {

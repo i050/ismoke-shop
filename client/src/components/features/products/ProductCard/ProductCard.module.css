@@ -125,8 +125,11 @@
   transition: transform 0.3s ease;
 }
 
-.productCard:hover .productImage {
-  transform: scale(1.05);
+/* Desktop Only - אפקט הגדלה בעטיפה על תמונה רק במסכים גדולים */
+@media (min-width: 1024px) {
+  .productCard:hover .productImage {
+    transform: scale(1.05);
+  }
 }
 
 .noImage {
