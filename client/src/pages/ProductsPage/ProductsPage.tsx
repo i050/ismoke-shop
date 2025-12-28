@@ -273,7 +273,7 @@ const ProductsPage: React.FC = () => {
               <div className={styles.gridWrapper}>
                 {refreshing && (
                   <div className={styles.refreshOverlay}>
-                    <Icon name="Database" size={32} className={styles.loadingIcon} />
+                    <LogoLoader size={250} />
                   </div>
                 )}
                 <ProductGrid 

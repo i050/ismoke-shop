@@ -198,8 +198,8 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
         })}
       </div>
       
-      {/* הצגת שם הצבע הנבחר */}
-      {selectedSkuData && getColorDisplayName(getSkuColor(selectedSkuData)) && (
+      {/* הצגת שם הצבע הנבחר - הסרה לקומפקטיות */}
+      {/* {selectedSkuData && getColorDisplayName(getSkuColor(selectedSkuData)) && (
         <div 
           className={styles.selectedVariantInfo}
           style={{
@@ -213,7 +213,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
             {getColorDisplayName(getSkuColor(selectedSkuData))}
           </span>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
