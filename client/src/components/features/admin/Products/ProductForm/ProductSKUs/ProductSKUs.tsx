@@ -44,6 +44,8 @@ export const generateSkuFromName = (name: string): string => {
 /**
  * פונקציה ליצירת קוד SKU הבא עם מספר סידורי
  * בודקת את כל ה-SKUs הקיימים ומוצאת את המספר הבא הפנוי
+ * 🔧 שיפור: מחפשת את המספר הסידורי הגבוה ביותר בכל ה-SKUs (ללא קשר ל-prefix)
+ * זה פותר בעיה שבה שינוי שם מוצר יוצר קודים כפולים
  * @param baseName - שם המוצר (לדוגמה: "Minican 4 plus")
  * @param existingSkus - רשימת ה-SKUs הקיימים
  * @returns קוד SKU ייחודי עם מספר סידורי (לדוגמה: MINICAN4PLUS-001)
@@ -57,17 +59,21 @@ export const generateNextSkuCode = (baseName: string, existingSkus: SKUFormData[
     return `${prefix}-001`;
   }
   
-  // מצא את כל המספרים הסידוריים של SKUs שמתחילים עם אותו prefix
+  // 🔧 שיפור: מצא את כל המספרים הסידוריים בכל ה-SKUs (לא רק עם prefix מדויק)
+  // זה מונע כפילויות כאשר משנים את שם המוצר
+  // דוגמה: אם יש MINICAN4-001, MINICAN4-002 והשם השתנה ל-"Minican 4 Plus"
+  // הקוד הבא יהיה MINICAN4PLUS-003 ולא MINICAN4PLUS-001
   const existingNumbers = existingSkus
     .map(sku => sku.sku)
-    .filter(code => code && code.startsWith(prefix + '-'))
+    .filter(code => code) // רק SKUs תקינים
     .map(code => {
+      // חילוץ המספר הסידורי מסוף הקוד (אחרי המקף האחרון)
       const match = code.match(/-0*(\d+)$/);
       return match ? parseInt(match[1], 10) : 0;
     })
-    .filter(num => !isNaN(num));
+    .filter(num => !isNaN(num) && num > 0); // רק מספרים תקינים וחיוביים
   
-  // מצא את המספר הבא
+  // מצא את המספר הבא - המקסימום מכל ה-SKUs + 1
   const nextNumber = existingNumbers.length > 0 
     ? Math.max(...existingNumbers) + 1 
     : 1;
