@@ -49,11 +49,11 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({ isOpen = true, onClos
       label: 'מאפייני סינון',
       icon: 'Filter',
     },
-    {
-      path: '/admin/customers',
-      label: 'לקוחות',
-      icon: 'Users',
-    },
+    // {
+    //   path: '/admin/customers',
+    //   label: 'לקוחות',
+    //   icon: 'Users',
+    // },
     {
       path: '/admin/customer-groups',
       label: 'קבוצות לקוח',
