@@ -220,8 +220,23 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           ) : currentLevel ? (
             // רשימת הפריטים
             <div className={styles.menuLevel}>
-              {/* כפתור "כל המוצרים ב..." - מוצג רק אם לא בתפריט הראשי */}
-              {currentLevel.level > 0 && currentLevel.items.length > 0 && (
+              {/* כפתור "כל המוצרים" - בתפריט הראשי בלבד - נראה כמו קטגוריה רגילה */}
+              {currentLevel.level === 0 && (
+                <Button
+                  variant="ghost"
+                  className={styles.menuItem}
+                  onClick={() => {
+                    onClose();
+                    dispatch(resetFilterTree());
+                    navigate('/products');
+                  }}
+                >
+                  <span className={styles.menuItemText}>כל המוצרים</span>
+                </Button>
+              )}
+              
+              {/* כפתור "כל המוצרים ב..." - מוצג בכל קטגוריה (גם ללא תת-קטגוריות) */}
+              {currentLevel.level > 0 && (
                 <Button
                   variant="ghost"
                   className={`${styles.menuItem} ${styles.viewAllItem}`}

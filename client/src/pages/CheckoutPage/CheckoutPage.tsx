@@ -5,8 +5,8 @@
  * Phase 4.1: שולח רק פריטים נבחרים להזמנה
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../hooks/reduxHooks';
 import { 
   fetchCart, 
@@ -39,13 +39,32 @@ const DEFAULT_SHIPPING_COST = 30;
 // סטטוס הטופס
 type CheckoutStep = 'shipping' | 'payment' | 'processing' | 'complete';
 
+// טיפוס ל-Buy Now Item (מוצר יחיד לקנייה ישירה)
+interface BuyNowItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  sku: string;
+  variant?: {
+    color?: string;
+    size?: string;
+  };
+}
+
 // =====================================
 // קומפוננטה ראשית
 // =====================================
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
+  
+  // בדיקה אם זה Buy Now mode (מוצר יחיד לקנייה ישירה)
+  const buyNowItem: BuyNowItem | null = (location.state as { buyNowItem?: BuyNowItem })?.buyNowItem || null;
+  const isBuyNowMode = !!buyNowItem;
   
   // נתונים מה-store
   const cart = useAppSelector((state) => state.cart.cart);
@@ -108,9 +127,33 @@ const CheckoutPage = () => {
   const allowUnpaidOrders = settings?.orders.allowUnpaidOrders ?? false;
   const disablePayment = settings?.orders.disablePayment ?? false;
   
-  // Phase 4.1 + 4.2: חישוב סכומים - מבוסס על פריטים נבחרים, מע"מ כלול במחיר
-  const subtotal = selectedSubtotal;
-  const shipping = selectedIsFreeShipping ? 0 : shippingCost;
+  // Buy Now Mode: חישובים עבור מוצר יחיד מדף המוצר
+  const buyNowSubtotal = buyNowItem ? buyNowItem.price * buyNowItem.quantity : 0;
+  const buyNowIsFreeShipping = buyNowSubtotal >= shippingThreshold;
+  
+  // Phase 4.1 + 4.2 + Buy Now: חישוב סכומים - מבוסס על מוצר Buy Now או פריטים נבחרים מהעגלה
+  const subtotal = isBuyNowMode ? buyNowSubtotal : selectedSubtotal;
+  const shipping = (isBuyNowMode ? buyNowIsFreeShipping : selectedIsFreeShipping) ? 0 : shippingCost;
+  
+  // הפריטים להצגה ולהזמנה - Buy Now Item או פריטים נבחרים מהעגלה
+  const checkoutItems = useMemo(() => {
+    if (isBuyNowMode && buyNowItem) {
+      // המרה ל-format דומה ל-CartItem להצגה
+      return [{
+        _id: `buyNow_${buyNowItem.sku}`,
+        productId: buyNowItem.productId,
+        name: buyNowItem.name,
+        price: buyNowItem.price,
+        quantity: buyNowItem.quantity,
+        image: buyNowItem.image,
+        sku: buyNowItem.sku,
+        subtotal: buyNowItem.price * buyNowItem.quantity,
+        isSelected: true,
+        variant: buyNowItem.variant,
+      }];
+    }
+    return selectedItems;
+  }, [isBuyNowMode, buyNowItem, selectedItems]);
   
   // Phase 6.0: חישוב הנחת סף
   const thresholdDiscountSettings = settings?.thresholdDiscount;
@@ -258,9 +301,9 @@ const CheckoutPage = () => {
     setStep('processing');
     
     try {
-      // Phase 4.1: יצירת נתוני ההזמנה - רק פריטים נבחרים!
+      // Phase 4.1 + Buy Now: יצירת נתוני ההזמנה - מ-checkoutItems (Buy Now או פריטים נבחרים)
       const orderData: CreateOrderData = {
-        items: selectedItems.map(item => ({
+        items: checkoutItems.map(item => ({
           productId: item.productId,
           skuId: item.sku,  // sku code string - השרת יחפש לפי קוד
           quantity: item.quantity
@@ -278,8 +321,10 @@ const CheckoutPage = () => {
         throw new Error(response.message || 'שגיאה ביצירת ההזמנה');
       }
       
-      // Phase 4.1: ניקוי העגלה - כרגע מנקה הכל, בעתיד אפשר לעדכן שישאיר פריטים לא נבחרים
-      dispatch(clearCart());
+      // ניקוי העגלה רק אם זה לא Buy Now mode (Buy Now לא נוגע בעגלה)
+      if (!isBuyNowMode) {
+        dispatch(clearCart());
+      }
       
       // מעבר לעמוד ההצלחה
       setStep('complete');
@@ -383,8 +428,8 @@ const CheckoutPage = () => {
     }
   };
   
-  // Phase 4.1: אם אין פריטים נבחרים (או סל ריק) - הפניה לעמוד הסל
-  if (!cart || cartItems.length === 0 || selectedItems.length === 0) {
+  // Phase 4.1 + Buy Now: אם אין פריטים נבחרים (או סל ריק) ואין buyNowItem - הפניה לעמוד הסל
+  if (!isBuyNowMode && (!cart || cartItems.length === 0 || selectedItems.length === 0)) {
     return (
       <div className={styles.container}>
         <div className={styles.emptyCart}>
@@ -761,11 +806,13 @@ const CheckoutPage = () => {
         {/* סיכום הזמנה */}
         <div className={styles.summaryPanel}>
           <div className={styles.summaryCard}>
-            <h2 className={styles.summaryTitle}>סיכום הזמנה</h2>
+            <h2 className={styles.summaryTitle}>
+              {isBuyNowMode ? 'קנייה מהירה' : 'סיכום הזמנה'}
+            </h2>
             
-            {/* Phase 4.1: רשימת פריטים נבחרים בלבד */}
+            {/* Phase 4.1 + Buy Now: רשימת פריטים - checkoutItems */}
             <div className={styles.summaryItems}>
-              {selectedItems.map((item) => (
+              {checkoutItems.map((item) => (
                 <div key={item._id || item.sku} className={styles.summaryItem}>
                   <div className={styles.itemImage}>
                     <img src={item.image} alt={item.name} />
@@ -808,7 +855,7 @@ const CheckoutPage = () => {
               {thresholdDiscountAmount > 0 && (
                 <div className={`${styles.summaryRow} ${styles.thresholdDiscount}`}>
                   <span className={styles.thresholdDiscountLabel}>
-                    <Icon name="Gift" size={16} /> הנחת סף ({thresholdDiscountSettings?.discountPercentage}%):
+                    <Icon name="Tag" size={16} /> הנחת סף ({thresholdDiscountSettings?.discountPercentage}%):
                   </span>
                   <span>-₪{thresholdDiscountAmount.toFixed(2)}</span>
                 </div>

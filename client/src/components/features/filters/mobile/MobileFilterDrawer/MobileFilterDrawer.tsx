@@ -201,7 +201,7 @@ export const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
           <FilterAccordion
             title="קטגוריות"
             icon="FolderTree"
-            defaultOpen={state.categoryIds.length > 0}
+            defaultOpen={false}
             activeCount={state.categoryIds.length}
             onClear={() => toggleCategory('')}
           >

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Typography, Breadcrumbs, Button, LogoLoader } from '@ui';
 import { Icon } from '../../../ui';
 import ProductGallery from '../ProductGallery';
@@ -275,6 +276,50 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
     }));
   };
 
+  // קנייה ישירה - שליחת פרטי המוצר ישירות ל-Checkout (בלי להוסיף לעגלה)
+  const navigate = useNavigate();
+  const handleBuyNow = async () => {
+    if (!product || !selectedSku || !selectedSkuData) return;
+
+    // בדיקה מהירה בשרת להבטחת מלאי
+    try {
+      const fresh = await ProductService.getProductById(productId);
+      const freshSku = fresh.skus?.find(s => s.sku === selectedSku);
+      const freshStock = freshSku?.stockQuantity ?? fresh.quantityInStock ?? 0;
+      if (quantity > freshStock) {
+        setQuantity(freshStock > 0 ? freshStock : 0);
+        showStockPill(freshStock);
+        return;
+      }
+    } catch (err) {
+      console.warn('Could not revalidate stock before buyNow:', err);
+    }
+
+    // חישוב מחיר סופי (מה-SKU או מהמוצר)
+    const finalPrice = selectedSkuPricing?.finalPrice ?? selectedSkuData.price ?? product.basePrice;
+    
+    // תמונה ראשית להצגה
+    const productImage = currentImages[0]?.medium || currentImages[0]?.thumbnail || product.mainImage || '';
+
+    // ניווט ל-Checkout עם פרטי המוצר (בלי להוסיף לעגלה)
+    navigate('/checkout', {
+      state: {
+        buyNowItem: {
+          productId: product._id,
+          name: product.name,
+          price: finalPrice,
+          quantity,
+          image: productImage,
+          sku: selectedSku,
+          variant: {
+            color: selectedSkuData.attributes?.color,
+            size: selectedSkuData.attributes?.size,
+          },
+        }
+      }
+    });
+  };
+
   // הוספה למועדפים
   const handleAddToFavorites = () => {
     console.log('הוספה למועדפים:', product?._id);
@@ -531,6 +576,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
                   fullWidth
                   elevated
                   icon={<Icon name="CreditCard" size={20} />}
+                  onClick={handleBuyNow}
                 >
                   קנה עכשיו
                 </Button>
