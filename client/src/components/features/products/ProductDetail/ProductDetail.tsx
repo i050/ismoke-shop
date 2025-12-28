@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Typography, Breadcrumbs, Button } from '@ui';
+import { Typography, Breadcrumbs, Button, LogoLoader } from '@ui';
 import { Icon } from '../../../ui';
 import ProductGallery from '../ProductGallery';
 import ProductTabs from '../ProductTabs';
@@ -322,10 +322,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>
-          <Icon name="Package" size={48} className={styles.loadingIcon} />
-          <Typography variant="h2" align="center">טוען פרטי מוצר...</Typography>
-        </div>
+        <LogoLoader />
       </div>
     );
   }

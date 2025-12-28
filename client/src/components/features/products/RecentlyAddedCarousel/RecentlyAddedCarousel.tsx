@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ProductCard from '../ProductCard/ProductCard';
-import { Typography, Carousel } from '../../../ui';
+import { Typography, Carousel, LogoLoader } from '../../../ui';
 import { Icon } from '../../../ui';
 import styles from './RecentlyAddedCarousel.module.css';
 import type { Product } from '../../../../types/Product';
@@ -54,8 +54,7 @@ const RecentlyAddedCarousel: React.FC = () => {
   if (loading) {
     return (
       <div className={styles.loadingState}>
-        <Icon name="Database" size={32} />
-        <Typography variant="body1">טוען מוצרים חדשים...</Typography>
+        <LogoLoader size={80} />
       </div>
     );
   }

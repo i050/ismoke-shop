@@ -1,0 +1,168 @@
+/* LogoLoader.module.css - אנימציית typewriter ללוגו iSmoke */
+
+/* ====================================
+   קונטיינר ראשי
+   ==================================== */
+.loaderContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg, 1.5rem);
+  padding: var(--spacing-2xl, 2rem);
+  min-height: 600px;
+}
+
+/* ====================================
+   לוגו SVG
+   ==================================== */
+.logo {
+  color: var(--color-primary, #6366f1);
+  filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.1));
+}
+
+/* ====================================
+   סגנון בסיסי לכל הקווים
+   ==================================== */
+.logoStroke {
+  fill: none;
+  stroke: currentColor;
+  /* לא צריך stroke-dasharray עוד כי נשתמש ב-opacity animation */
+}
+
+/* ====================================
+   אנימציות הבהוב - כל אות מהמהה בתורה (מהיר!)
+   ==================================== */
+
+/* קו עליון */
+.topLine {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 0s;
+}
+
+/* אות i - ראשונה */
+.letterI {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 0.2s;
+}
+
+/* אות S - שנייה */
+.letterS {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 0.4s;
+}
+
+/* אות m - שלישית */
+.letterM {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 0.6s;
+}
+
+/* אות o - רביעית */
+.letterO {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 0.8s;
+}
+
+/* אות k - חמישית */
+.letterK {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 1s;
+}
+
+/* אות e - שישית */
+.letterE {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 1.2s;
+}
+
+/* קו תחתון - אחרון */
+.bottomLine {
+  animation: blink 0.5s ease-in-out forwards;
+  animation-delay: 1.4s;
+}
+
+/* ====================================
+   Keyframe - הבהוב/מהמהה של אות
+   ==================================== */
+@keyframes blink {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ====================================
+   אנימציה נוספת - דהייה והופעה מחדש (loop)
+   ==================================== */
+.logo {
+  /* הלוגו כולו מהמהה בלופ אחרי שהאנימציה מסתיימת (~2s) */
+  animation: fadeInOut 3s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ====================================
+   טקסט טעינה
+   ==================================== */
+.loadingText {
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+  text-align: center;
+  /* אנימציית pulse עדינה */
+  animation: textPulse 2s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ====================================
+   מצב כהה (אם קיים במערכת)
+   ==================================== */
+@media (prefers-color-scheme: dark) {
+  .logo {
+    color: var(--color-primary-light, #818cf8);
+    filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.2));
+  }
+  
+  .loadingText {
+    color: var(--color-text-secondary-dark, #9ca3af);
+  }
+}
+
+/* ====================================
+   Responsive - מסכים קטנים
+   ==================================== */
+@media (max-width: 768px) {
+  .loaderContainer {
+    gap: var(--spacing-md, 1rem);
+    padding: var(--spacing-xl, 1.5rem);
+  }
+  
+  .loadingText {
+    font-size: var(--font-size-base, 1rem);
+  }
+}

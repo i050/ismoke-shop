@@ -8,6 +8,7 @@ export { PlaceholderPage } from './Placeholder';
 export { Toolbar } from './Toolbar';
 export { default as ImageMagnifier } from './ImageMagnifier';
 export type { ImageMagnifierProps } from './ImageMagnifier';
+export { LogoLoader } from './LogoLoader';
 
 export type { ToolbarProps, ViewMode, SortOption } from './Toolbar';
 export { Pagination } from './Pagination';

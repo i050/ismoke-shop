@@ -5,6 +5,7 @@
 import { useEffect } from 'react';
 import { Outlet, ScrollRestoration, useLocation, Navigate } from 'react-router-dom';
 import { Header, Footer } from '@layout';
+import { LogoLoader } from '@ui';
 import MiniCart from './components/features/cart/MiniCart';
 import { useAppDispatch, useAppSelector } from './hooks/reduxHooks';
 import { fetchCart } from './store/slices/cartSlice';
@@ -46,19 +47,7 @@ const RootLayout = () => {
 
   // בזמן טעינת סטטוס האתר - מציג מסך טעינה מינימליסטי
   if (siteStatusLoading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: '1.25rem',
-        color: '#6366f1',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
-      }}>
-        ⏳ טוען...
-      </div>
-    );
+    return <LogoLoader />;
   }
 
   // אם האתר במצב פרטי, הנתיב לא מותר, והמשתמש לא מורשה - הצג עמוד מצב פרטי ללא Layout

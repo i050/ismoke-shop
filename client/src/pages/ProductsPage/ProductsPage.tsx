@@ -13,7 +13,7 @@ import {
   MobileSortMenu, 
   MobileFilterDrawer 
 } from '../../components/features/filters/mobile';
-import { Breadcrumbs, Pagination, Icon, Button } from '../../components/ui';
+import { Breadcrumbs, Pagination, Icon, Button, LogoLoader } from '../../components/ui';
 import { ProductGrid } from '../../components/features/products/ProductGrid';
 import { ProductsRealtimeProvider } from '../../components/features/products/ProductsRealtime';
 import { Typography } from '@ui';
@@ -242,8 +242,7 @@ const ProductsPage: React.FC = () => {
               אבל אם יש כבר מוצרים מוצגים, נציג את המוצרים + overlay קטן של ריענון במקום full loading. */}
           {(loading || meta === null) && products.length === 0 ? (
             <div className={styles.loadingState}>
-              <Icon name="Database" size={48} className={styles.loadingIcon} />
-              <Typography variant="h2" align="center">טוען מוצרים...</Typography>
+              <LogoLoader />
             </div>
           ) : error && error.status && error.status >= 500 ? (
             <div className={styles.errorState}>

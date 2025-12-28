@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ProductCard from '../ProductCard/ProductCard';
-import { Typography, Carousel } from '../../../ui';
+import { Typography, Carousel, LogoLoader } from '../../../ui';
 import { Icon } from '../../../ui';
 import styles from './PopularCarousel.module.css';
 import type { Product } from '../../../../types/Product';
@@ -54,8 +54,7 @@ const PopularCarousel: React.FC = () => {
   if (loading) {
     return (
       <div className={styles.loadingState}>
-        <Icon name="TrendingUp" size={32} />
-        <Typography variant="body1">טוען מוצרים פופולריים...</Typography>
+        <LogoLoader size={80} />
       </div>
     );
   }

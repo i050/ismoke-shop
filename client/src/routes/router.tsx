@@ -6,7 +6,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { lazy, Suspense, type ReactNode } from 'react';
 import RootLayout from '../RootLayout.tsx';
 import ProtectedRoute from './ProtectedRoute';
-import styles from './AdminSuspenseFallback.module.css';
+import { LogoLoader } from '@ui';
 
 // ========================================
 // ייבוא דפים ציבוריים (eager loading)
@@ -56,9 +56,7 @@ interface SuspenseWrapperProps {
 const AdminSuspenseWrapper = ({ children }: SuspenseWrapperProps) => (
   <Suspense
     fallback={
-      <div className={styles.loadingContainer}>
-        ⏳ טוען אזור ניהול...
-      </div>
+      <LogoLoader />
     }
   >
     {children}

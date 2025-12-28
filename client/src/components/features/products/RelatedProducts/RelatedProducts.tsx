@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Typography, Button } from '@ui';
+import { Typography, Button, LogoLoader } from '@ui';
 import ProductPrice from '../ProductPrice';
 import type { Product } from '../../../../types';
 import { ProductService } from '../../../../services/productService';
@@ -73,9 +73,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
           מוצרים קשורים
         </Typography>
         <div className={styles.loading}>
-          <Typography variant="body1" color="muted">
-            טוען מוצרים קשורים...
-          </Typography>
+          <LogoLoader size={80} />
         </div>
       </div>
     );
