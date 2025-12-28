@@ -4,6 +4,7 @@ import { FilterAttributeService } from '../../../../services/filterAttributeServ
 import { Button, Icon, Input } from '../../../../components/ui';
 import Modal from '../../../../components/ui/Modal';
 import { useToast } from '../../../../hooks/useToast';
+import { translateToEnglish } from '../../../../utils/translationService';
 import styles from './AttributeModal.module.css';
 
 /**
@@ -170,25 +171,16 @@ const AttributeModal: React.FC<AttributeModalProps> = ({
 
   /**
    * יצירת שם key אוטומטי מהשם העברי
+   * משתמש במילון מורחב + טרנסליטרציה
    */
   const handleNameChange = (value: string) => {
     setName(value);
     
-    // אם במצב יצירה, נצור key אוטומטית
-    if (!attribute) {
-      const transliteration: Record<string, string> = {
-        צבע: 'color',
-        גודל: 'size',
-        חומר: 'material',
-        מותג: 'brand',
-        סגנון: 'style',
-      };
-      
-      const autoKey = transliteration[value] || value
-        .replace(/[^a-zA-Z0-9]/g, '_')
-        .toLowerCase();
-      
-      setKey(autoKey);
+    // אם במצב יצירה, נצור key אוטומטית באמצעות תרגום
+    if (!attribute && value.trim()) {
+      // תרגום: מילון מקומי (מיידי) → טרנסליטרציה
+      const translatedKey = translateToEnglish(value);
+      setKey(translatedKey);
     }
   };
 

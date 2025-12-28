@@ -67,6 +67,12 @@
   color: var(--color-text-tertiary, #9ca3af);
 }
 
+.translating {
+  font-size: 0.75rem;
+  color: #0066cc;
+  font-weight: 500;
+}
+
 .error {
   font-size: 0.75rem;
   color: #ef4444;
