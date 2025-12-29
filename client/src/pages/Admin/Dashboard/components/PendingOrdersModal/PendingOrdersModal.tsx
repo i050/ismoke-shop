@@ -55,10 +55,20 @@ const PendingOrdersModal: React.FC<PendingOrdersModalProps> = ({
     navigate('/admin/orders?status=pending'); // מנווטים לדף הזמנות עם פילטר
   };
 
-  // פונקציה לניווט להזמנה ספציפית
+  // פונקציה לפתיחת ההזמנה באתר ה-live (Railway) בחלון חדש
+  // שימוש ב-VITE_FRONTEND_URL אם מוגדר ב-build, אחרת משתמש ב-window.location.origin
+  // פתיחה בחלון חדש עם noopener,noreferrer למניעת שיתוף context
   const handleViewOrder = (orderId: string) => {
+    // סוגרים את המודאל קודם
     onClose();
-    navigate(`/admin/orders?orderId=${orderId}`);
+
+    // עדיפות ל-VITE_FRONTEND_URL (ניתן להגדיר זאת ב-Railway או ב-.env)
+    const frontendBase = import.meta.env.VITE_FRONTEND_URL || window.location.origin;
+
+    const url = `${frontendBase.replace(/\/$/, '')}/orders?orderId=${encodeURIComponent(orderId)}`;
+
+    // פותחים בחלון/טאב חדש
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
