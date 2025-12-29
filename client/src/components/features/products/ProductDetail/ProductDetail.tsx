@@ -13,7 +13,6 @@ import type { Product } from '../../../../types';
 import { ProductService } from '../../../../services/productService';
 import { useAppDispatch, useAppSelector } from '../../../../hooks/reduxHooks';
 import { addItemToCart, openMiniCart } from '../../../../store/slices/cartSlice';
-import type { IImage } from '../../../../types/Product'; // ✅ שימוש ב-IImage עם type
 import styles from './ProductDetail.module.css';
 
 interface ProductDetailProps {
@@ -298,8 +297,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
     // חישוב מחיר סופי (מה-SKU או מהמוצר)
     const finalPrice = selectedSkuPricing?.finalPrice ?? selectedSkuData.price ?? product.basePrice;
     
-    // תמונה ראשית להצגה
-    const productImage = currentImages[0]?.medium || currentImages[0]?.thumbnail || product.mainImage || '';
+    // תמונה ראשית להצגה - מ-currentImages (וריאנט אם קיים, אחרת מוצר)
+    const productImage = currentImages[0]?.medium || currentImages[0]?.thumbnail || '';
 
     // ניווט ל-Checkout עם פרטי המוצר (בלי להוסיף לעגלה)
     navigate('/checkout', {
@@ -417,16 +416,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
         <div className={styles.productMeta}>
           <div className={styles.rating}>
             <div className={styles.stars}>
-              {[1, 2, 3, 4, 5].map((star) => (
+              {/* {[1, 2, 3, 4, 5].map((star) => (
                 <Icon
                   key={star}
                   name="Star"
                   size={20}
                   className={`${styles.star} ${star <= 4 ? styles.filled : ''}`}
                 />
-              ))}
+              ))} */}
             </div>
-            <span className={styles.reviewCount}>(42 ביקורות)</span>
+            {/* <span className={styles.reviewCount}>(42 ביקורות)</span> */}
           </div>
           <div className={styles.productSku}>
             מק"ט: {selectedSku || `PROD-${product._id.slice(-6)}`}
