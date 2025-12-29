@@ -497,6 +497,7 @@ class OrderService {
             type: 'order_confirmation',
             to: customerEmail,
             data: {
+              orderId: String(order._id),
               orderNumber: order.orderNumber,
               orderDate: order.createdAt || new Date(),
               customerName,

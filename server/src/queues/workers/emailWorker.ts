@@ -198,7 +198,7 @@ function getEmailTemplate(type: EmailJobData['type'], data: Record<string, unkno
               
               <!-- CTA Button -->
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${frontendUrl}/orders" 
+                <a href="${frontendUrl}/orders?orderId=${data.orderId || ''}" 
                    style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px;">
                   צפייה בהזמנה
                 </a>
