@@ -29,3 +29,7 @@ export { useInternalScrollRestoration } from './useInternalScrollRestoration';
 // ==================== Socket Hook ====================
 // WebSocket connection
 export { useSocket } from './useSocket';
+
+// ==================== Debounce Hook ====================
+// ערך מושהה למניעת קריאות API מרובות בזמן הקלדה
+export { useDebouncedValue } from './useDebouncedValue';

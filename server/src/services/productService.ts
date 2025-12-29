@@ -188,6 +188,7 @@ export interface ProductQueryOptions {
   categoryIds?: string[]; // סינון לפי קטגוריות מרובות (שמור לתאימות לאחור)
   categorySlugs?: string[]; // סינון לפי slugs של קטגוריות (החדש)
   attributeFilters?: Record<string, string[]>; // סינון לפי מאפיינים דינמיים (למשל: { colorFamily: ['red'], size: ['M', 'L'] })
+  search?: string; // חיפוש טקסט חופשי בשם ותיאור מוצר
 }
 
 /** טיפוס מבנה ה-meta שמוחזר ללקוח */
@@ -253,10 +254,22 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
     categoryIds, // קטגוריות (לתאימות לאחור)
     categorySlugs, // קטגוריות חדש עם היררכיה
     attributeFilters, // מאפיינים דינמיים (colorFamily, size, וכו')
+    search, // חיפוש טקסט חופשי
   } = options; 
 
   // בניית אובייקט פילטור
   const filter: Record<string, any> = {};
+  
+  // פילטר חיפוש טקסט חופשי בשם ותיאור
+  if (search && search.trim() !== '') {
+    const trimmedSearch = search.trim();
+    filter.$or = [
+      { name: { $regex: trimmedSearch, $options: 'i' } },
+      { description: { $regex: trimmedSearch, $options: 'i' } }
+    ];
+    if (isDev) console.log('🔍 [fetchProductsFiltered] Text search:', trimmedSearch);
+  }
+  
   if (safeNumber(priceMin) !== undefined || safeNumber(priceMax) !== undefined) {
     filter.basePrice = {};
     if (safeNumber(priceMin) !== undefined) filter.basePrice.$gte = priceMin; // מחיר מינימלי
@@ -1723,5 +1736,114 @@ export const fetchProductsWithCursor = async (
 };
 
 // ✅ Soft delete functions removed - new schema uses hard delete only (DigitalOcean Spaces)
+
+// ============================================================================
+// 🔍 Autocomplete - חיפוש מוצרים בזמן אמת
+// ============================================================================
+
+/**
+ * מבנה תוצאת autocomplete
+ * מכיל רק את השדות הנדרשים להצגה ב-dropdown
+ */
+export interface AutocompleteSuggestion {
+  _id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  salePrice?: number;
+  isOnSale: boolean;
+  thumbnail: string; // URL לתמונה קטנה
+}
+
+/**
+ * חיפוש מוצרים להשלמה אוטומטית (autocomplete)
+ * משתמש ב-text index לביצועים מהירים
+ * 
+ * @param query - טקסט החיפוש (מינימום 2 תווים)
+ * @param limit - מספר תוצאות מקסימלי (ברירת מחדל: 8)
+ * @returns מערך של הצעות מוצרים
+ */
+export const searchProductsAutocomplete = async (
+  query: string,
+  limit: number = 8
+): Promise<AutocompleteSuggestion[]> => {
+  // מינימום 2 תווים לחיפוש
+  const trimmedQuery = query.trim();
+  if (trimmedQuery.length < 2) {
+    return [];
+  }
+
+  try {
+    // שימוש ב-text index לביצועים מהירים
+    // או regex אם ה-query קצר מדי עבור text search
+    const products = await Product.find(
+      {
+        isActive: true, // רק מוצרים פעילים
+        $or: [
+          // Text search - חיפוש מילים מלאות
+          { $text: { $search: trimmedQuery } },
+          // Regex fallback - חיפוש חלקי (prefix match)
+          { name: { $regex: trimmedQuery, $options: 'i' } }
+        ]
+      },
+      {
+        // Projection - רק שדות נדרשים להצגה
+        _id: 1,
+        name: 1,
+        slug: 1,
+        basePrice: 1,
+        salePrice: 1,
+        isOnSale: 1,
+        images: { $slice: 1 }, // רק התמונה הראשונה
+        score: { $meta: 'textScore' } // ניקוד רלוונטיות
+      }
+    )
+      .sort({ score: { $meta: 'textScore' } }) // מיון לפי רלוונטיות
+      .limit(limit)
+      .lean();
+
+    // עיבוד התוצאות - חילוץ thumbnail מהתמונה הראשונה
+    return products.map((product: any) => ({
+      _id: product._id.toString(),
+      name: product.name,
+      slug: product.slug || product._id.toString(),
+      basePrice: product.basePrice,
+      salePrice: product.salePrice,
+      isOnSale: product.isOnSale || false,
+      thumbnail: product.images?.[0]?.thumbnail || ''
+    }));
+  } catch (error: any) {
+    // אם text search נכשל, ננסה regex בלבד
+    console.warn('⚠️ Text search failed, falling back to regex:', error.message);
+    
+    const products = await Product.find(
+      {
+        isActive: true,
+        name: { $regex: trimmedQuery, $options: 'i' }
+      },
+      {
+        _id: 1,
+        name: 1,
+        slug: 1,
+        basePrice: 1,
+        salePrice: 1,
+        isOnSale: 1,
+        images: { $slice: 1 }
+      }
+    )
+      .limit(limit)
+      .lean();
+
+    return products.map((product: any) => ({
+      _id: product._id.toString(),
+      name: product.name,
+      slug: product.slug || product._id.toString(),
+      basePrice: product.basePrice,
+      salePrice: product.salePrice,
+      isOnSale: product.isOnSale || false,
+      thumbnail: product.images?.[0]?.thumbnail || ''
+    }));
+  }
+};
 
 

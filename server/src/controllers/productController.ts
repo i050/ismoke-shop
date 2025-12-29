@@ -57,7 +57,7 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
   const isDev = process.env.NODE_ENV !== 'production';
   
   try {
-    const { priceMin, priceMax, sort, page, pageSize, categoryIds, categories, ...attributeParams } = req.query;
+    const { priceMin, priceMax, sort, page, pageSize, categoryIds, categories, search, ...attributeParams } = req.query;
 
     if (isDev) {
       console.log('🔍 [getFilteredProducts] Query params:', req.query);
@@ -100,6 +100,7 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
       categoryIds: parsedCategoryIds, // לתאימות לאחור
       categorySlugs: parsedCategorySlugs, // החדש שתומך בהיררכיה
       attributeFilters: Object.keys(attributeFilters).length > 0 ? attributeFilters : undefined, // המאפיינים הדינמיים
+      search: typeof search === 'string' ? search : undefined, // חיפוש טקסט חופשי
     });
 
     // קבלת מזהה המשתמש מהטוקן (אם קיים)
@@ -658,6 +659,65 @@ export const getProductsForManagement = async (req: Request, res: Response) => {
     res.status(500).json({ 
       success: false, 
       message: 'שגיאה בטעינת מוצרים לניהול', 
+      error: error.message
+    });
+  }
+};
+
+// ============================================================================
+// 🔍 Autocomplete - חיפוש מוצרים בזמן אמת
+// ============================================================================
+
+/**
+ * GET /api/products/autocomplete - השלמה אוטומטית לחיפוש מוצרים
+ * מחזיר רשימת הצעות מוצרים מהירה בהתאם לשאילתת החיפוש
+ * 
+ * Query params:
+ * - q: טקסט החיפוש (מינימום 2 תווים)
+ * - limit: מספר תוצאות מקסימלי (ברירת מחדל: 8, מקסימום: 20)
+ * 
+ * Response: {
+ *   success: boolean,
+ *   data: ProductSuggestion[],
+ *   query: string,
+ *   total: number
+ * }
+ */
+export const getProductsAutocomplete = async (req: Request, res: Response) => {
+  try {
+    const { q, limit } = req.query;
+    
+    // וולידציה של query
+    const query = typeof q === 'string' ? q.trim() : '';
+    if (query.length < 2) {
+      return res.json({
+        success: true,
+        data: [],
+        query,
+        total: 0
+      });
+    }
+    
+    // הגבלת limit למקסימום 20
+    const maxLimit = Math.min(
+      parseInt(limit as string, 10) || 8,
+      20
+    );
+    
+    // קריאה ל-service
+    const suggestions = await productService.searchProductsAutocomplete(query, maxLimit);
+    
+    res.json({
+      success: true,
+      data: suggestions,
+      query,
+      total: suggestions.length
+    });
+  } catch (error: any) {
+    console.error('❌ [getProductsAutocomplete] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'שגיאה בחיפוש מוצרים',
       error: error.message
     });
   }

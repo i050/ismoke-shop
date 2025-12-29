@@ -11,15 +11,15 @@ import { getCachedCategoriesTree, findNodeByName } from '@/services/categoryServ
 import { buildCategoryDescendantsMap, getDescendantsFromMap } from '@/services/categoryHierarchyService';
 
 /**
- * @param search מחרוזת ה-Query (יכולה להתחיל ב-? או להיות ריקה)
+ * @param queryString מחרוזת ה-Query (יכולה להתחיל ב-? או להיות ריקה)
  * @returns מצב פילטרים מלא (כולל ערכי ברירת מחדל אם חסר)
  */
-export function parseQuery(search: string): FiltersState {
-  // אין מחרוזת? מחזירים מצב ברירת מחדל
-  if (!search || search === '?') return defaultFiltersState;
+export function parseQuery(queryString: string): FiltersState {
+  // אין מחרוזת? מחזירים מצב ברירת המחדל
+  if (!queryString || queryString === '?') return defaultFiltersState;
 
   // מסירים ? בהתחלה אם קיים, ואז יוצרים URLSearchParams
-  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
+  const params = new URLSearchParams(queryString.startsWith('?') ? queryString.slice(1) : queryString);
 
   // פרמטר sort – אם לא הוגדר משתמשים בברירת המחדל
   const sort = (params.get('sort') as SortKey) || defaultFiltersState.sort;
@@ -58,10 +58,13 @@ export function parseQuery(search: string): FiltersState {
   const page = pageRaw ? Math.max(1, Number(pageRaw) || 1) : 1;
   const pageSize = pageSizeRaw ? Math.max(1, Number(pageSizeRaw) || 20) : 20;
 
+  // פענוח חיפוש טקסט חופשי
+  const search = params.get('search') || '';
+
   // פענוח מאפיינים דינמיים מה-URL
-  // כל query param שלא מוכר (לא sort/price/categoryIds/page/pageSize/category) נחשב כמאפיין
+  // כל query param שלא מוכר (לא sort/price/categoryIds/page/pageSize/category/search) נחשב כמאפיין
   const attributes: { [key: string]: string[] } = {};
-  const knownParams = new Set(['sort', 'priceMin', 'priceMax', 'categoryIds', 'category', 'page', 'pageSize']);
+  const knownParams = new Set(['sort', 'priceMin', 'priceMax', 'categoryIds', 'category', 'page', 'pageSize', 'search']);
   
   params.forEach((value, key) => {
     if (!knownParams.has(key) && value) {
@@ -79,6 +82,7 @@ export function parseQuery(search: string): FiltersState {
     },
     categoryIds,
     attributes,
+    search,
     page,
     pageSize
   };

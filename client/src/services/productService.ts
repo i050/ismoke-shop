@@ -5,6 +5,34 @@ import { API_BASE_URL as BASE_URL } from '../config/api';
 // כתובת ה-API - משתמש במודול מרכזי עם זיהוי אוטומטי של Railway
 const API_BASE_URL = `${BASE_URL}/api`;
 
+// ============================================================================
+// טיפוסים עבור Autocomplete
+// ============================================================================
+
+/**
+ * הצעת מוצר להשלמה אוטומטית
+ * מכיל רק את השדות הנדרשים להצגה ב-dropdown
+ */
+export interface ProductSuggestion {
+  _id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  salePrice?: number;
+  isOnSale: boolean;
+  thumbnail: string; // URL לתמונה קטנה
+}
+
+/**
+ * תגובת API עבור autocomplete
+ */
+export interface AutocompleteResponse {
+  success: boolean;
+  data: ProductSuggestion[];
+  query: string;
+  total: number;
+}
+
 // קבוע חיי מטמון (TTL) עבור תוצאות פילטר
 const FILTER_CACHE_TTL_MS = 120_000;
 
@@ -17,6 +45,7 @@ export interface FilteredProductsRequestParams {
   pageSize?: number;
   categoryIds?: string[];
   attributes?: Record<string, string[]>;
+  search?: string; // חיפוש טקסט חופשי
 }
 
 // טיפוס תשובה כפי שמחזיר השרת עבור פילטרים
@@ -73,6 +102,7 @@ export class ProductService {
       pageSize: params.pageSize ?? 20,
       categoryIds: params.categoryIds ? [...params.categoryIds].sort() : [],
       attributes: normalizedAttributes,
+      search: params.search ?? null, // חיפוש טקסט
     };
     return JSON.stringify(normalized);
   }
@@ -280,22 +310,23 @@ export class ProductService {
       return inFlight;
     }
 
-    const search = new URLSearchParams()
-    if (params.priceMin != null) search.set('priceMin', String(params.priceMin))
-    if (params.priceMax != null) search.set('priceMax', String(params.priceMax))
-    if (params.sort) search.set('sort', params.sort)
-    if (params.page) search.set('page', String(params.page))
-    if (params.pageSize) search.set('pageSize', String(params.pageSize))
-    if (params.categoryIds && params.categoryIds.length > 0) search.set('categoryIds', params.categoryIds.join(','))
+    const searchParams = new URLSearchParams()
+    if (params.priceMin != null) searchParams.set('priceMin', String(params.priceMin))
+    if (params.priceMax != null) searchParams.set('priceMax', String(params.priceMax))
+    if (params.sort) searchParams.set('sort', params.sort)
+    if (params.page) searchParams.set('page', String(params.page))
+    if (params.pageSize) searchParams.set('pageSize', String(params.pageSize))
+    if (params.categoryIds && params.categoryIds.length > 0) searchParams.set('categoryIds', params.categoryIds.join(','))
+    if (params.search && params.search.trim()) searchParams.set('search', params.search.trim())
     if (params.attributes) {
       Object.entries(params.attributes).forEach(([key, values]) => {
         if (Array.isArray(values) && values.length > 0) {
-          search.set(key, values.join(','))
+          searchParams.set(key, values.join(','))
         }
       })
     }
 
-    const url = `${API_BASE_URL}/products/filter${search.toString() ? `?${search.toString()}` : ''}`
+    const url = `${API_BASE_URL}/products/filter${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 
     // יצירת Promise ושמירתו ב-inflightRequests כדי שקריאות נוספות יוכלו להצטרף אליו
     const fetchPromise = (async () => {
@@ -333,5 +364,64 @@ export class ProductService {
     // שמירת ה-Promise ב-map כדי שקריאות נוספות יוכלו להצטרף
     inflightRequests.set(cacheKey, fetchPromise);
     return fetchPromise;
+  }
+
+  // ============================================================================
+  // Autocomplete - חיפוש מוצרים בזמן אמת
+  // ============================================================================
+
+  /**
+   * חיפוש מוצרים להשלמה אוטומטית (autocomplete)
+   * מחזיר רשימת הצעות מוצרים בהתאם לשאילתת החיפוש
+   * 
+   * @param query - טקסט החיפוש (מינימום 2 תווים)
+   * @param limit - מספר תוצאות מקסימלי (ברירת מחדל: 8)
+   * @param signal - AbortSignal לביטול הבקשה
+   * @returns רשימת הצעות מוצרים
+   */
+  static async autocomplete(
+    query: string,
+    limit: number = 8,
+    signal?: AbortSignal
+  ): Promise<ProductSuggestion[]> {
+    // מינימום 2 תווים לחיפוש
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    try {
+      const params = new URLSearchParams({
+        q: query.trim(),
+        limit: String(limit),
+      });
+
+      const response = await fetch(
+        `${API_BASE_URL}/products/autocomplete?${params.toString()}`,
+        { signal }
+      );
+
+      if (!response.ok) {
+        let msg = `HTTP error! status: ${response.status}`;
+        try {
+          const json = await response.json();
+          if (json && typeof json === 'object' && json.message) {
+            msg = String(json.message);
+          }
+        } catch (e) {
+          // ignore JSON parse errors
+        }
+        throw new ApiError(response.status, msg);
+      }
+
+      const result: AutocompleteResponse = await response.json();
+      return result.data || [];
+    } catch (error) {
+      // ביטול בקשה (AbortError) - לא שגיאה אמיתית
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+      console.error('Error in autocomplete:', error);
+      throw error;
+    }
   }
 }

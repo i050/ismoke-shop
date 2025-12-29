@@ -68,6 +68,23 @@
   background: var(--primary-hover);
 }
 
+/* תצוגת חיפוש פעיל */
+.activeSearch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.activeSearch strong {
+  color: var(--color-primary);
+}
+
 /* מידע על תוצאות */
 .resultsInfo {
   margin-bottom: var(--spacing-lg);

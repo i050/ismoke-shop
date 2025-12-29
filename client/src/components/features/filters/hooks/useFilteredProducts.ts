@@ -127,6 +127,7 @@ export function useFilteredProducts(filters: FiltersState): UseFilteredProductsR
     if (filters.price.min != null) params.priceMin = filters.price.min;
     if (filters.price.max != null) params.priceMax = filters.price.max;
     if (filters.categoryIds && filters.categoryIds.length > 0) params.categoryIds = filters.categoryIds;
+    if (filters.search && filters.search.trim()) params.search = filters.search.trim();
 
     // הוספת מאפיינים דינמיים (צבע, גודל, חומר וכו') כ-object מאורגן
     if (filters.attributes && Object.keys(filters.attributes).length > 0) {

@@ -16,6 +16,7 @@ import {
   hardDeleteProductController,
   checkSkuAvailability,
   getProductsForManagement,
+  getProductsAutocomplete,
 } from '../controllers/productController';
 import { authMiddleware, optionalAuthMiddleware, requireAdmin } from '../middleware/authMiddleware';
 import { 
@@ -42,6 +43,14 @@ router.get('/by-date', optionalAuthMiddleware, getAllProductsByDate);
 
 // GET /api/products/popular - Get popular products sorted by views and sales
 router.get('/popular', optionalAuthMiddleware, getPopularProducts);
+
+// ============================================================================
+// 🔍 Autocomplete - חיפוש מוצרים בזמן אמת
+// ============================================================================
+// GET /api/products/autocomplete - השלמה אוטומטית לחיפוש מוצרים
+// Query params: q (טקסט חיפוש), limit (מספר תוצאות)
+// חייב להיות לפני /:id כדי שלא יתפס כ-ID
+router.get('/autocomplete', getProductsAutocomplete);
 
 // GET /api/products/filter - Get products with filtering + pagination + meta
 router.get('/filter', optionalAuthMiddleware, mapSizeQueryParam, getFilteredProducts);

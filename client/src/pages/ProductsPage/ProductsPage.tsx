@@ -39,6 +39,7 @@ const ProductsPage: React.FC = () => {
   // קריאת פרמטרים מ-URL כדי לבדוק אם נבחרה קטגוריה ספציפית מההדר המשני
   const [searchParams] = useSearchParams();
   const categoryFromUrl = searchParams.get('category');
+  const searchFromUrl = searchParams.get('search');
   
   // מצב מקומי לפתיחת קומפוננטות מובייל
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -74,7 +75,7 @@ const ProductsPage: React.FC = () => {
   }, [dispatch, categoriesTree.length, categoriesLoading]);
   
   const initial = React.useMemo(() => getInitialFiltersFromUrl(), []);
-  const { state, setSort, setPriceMin, setPriceMax, toggleCategory, replaceCategory, toggleAttribute, clearAttribute, setPage, reset } = useFiltersState(initial);
+  const { state, setSort, setPriceMin, setPriceMax, toggleCategory, replaceCategory, toggleAttribute, clearAttribute, setSearch, setPage, reset } = useFiltersState(initial);
   
   // שמירת הערך הקודם של categoryFromUrl כדי לזהות שינוי בניווט
   const prevCategoryFromUrlRef = React.useRef<string | null>(null);
@@ -111,6 +112,21 @@ const ProductsPage: React.FC = () => {
       replaceCategory(categoryId);
     }
   }, [categoryFromUrl, categoriesTree, categoriesLoading, findCategoryIdByName, replaceCategory]);
+  
+  // שמירת הערך הקודם של searchFromUrl כדי לזהות שינוי בחיפוש
+  const prevSearchFromUrlRef = React.useRef<string | null>(null);
+  
+  // טיפול בפרמטר 'search' מה-URL (כאשר מגיעים מה-Header עם Autocomplete)
+  React.useEffect(() => {
+    const newSearch = searchFromUrl || '';
+    const prevSearch = prevSearchFromUrlRef.current || '';
+    
+    // עדכון רק אם ערך החיפוש השתנה
+    if (newSearch !== prevSearch) {
+      prevSearchFromUrlRef.current = searchFromUrl;
+      setSearch(newSearch);
+    }
+  }, [searchFromUrl, setSearch]);
   
   useFiltersUrlSync(state);
   const { products, meta, loading, error, refetch, refreshing } = useFilteredProducts(state);
@@ -260,6 +276,23 @@ const ProductsPage: React.FC = () => {
             </div>
           ) : (
             <>
+              {/* תצוגת חיפוש פעיל */}
+              {state.search && (
+                <div className={styles.activeSearch}>
+                  <Typography variant="body1">
+                    תוצאות חיפוש עבור: <strong>"{state.search}"</strong>
+                  </Typography>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearch('')}
+                    icon={<Icon name="X" size={16} />}
+                  >
+                    נקה חיפוש
+                  </Button>
+                </div>
+              )}
+              
               {/* ספירת תוצאות */}
               {meta && (
                 <div className={styles.resultsInfo}>

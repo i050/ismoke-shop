@@ -162,6 +162,167 @@
 }
 
 /* ==============================================
+   🔍 Autocomplete Dropdown - דסקטופ
+   ============================================== */
+.suggestionsDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1100;
+  list-style: none;
+  padding: 0;
+  direction: rtl;
+}
+
+/* פריט הצעה בודד */
+.suggestionItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid var(--color-border-light, #f3f4f6);
+}
+
+.suggestionItem:last-of-type {
+  border-bottom: none;
+}
+
+.suggestionItem:hover,
+.suggestionItem.selected {
+  background-color: var(--color-bg-hover);
+}
+
+/* תמונת המוצר */
+.suggestionImage {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.suggestionImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noImage {
+  color: var(--color-text-muted);
+}
+
+/* פרטי המוצר */
+.suggestionDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0; /* לאפשר text overflow */
+}
+
+.suggestionName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestionPrice {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.salePrice {
+  color: var(--state-error);
+  font-weight: 600;
+}
+
+.originalPrice {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* לינק לכל התוצאות */
+.viewAllLink {
+  padding: 12px 16px;
+  background-color: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+.viewAllLink a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--brand-primary);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.viewAllLink a:hover {
+  color: var(--brand-primary-hover, #2563eb);
+}
+
+/* ספינר טעינה */
+.searchSpinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border-light, #e5e7eb);
+  border-top-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==============================================
+   🔍 Autocomplete Dropdown - מובייל
+   ============================================== */
+.mobileSuggestionsDropdown {
+  position: absolute;
+  top: 100%;
+  left: 8px;
+  right: 8px;
+  margin-top: 4px;
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  max-height: 50vh;
+  overflow-y: auto;
+  z-index: 1100;
+  list-style: none;
+  padding: 0;
+  direction: rtl;
+}
+
+/* ==============================================
    אייקונים - צד שמאל
    ============================================== */
 .icons {
@@ -402,6 +563,7 @@
    ============================================== */
 .mobileSearchBar {
   display: none; /* מוסתר בדסקטופ */
+  position: relative; /* לאפשר positioning של dropdown */
 }
 
 /* ==============================================
@@ -553,6 +715,185 @@
   .mobileSearchClose:hover {
     background-color: var(--color-bg-hover);
     color: var(--state-error);
+  }
+
+  /* === Dropdown הצעות - דסקטופ === */
+  .suggestionsDropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    background-color: var(--color-bg-elevated);
+    border: var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 1100;
+    max-height: 400px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    direction: rtl;
+  }
+
+  .suggestionsDropdown::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .suggestionsDropdown::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .suggestionsDropdown::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-light, #e5e7eb);
+    border-radius: 3px;
+  }
+
+  .suggestionItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .suggestionItem:hover,
+  .suggestionItem.selected {
+    background-color: var(--color-bg-hover);
+  }
+
+  .suggestionImage {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--color-bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .suggestionImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .noImage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+  }
+
+  .suggestionDetails {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .suggestionName {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .suggestionPrice {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .salePrice {
+    color: var(--state-success);
+    font-weight: 600;
+  }
+
+  .originalPrice {
+    text-decoration: line-through;
+    color: var(--color-text-muted);
+  }
+
+  .viewAllLink {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-md);
+    text-align: center;
+    border-top: 1px solid var(--color-border-light, #e5e7eb);
+  }
+
+  .viewAllLink a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+    transition: color 0.2s ease;
+  }
+
+  .viewAllLink a:hover {
+    color: var(--color-brand-purple);
+  }
+
+  /* === Dropdown הצעות - מובייל === */
+  .mobileSuggestionsDropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 12px;
+    left: 12px;
+    background-color: var(--color-bg-elevated);
+    border: var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    z-index: 1100;
+    max-height: 300px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    direction: rtl;
+  }
+
+  .mobileSuggestionsDropdown::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mobileSuggestionsDropdown::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mobileSuggestionsDropdown::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-light, #e5e7eb);
+    border-radius: 2px;
+  }
+
+  /* === Loading Spinner === */
+  .searchSpinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-border-light, #e5e7eb);
+    border-top-color: var(--brand-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 }
 

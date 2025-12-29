@@ -16,6 +16,7 @@ export type FiltersAction =
   | { type: 'TOGGLE_ATTRIBUTE'; attributeKey: string; value: string }
   | { type: 'CLEAR_ATTRIBUTE'; attributeKey: string }
   | { type: 'CLEAR_ALL_ATTRIBUTES' }
+  | { type: 'SET_SEARCH'; search: string }
   | { type: 'SET_PAGE'; page: number }
   | { type: 'SET_PAGE_SIZE'; pageSize: number }
   | { type: 'RESET' };
@@ -59,6 +60,10 @@ function reducer(state: FiltersState, action: FiltersAction): FiltersState {
     // ניקוי כל המאפיינים
     case 'CLEAR_ALL_ATTRIBUTES':
       return { ...state, attributes: {}, page: 1 };
+    
+    // עדכון חיפוש טקסט
+    case 'SET_SEARCH':
+      return { ...state, search: action.search, page: 1 }; // איפוס עמוד בחיפוש חדש
     
     case 'SET_PAGE':
       return { ...state, page: action.page };
@@ -131,6 +136,12 @@ export function useFiltersState(initial: FiltersState = defaultFiltersState) {
   const setPage = useCallback((page: number) => dispatch({ type: 'SET_PAGE', page }), [dispatch]);
   const setPageSize = useCallback((pageSize: number) => dispatch({ type: 'SET_PAGE_SIZE', pageSize }), [dispatch]);
   
+  // פונקציה לעדכון חיפוש טקסט
+  const setSearch = useCallback(
+    (search: string) => dispatch({ type: 'SET_SEARCH', search }),
+    [dispatch]
+  );
+  
   // פונקציות לניהול מאפיינים דינמיים
   const toggleAttribute = useCallback(
     (attributeKey: string, value: string) => {
@@ -163,6 +174,7 @@ export function useFiltersState(initial: FiltersState = defaultFiltersState) {
     toggleAttribute,
     clearAttribute,
     clearAllAttributes,
+    setSearch,
     setPage,
     setPageSize,
     reset,

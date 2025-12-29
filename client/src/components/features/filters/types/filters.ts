@@ -46,6 +46,8 @@ export interface FiltersState {
   categoryIds: string[];
   /** מאפיינים דינמיים נבחרים (צבע, גודל, חומר וכו') */
   attributes: AttributesState;
+  /** חיפוש טקסט חופשי (autocomplete מה-Header) */
+  search: string;
   /** עמוד נוכחי (1 מבוסס) */
   page: number;
   /** גודל עמוד (כמה פריטים בטעינה אחת) */
@@ -61,6 +63,7 @@ export const defaultFiltersState: FiltersState = {
   sort: 'recent',
   categoryIds: [],
   attributes: {}, // מאפיינים ריקים בהתחלה
+  search: '', // חיפוש ריק בהתחלה
   page: 1,
   pageSize: 20
 };

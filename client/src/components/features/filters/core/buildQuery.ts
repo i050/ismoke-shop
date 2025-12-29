@@ -24,6 +24,7 @@ function makeStableKey(params: FiltersState): string {
           .sort(([a], [b]) => a.localeCompare(b)) // מיון לפי keys
           .map(([key, values]) => [key, [...values].sort()]) // מיון ערכים
       : null,
+    search: params.search || null, // חיפוש טקסט
     page: params.page ?? null,
     pageSize: params.pageSize ?? null,
   };
@@ -74,6 +75,11 @@ export function buildQuery(params: FiltersState): string {
           qp.push(`${encodeURIComponent(key)}=${encodeURIComponent(sortedValues)}`);
         }
       });
+  }
+
+  // הוספת חיפוש טקסט חופשי
+  if (params.search && params.search.trim()) {
+    qp.push(`search=${encodeURIComponent(params.search.trim())}`);
   }
 
   if (params.page && params.page > 1) {

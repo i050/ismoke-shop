@@ -22,7 +22,7 @@ import { useResponsive } from '../../../hooks/useResponsive';
 // ייבוא hook ל-debounce
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 // ייבוא service לחיפוש
-import ductService } from '../../../services/productService';
+import { ProductService } from '../../../services/productService';
 import type { ProductSuggestion } from '../../../services/productService';
 
 // הגדרת הטיפוסים - מה ה-Header יכול לקבל כ-props
