@@ -79,6 +79,25 @@ export interface IThresholdDiscountSettings {
 }
 
 /**
+ * חלק במדיניות משלוח/החזרות/אחריות
+ */
+export interface IShippingPolicySection {
+  enabled: boolean;    // האם להציג חלק זה
+  title: string;       // כותרת (משלוח/החזרות/אחריות)
+  icon: string;        // שם האייקון
+  items: string[];     // רשימת הפריטים (טקסטים)
+}
+
+/**
+ * מדיניות משלוח והחזרות - מוצגת בטאב בעמוד המוצר
+ */
+export interface IShippingPolicySettings {
+  shipping: IShippingPolicySection;
+  returns: IShippingPolicySection;
+  warranty: IShippingPolicySection;
+}
+
+/**
  * ממשק מסמך הגדרות
  */
 export interface IStoreSettings extends Document {
@@ -89,6 +108,7 @@ export interface IStoreSettings extends Document {
   maintenance: IMaintenanceSettings;
   inventory: IInventorySettings;
   thresholdDiscount: IThresholdDiscountSettings; // הנחת סף
+  shippingPolicy: IShippingPolicySettings;       // מדיניות משלוח והחזרות
   updatedAt: Date;
   updatedBy?: mongoose.Types.ObjectId;
 }
@@ -213,6 +233,28 @@ const storeSettingsSchema = new Schema<IStoreSettings>(
       }
     },
     
+    // מדיניות משלוח והחזרות - מוצגת בטאב בעמוד המוצר
+    shippingPolicy: {
+      shipping: {
+        enabled: { type: Boolean, default: true },
+        title: { type: String, default: 'משלוח' },
+        icon: { type: String, default: 'Truck' },
+        items: { type: [String], default: [] }
+      },
+      returns: {
+        enabled: { type: Boolean, default: true },
+        title: { type: String, default: 'החזרות' },
+        icon: { type: String, default: 'Undo' },
+        items: { type: [String], default: [] }
+      },
+      warranty: {
+        enabled: { type: Boolean, default: true },
+        title: { type: String, default: 'אחריות' },
+        icon: { type: String, default: 'Shield' },
+        items: { type: [String], default: [] }
+      }
+    },
+    
     updatedBy: {
       type: Schema.Types.ObjectId,
       ref: 'User'
@@ -269,6 +311,11 @@ storeSettingsSchema.statics.getSettings = async function(): Promise<IStoreSettin
         enabled: false,
         minimumAmount: 500,
         discountPercentage: 10
+      },
+      shippingPolicy: {
+        shipping: { enabled: true, title: 'משלוח', icon: 'Truck', items: [] },
+        returns: { enabled: true, title: 'החזרות', icon: 'Undo', items: [] },
+        warranty: { enabled: true, title: 'אחריות', icon: 'Shield', items: [] }
       }
     });
   }
@@ -329,6 +376,11 @@ storeSettingsSchema.statics.updateSettings = async function(
         enabled: false,
         minimumAmount: 500,
         discountPercentage: 10
+      },
+      shippingPolicy: {
+        shipping: { enabled: true, title: 'משלוח', icon: 'Truck', items: [] },
+        returns: { enabled: true, title: 'החזרות', icon: 'Undo', items: [] },
+        warranty: { enabled: true, title: 'אחריות', icon: 'Shield', items: [] }
       }
     });
   }
@@ -363,6 +415,27 @@ storeSettingsSchema.statics.updateSettings = async function(
     }
     Object.assign(settings.thresholdDiscount, updates.thresholdDiscount);
   }
+  if ((updates as any).shippingPolicy) {
+    // וידוא שאובייקט shippingPolicy קיים
+    if (!settings.shippingPolicy) {
+      (settings as any).shippingPolicy = {
+        shipping: { enabled: true, title: 'משלוח', icon: 'Truck', items: [] },
+        returns: { enabled: true, title: 'החזרות', icon: 'Undo', items: [] },
+        warranty: { enabled: true, title: 'אחריות', icon: 'Shield', items: [] }
+      };
+    }
+    // עדכון עמוק של כל חלק (shipping, returns, warranty)
+    const policyUpdates = (updates as any).shippingPolicy;
+    if (policyUpdates.shipping) {
+      Object.assign(settings.shippingPolicy.shipping, policyUpdates.shipping);
+    }
+    if (policyUpdates.returns) {
+      Object.assign(settings.shippingPolicy.returns, policyUpdates.returns);
+    }
+    if (policyUpdates.warranty) {
+      Object.assign(settings.shippingPolicy.warranty, policyUpdates.warranty);
+    }
+  }
   
   if (updatedBy) {
     settings.updatedBy = updatedBy;
@@ -387,6 +460,7 @@ interface StoreSettingsModel extends mongoose.Model<IStoreSettings> {
       maintenance: Partial<IMaintenanceSettings>;
       inventory: Partial<IInventorySettings>;
       thresholdDiscount: Partial<IThresholdDiscountSettings>;
+      shippingPolicy: Partial<IShippingPolicySettings>;
     }>,
     updatedBy?: mongoose.Types.ObjectId
   ): Promise<IStoreSettings>;

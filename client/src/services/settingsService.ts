@@ -32,6 +32,27 @@ export interface PublicSettings {
     minimumAmount: number;
     discountPercentage: number;
   };
+  // מדיניות משלוח והחזרות
+  shippingPolicy?: ShippingPolicy;
+}
+
+/**
+ * חלק במדיניות משלוח/החזרות/אחריות
+ */
+export interface ShippingPolicySection {
+  enabled: boolean;    // האם להציג חלק זה
+  title: string;       // כותרת (משלוח/החזרות/אחריות)
+  icon: string;        // שם האייקון
+  items: string[];     // רשימת הפריטים (טקסטים)
+}
+
+/**
+ * מדיניות משלוח והחזרות - מוצגת בטאב בעמוד המוצר
+ */
+export interface ShippingPolicy {
+  shipping: ShippingPolicySection;
+  returns: ShippingPolicySection;
+  warranty: ShippingPolicySection;
 }
 
 export interface AllSettings {
@@ -71,6 +92,8 @@ export interface AllSettings {
     message: string;
     allowedRoles: string[];
   };
+  // מדיניות משלוח והחזרות
+  shippingPolicy?: ShippingPolicy;
   updatedAt?: string;
 }
 
@@ -253,6 +276,22 @@ export const updateThresholdDiscountSettings = async (
     method: 'PATCH',
     headers: getHeaders(),
     body: JSON.stringify({ thresholdDiscount: thresholdDiscountSettings })
+  });
+  
+  return handleResponse(response);
+};
+
+/**
+ * עדכון מדיניות משלוח והחזרות (Admin)
+ * מוצג בטאב "משלוח והחזרות" בעמוד המוצר
+ */
+export const updateShippingPolicy = async (
+  shippingPolicyUpdates: Partial<ShippingPolicy>
+): Promise<{ success: boolean; data: AllSettings & { shippingPolicy: ShippingPolicy }; message: string }> => {
+  const response = await fetch(`${API_BASE_URL}/api/settings`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ shippingPolicy: shippingPolicyUpdates })
   });
   
   return handleResponse(response);

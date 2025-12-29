@@ -3,6 +3,7 @@ import styles from './ProductGallery.module.css';
 import { Button, Icon, ImageMagnifier } from '@ui';
 import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה
 import type { IImage } from '../../../../types/Product'; // ✅ ייבוא IImage עם type
+import { useResponsive } from '../../../../hooks'; // ✅ Hook לזיהוי גודל מסך
 
 interface ProductGalleryProps {
   images: IImage[]; // ✅ שינוי מ-string[] ל-IImage[]
@@ -22,6 +23,13 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   currentIndex,
   onImageChange,
 }) => {
+  
+  // זיהוי גודל מסך - הזום יופעל רק במסכים גדולים (desktop)
+  const { isDesktop, isLargeDesktop } = useResponsive();
+  
+  // האם להפעיל זום? רק במסכים גדולים (1024px+)
+  // במובייל/טאבלט המשתמש יכול להשתמש ב-pinch-to-zoom הטבעי
+  const isZoomEnabled = isDesktop || isLargeDesktop;
   
   // מצב הזום - האם פעיל כרגע
   const [isZoomActive, setIsZoomActive] = useState(false);
@@ -68,6 +76,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       <div className={styles.mainImage}>
         {/* ✅ שימוש ב-medium (800×800) לתצוגה ראשית */}
         {/* ✅ ImageMagnifier יטען אוטומטית תמונת large (1200×1200) לזום */}
+        {/* ✅ הזום מופעל רק במסכים גדולים (desktop) - במובייל/טאבלט המשתמש יכול להשתמש ב-pinch-to-zoom */}
         <ImageMagnifier
           src={getImageUrl(images[currentIndex], 'medium')}
           alt={`${productName} - תמונה ${currentIndex + 1}`}
@@ -76,7 +85,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
           mode="overlay"
           onZoomStart={handleZoomStart}
           onZoomEnd={handleZoomEnd}
-          enabled={true}
+          enabled={isZoomEnabled}
         />
         
         {/* כפתורי ניווט - רק אם יש יותר מתמונה אחת ולא בזום */}

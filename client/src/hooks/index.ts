@@ -22,10 +22,6 @@ export { useAppDispatch, useAppSelector } from './reduxHooks';
 // דיאלוג אישור
 export { useConfirm, ConfirmProvider } from './useConfirm';
 
-// ==================== File Processing Hook ====================
-// עיבוד קבצים
-export { useFileProcessor } from './useFileProcessor';
-
 // ==================== Scroll Restoration Hook ====================
 // שחזור מיקום גלילה
 export { useInternalScrollRestoration } from './useInternalScrollRestoration';
@@ -33,7 +29,3 @@ export { useInternalScrollRestoration } from './useInternalScrollRestoration';
 // ==================== Socket Hook ====================
 // WebSocket connection
 export { useSocket } from './useSocket';
-
-// ==================== Upload Manager Hook ====================
-// ניהול העלאות
-export { useUploadManager } from './useUploadManager';

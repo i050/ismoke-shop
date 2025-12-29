@@ -139,6 +139,14 @@
   font-style: italic;
 }
 
+/* הודעה כאשר אין תוכן */
+.noContent {
+  color: #999;
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
 .specDivider {
   height: 1px;
   background: #e0e0e0;

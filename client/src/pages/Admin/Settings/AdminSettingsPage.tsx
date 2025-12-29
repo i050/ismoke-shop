@@ -9,8 +9,11 @@ import {
   toggleRequireLoginOTP,
   updateInventorySettings,
   updateThresholdDiscountSettings,
+  updateShippingPolicy,
   getAllSettings,
-  type MaintenanceSettings 
+  type MaintenanceSettings,
+  type ShippingPolicy,
+  type ShippingPolicySection
 } from '../../../services/settingsService';
 import { useSiteStatus } from '../../../contexts/SiteStatusContext';
 import { useToast } from '../../../hooks/useToast';
@@ -47,6 +50,23 @@ const AdminSettingsPage: React.FC = () => {
   const [thresholdMinimumAmount, setThresholdMinimumAmount] = useState<number>(500);
   const [thresholdDiscountPercentage, setThresholdDiscountPercentage] = useState<number>(10);
   const [thresholdDiscountLoading, setThresholdDiscountLoading] = useState<boolean>(false);
+  
+  // מדיניות משלוח והחזרות
+  const [shippingPolicy, setShippingPolicy] = useState<ShippingPolicy>({
+    shipping: { enabled: true, title: 'משלוח', icon: 'Truck', items: [] },
+    returns: { enabled: true, title: 'החזרות', icon: 'Undo', items: [] },
+    warranty: { enabled: true, title: 'אחריות', icon: 'Shield', items: [] }
+  });
+  const [shippingPolicyLoading, setShippingPolicyLoading] = useState<boolean>(false);
+  const [tempItemInputs, setTempItemInputs] = useState<{
+    shipping: string;
+    returns: string;
+    warranty: string;
+  }>({ shipping: '', returns: '', warranty: '' });
+  
+  // מצבי עריכה inline של פריטים
+  const [editingItemId, setEditingItemId] = useState<string | null>(null); // "section-index" (למשל "shipping-0")
+  const [editingItemText, setEditingItemText] = useState<string>(''); // הטקסט המתערך
   
   // מצבי טעינה ושגיאה
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +107,13 @@ const AdminSettingsPage: React.FC = () => {
         setThresholdDiscountEnabled(allSettingsResponse.data.thresholdDiscount?.enabled ?? false);
         setThresholdMinimumAmount(allSettingsResponse.data.thresholdDiscount?.minimumAmount ?? 500);
         setThresholdDiscountPercentage(allSettingsResponse.data.thresholdDiscount?.discountPercentage ?? 10);
+        // מדיניות משלוח והחזרות
+        if (allSettingsResponse.data.shippingPolicy) {
+          setShippingPolicy(allSettingsResponse.data.shippingPolicy);
+        } else {
+          // אם אין shippingPolicy בתשובה, נשאיר את ברירת המחדל הקיימת
+          console.warn('shippingPolicy לא נמצא בהגדרות');
+        }
       }
     } catch (err) {
       console.error('שגיאה בטעינת הגדרות:', err);
@@ -363,6 +390,163 @@ const AdminSettingsPage: React.FC = () => {
       showToast('error', 'שגיאה בעדכון אחוז ההנחה');
     } finally {
       setThresholdDiscountLoading(false);
+    }
+  };
+
+  // =============== מדיניות משלוח והחזרות - Shipping Policy ===============
+  
+  // טיפול בהפעלה/כיבוי של חלק במדיניות משלוח
+  const handleTogglePolicySection = async (section: 'shipping' | 'returns' | 'warranty') => {
+    const newValue = !shippingPolicy[section].enabled;
+    
+    try {
+      setShippingPolicyLoading(true);
+      const response = await updateShippingPolicy({
+        [section]: { ...shippingPolicy[section], enabled: newValue }
+      });
+      
+      if (response.success && response.data.shippingPolicy) {
+        setShippingPolicy(response.data.shippingPolicy);
+        const msg = newValue ? `${shippingPolicy[section].title} הופעל` : `${shippingPolicy[section].title} הוסתר`;
+        showToast('success', msg);
+      }
+    } catch (err) {
+      console.error('Error toggling policy section:', err);
+      showToast('error', 'שגיאה בעדכון ההגדרה');
+    } finally {
+      setShippingPolicyLoading(false);
+    }
+  };
+
+  // הוספת פריט חדש לרשימה
+  const handleAddItem = async (section: 'shipping' | 'returns' | 'warranty') => {
+    const inputValue = tempItemInputs[section];
+    if (!inputValue.trim()) {
+      showToast('error', 'אנא הזן טקסט לפני ההוספה');
+      return;
+    }
+    
+    const newItems = [...shippingPolicy[section].items, inputValue.trim()];
+    
+    try {
+      setShippingPolicyLoading(true);
+      const response = await updateShippingPolicy({
+        [section]: { ...shippingPolicy[section], items: newItems }
+      });
+      
+      if (response.success && response.data.shippingPolicy) {
+        setShippingPolicy(response.data.shippingPolicy);
+        setTempItemInputs(prev => ({ ...prev, [section]: '' }));
+        showToast('success', 'פריט נוסף בהצלחה');
+      }
+    } catch (err) {
+      console.error('Error adding item:', err);
+      showToast('error', 'שגיאה בהוספת הפריט');
+    } finally {
+      setShippingPolicyLoading(false);
+    }
+  };
+
+  // מחיקת פריט מהרשימה
+  const handleDeleteItem = async (section: 'shipping' | 'returns' | 'warranty', index: number) => {
+    const newItems = shippingPolicy[section].items.filter((_, i) => i !== index);
+    
+    try {
+      setShippingPolicyLoading(true);
+      const response = await updateShippingPolicy({
+        [section]: { ...shippingPolicy[section], items: newItems }
+      });
+      
+      if (response.success && response.data.shippingPolicy) {
+        setShippingPolicy(response.data.shippingPolicy);
+        showToast('success', 'פריט נמחק בהצלחה');
+      }
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      showToast('error', 'שגיאה במחיקת הפריט');
+    } finally {
+      setShippingPolicyLoading(false);
+    }
+  };
+
+  // התחלת עריכה inline של פריט - הפיכתו לניתן לעריכה
+  const handleEditItemStart = (section: 'shipping' | 'returns' | 'warranty', index: number, currentText: string) => {
+    // יצירת ID ייחודי לפריט: "section-index"
+    const itemId = `${section}-${index}`;
+    setEditingItemId(itemId);
+    setEditingItemText(currentText);
+  };
+
+  // ביטול עריכה ללא שמירה
+  const handleEditItemCancel = () => {
+    setEditingItemId(null);
+    setEditingItemText('');
+  };
+
+  // שמירת הפריט המתערך
+  const handleEditItemSave = async (section: 'shipping' | 'returns' | 'warranty', index: number) => {
+    const newText = editingItemText.trim();
+    
+    // וולידציה - הטקסט לא יכול להיות ריק
+    if (!newText) {
+      showToast('error', 'הטקסט לא יכול להיות ריק');
+      return;
+    }
+    
+    // אם הטקסט לא השתנה - רק סוגרים את העריכה
+    if (newText === shippingPolicy[section].items[index]) {
+      handleEditItemCancel();
+      return;
+    }
+    
+    // עדכון הפריט בשרת
+    const newItems = [...shippingPolicy[section].items];
+    newItems[index] = newText;
+    
+    try {
+      setShippingPolicyLoading(true);
+      const response = await updateShippingPolicy({
+        [section]: { ...shippingPolicy[section], items: newItems }
+      });
+      
+      if (response.success && response.data.shippingPolicy) {
+        setShippingPolicy(response.data.shippingPolicy);
+        handleEditItemCancel();
+        showToast('success', 'פריט עודכן בהצלחה');
+      }
+    } catch (err) {
+      console.error('Error editing item:', err);
+      showToast('error', 'שגיאה בעריכת הפריט');
+    } finally {
+      setShippingPolicyLoading(false);
+    }
+  };
+
+  // עריכת פריט ברשימה (נשמר עבור compatibility אם צריך ישירות)
+  const handleEditItem = async (section: 'shipping' | 'returns' | 'warranty', index: number, newText: string) => {
+    if (!newText.trim()) {
+      showToast('error', 'הטקסט לא יכול להיות ריק');
+      return;
+    }
+    
+    const newItems = [...shippingPolicy[section].items];
+    newItems[index] = newText.trim();
+    
+    try {
+      setShippingPolicyLoading(true);
+      const response = await updateShippingPolicy({
+        [section]: { ...shippingPolicy[section], items: newItems }
+      });
+      
+      if (response.success && response.data.shippingPolicy) {
+        setShippingPolicy(response.data.shippingPolicy);
+        showToast('success', 'פריט עודכן בהצלחה');
+      }
+    } catch (err) {
+      console.error('Error editing item:', err);
+      showToast('error', 'שגיאה בעריכת הפריט');
+    } finally {
+      setShippingPolicyLoading(false);
     }
   };
 
@@ -751,6 +935,392 @@ const AdminSettingsPage: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+
+        {/* כרטיס מדיניות משלוח והחזרות */}
+        <div className={styles.settingsCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitleWrapper}>
+              <Icon name="TruckIcon" size={24} className={styles.cardIcon} />
+              <div>
+                <h3 className={styles.cardTitle}>מדיניות משלוח והחזרות</h3>
+                <p className={styles.cardDescription}>
+                  ניהול התוכן בטאב "משלוח והחזרות" בעמוד המוצר
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className={styles.cardContent}>
+            {/* חלק משלוח */}
+            <div className={styles.policySection}>
+              <div className={styles.policySectionHeader}>
+                <div className={styles.policySectionTitle}>
+                  <Icon name="Truck" size={20} />
+                  <span>משלוח</span>
+                </div>
+                <label className={styles.toggleSwitch}>
+                  <input
+                    type="checkbox"
+                    checked={shippingPolicy.shipping.enabled}
+                    onChange={() => handleTogglePolicySection('shipping')}
+                    disabled={shippingPolicyLoading}
+                  />
+                  <span className={styles.slider}></span>
+                </label>
+              </div>
+              
+              {shippingPolicy.shipping.enabled && (
+                <div className={styles.policyItems}>
+                  <ul className={styles.itemsList}>
+                    {shippingPolicy.shipping.items.map((item, index) => {
+                      // בדיקה האם פריט זה נמצא בעריכה
+                      const isEditing = editingItemId === `shipping-${index}`;
+                      
+                      return (
+                        <li key={index} className={styles.policyItem}>
+                          {isEditing ? (
+                            // מצב עריכה - input ניתן לעריכה
+                            <input
+                              type="text"
+                              className={styles.editInput}
+                              value={editingItemText}
+                              onChange={(e) => setEditingItemText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleEditItemSave('shipping', index);
+                                } else if (e.key === 'Escape') {
+                                  handleEditItemCancel();
+                                }
+                              }}
+                              autoFocus
+                              disabled={shippingPolicyLoading}
+                            />
+                          ) : (
+                            // מצב קריאה - הצגת הטקסט
+                            <span>{item}</span>
+                          )}
+                          
+                          <div className={styles.itemActions}>
+                            {isEditing ? (
+                              // כפתורי שומר/ביטול בעריכה
+                              <>
+                                <button
+                                  className={styles.iconButton}
+                                  onClick={() => handleEditItemSave('shipping', index)}
+                                  disabled={shippingPolicyLoading}
+                                  title="שמור (Enter)"
+                                >
+                                  <Icon name="Check" size={16} />
+                                </button>
+                                <button
+                                  className={`${styles.iconButton} ${styles.deleteButton}`}
+                                  onClick={() => handleEditItemCancel()}
+                                  disabled={shippingPolicyLoading}
+                                  title="ביטול (Escape)"
+                                >
+                                  <Icon name="X" size={16} />
+                                </button>
+                              </>
+                            ) : (
+                              // כפתורי עריכה/מחיקה בקריאה
+                              <>
+                                <button
+                                  className={styles.iconButton}
+                                  onClick={() => handleEditItemStart('shipping', index, item)}
+                                  disabled={shippingPolicyLoading}
+                                  title="ערוך"
+                                >
+                                  <Icon name="Pencil" size={16} />
+                                </button>
+                                <button
+                                  className={`${styles.iconButton} ${styles.deleteButton}`}
+                                  onClick={() => handleDeleteItem('shipping', index)}
+                                  disabled={shippingPolicyLoading}
+                                  title="מחק"
+                                >
+                                  <Icon name="Trash2" size={16} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <div className={styles.addItemForm}>
+                    <input
+                      type="text"
+                      className={styles.addItemInput}
+                      placeholder="הוסף פריט חדש..."
+                      value={tempItemInputs.shipping}
+                      onChange={(e) => setTempItemInputs(prev => ({ ...prev, shipping: e.target.value }))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && tempItemInputs.shipping.trim()) {
+                          handleAddItem('shipping');
+                        }
+                      }}
+                      disabled={shippingPolicyLoading}
+                    />
+                    <button
+                      className={styles.addButton}
+                      onClick={() => handleAddItem('shipping')}
+                      disabled={shippingPolicyLoading || !tempItemInputs.shipping.trim()}
+                    >
+                      <Icon name="Plus" size={18} />
+                      הוסף
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* חלק החזרות */}
+            <div className={styles.policySection}>
+              <div className={styles.policySectionHeader}>
+                <div className={styles.policySectionTitle}>
+                  <Icon name="Undo" size={20} />
+                  <span>החזרות</span>
+                </div>
+                <label className={styles.toggleSwitch}>
+                  <input
+                    type="checkbox"
+                    checked={shippingPolicy.returns.enabled}
+                    onChange={() => handleTogglePolicySection('returns')}
+                    disabled={shippingPolicyLoading}
+                  />
+                  <span className={styles.slider}></span>
+                </label>
+              </div>
+              
+              {shippingPolicy.returns.enabled && (
+                <div className={styles.policyItems}>
+                  <ul className={styles.itemsList}>
+                    {shippingPolicy.returns.items.map((item, index) => {
+                      // בדיקה האם פריט זה נמצא בעריכה
+                      const isEditing = editingItemId === `returns-${index}`;
+                      
+                      return (
+                        <li key={index} className={styles.policyItem}>
+                          {isEditing ? (
+                            // מצב עריכה - input ניתן לעריכה
+                            <input
+                              type="text"
+                              className={styles.editInput}
+                              value={editingItemText}
+                              onChange={(e) => setEditingItemText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleEditItemSave('returns', index);
+                                } else if (e.key === 'Escape') {
+                                  handleEditItemCancel();
+                                }
+                              }}
+                              autoFocus
+                              disabled={shippingPolicyLoading}
+                            />
+                          ) : (
+                            // מצב קריאה - הצגת הטקסט
+                            <span>{item}</span>
+                          )}
+                          
+                          <div className={styles.itemActions}>
+                            {isEditing ? (
+                              // כפתורי שומר/ביטול בעריכה
+                              <>
+                                <button
+                                  className={styles.iconButton}
+                                  onClick={() => handleEditItemSave('returns', index)}
+                                  disabled={shippingPolicyLoading}
+                                  title="שמור (Enter)"
+                                >
+                                  <Icon name="Check" size={16} />
+                                </button>
+                                <button
+                                  className={`${styles.iconButton} ${styles.deleteButton}`}
+                                  onClick={() => handleEditItemCancel()}
+                                  disabled={shippingPolicyLoading}
+                                  title="ביטול (Escape)"
+                                >
+                                  <Icon name="X" size={16} />
+                                </button>
+                              </>
+                            ) : (
+                              // כפתורי עריכה/מחיקה בקריאה
+                              <>
+                                <button
+                                  className={styles.iconButton}
+                                  onClick={() => handleEditItemStart('returns', index, item)}
+                                  disabled={shippingPolicyLoading}
+                                  title="ערוך"
+                                >
+                                  <Icon name="Pencil" size={16} />
+                                </button>
+                                <button
+                                  className={`${styles.iconButton} ${styles.deleteButton}`}
+                                  onClick={() => handleDeleteItem('returns', index)}
+                                  disabled={shippingPolicyLoading}
+                                  title="מחק"
+                                >
+                                  <Icon name="Trash2" size={16} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <div className={styles.addItemForm}>
+                    <input
+                      type="text"
+                      className={styles.addItemInput}
+                      placeholder="הוסף פריט חדש..."
+                      value={tempItemInputs.returns}
+                      onChange={(e) => setTempItemInputs(prev => ({ ...prev, returns: e.target.value }))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && tempItemInputs.returns.trim()) {
+                          handleAddItem('returns');
+                        }
+                      }}
+                      disabled={shippingPolicyLoading}
+                    />
+                    <button
+                      className={styles.addButton}
+                      onClick={() => handleAddItem('returns')}
+                      disabled={shippingPolicyLoading || !tempItemInputs.returns.trim()}
+                    >
+                      <Icon name="Plus" size={18} />
+                      הוסף
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* חלק אחריות */}
+            <div className={styles.policySection}>
+              <div className={styles.policySectionHeader}>
+                <div className={styles.policySectionTitle}>
+                  <Icon name="Shield" size={20} />
+                  <span>אחריות</span>
+                </div>
+                <label className={styles.toggleSwitch}>
+                  <input
+                    type="checkbox"
+                    checked={shippingPolicy.warranty.enabled}
+                    onChange={() => handleTogglePolicySection('warranty')}
+                    disabled={shippingPolicyLoading}
+                  />
+                  <span className={styles.slider}></span>
+                </label>
+              </div>
+              
+              {shippingPolicy.warranty.enabled && (
+                <div className={styles.policyItems}>
+                  <ul className={styles.itemsList}>
+                    {shippingPolicy.warranty.items.map((item, index) => {
+                      // בדיקה האם פריט זה נמצא בעריכה
+                      const isEditing = editingItemId === `warranty-${index}`;
+                      
+                      return (
+                        <li key={index} className={styles.policyItem}>
+                          {isEditing ? (
+                            // מצב עריכה - input ניתן לעריכה
+                            <input
+                              type="text"
+                              className={styles.editInput}
+                              value={editingItemText}
+                              onChange={(e) => setEditingItemText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleEditItemSave('warranty', index);
+                                } else if (e.key === 'Escape') {
+                                  handleEditItemCancel();
+                                }
+                              }}
+                              autoFocus
+                              disabled={shippingPolicyLoading}
+                            />
+                          ) : (
+                            // מצב קריאה - הצגת הטקסט
+                            <span>{item}</span>
+                          )}
+                          
+                          <div className={styles.itemActions}>
+                            {isEditing ? (
+                              // כפתורי שומר/ביטול בעריכה
+                              <>
+                                <button
+                                  className={styles.iconButton}
+                                  onClick={() => handleEditItemSave('warranty', index)}
+                                  disabled={shippingPolicyLoading}
+                                  title="שמור (Enter)"
+                                >
+                                  <Icon name="Check" size={16} />
+                                </button>
+                                <button
+                                  className={`${styles.iconButton} ${styles.deleteButton}`}
+                                  onClick={() => handleEditItemCancel()}
+                                  disabled={shippingPolicyLoading}
+                                  title="ביטול (Escape)"
+                                >
+                                  <Icon name="X" size={16} />
+                                </button>
+                              </>
+                            ) : (
+                              // כפתורי עריכה/מחיקה בקריאה
+                              <>
+                                <button
+                                  className={styles.iconButton}
+                                  onClick={() => handleEditItemStart('warranty', index, item)}
+                                  disabled={shippingPolicyLoading}
+                                  title="ערוך"
+                                >
+                                  <Icon name="Pencil" size={16} />
+                                </button>
+                                <button
+                                  className={`${styles.iconButton} ${styles.deleteButton}`}
+                                  onClick={() => handleDeleteItem('warranty', index)}
+                                  disabled={shippingPolicyLoading}
+                                  title="מחק"
+                                >
+                                  <Icon name="Trash2" size={16} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <div className={styles.addItemForm}>
+                    <input
+                      type="text"
+                      className={styles.addItemInput}
+                      placeholder="הוסף פריט חדש..."
+                      value={tempItemInputs.warranty}
+                      onChange={(e) => setTempItemInputs(prev => ({ ...prev, warranty: e.target.value }))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && tempItemInputs.warranty.trim()) {
+                          handleAddItem('warranty');
+                        }
+                      }}
+                      disabled={shippingPolicyLoading}
+                    />
+                    <button
+                      className={styles.addButton}
+                      onClick={() => handleAddItem('warranty')}
+                      disabled={shippingPolicyLoading || !tempItemInputs.warranty.trim()}
+                    >
+                      <Icon name="Plus" size={18} />
+                      הוסף
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* כרטיסי placeholder להגדרות נוספות */}
