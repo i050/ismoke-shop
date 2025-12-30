@@ -177,31 +177,9 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
       let imageObjects: ImageObject[];
 
       if (onUpload) {
-        // שימוש בפונקציית upload מותאמת
-        // 🔧 הוספת progress tracking גם ל-onUpload
-        if (showProgress) {
-          setUploadProgress({
-            current: 0,
-            total: files.length,
-            percent: 0,
-            currentFile: files[0]?.name,
-          });
-        }
-        
+        // שימוש בפונקציית upload מותאמת (Cloudinary)
+        // Note: onUpload לא מספק progress tracking - רק spinner יוצג
         imageObjects = await onUpload(files);
-        
-        // עדכון ל-100% בסיום
-        if (showProgress) {
-          setUploadProgress({
-            current: files.length,
-            total: files.length,
-            percent: 100,
-            currentFile: files[files.length - 1]?.name,
-          });
-          
-          // 🎨 המתנה קצרה כדי שהמשתמש יראה את ההצלחה והאנימציות
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
       } else {
         // Mock data - המרה ל-Base64
         // ⚠️ אזהרה: Base64 יוצר payload גדול! מומלץ להשתמש ב-onUpload עם Cloudinary
@@ -476,7 +454,7 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
               <div className={styles.spinnerRing}></div>
             </div>
             <p className={styles.dropzoneText}>מעלה תמונות...</p>
-            {uploadProgress && (
+            {uploadProgress && uploadProgress.currentFile && (
               <p className={styles.dropzoneSubtext}>
                 {uploadProgress.current} מתוך {uploadProgress.total} קבצים ({uploadProgress.percent}%)
               </p>
@@ -592,8 +570,8 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
             );
           })}
           
-          {/* Skeleton placeholders בזמן העלאה - מציג את כמות התמונות שנטענות */}
-          {isUploading && uploadProgress && uploadProgress.total > 0 && (
+          {/* Skeleton placeholders בזמן העלאה - רק כשיש progress tracking (Base64) */}
+          {isUploading && uploadProgress && uploadProgress.total > 0 && uploadProgress.currentFile && (
             <>
               {Array.from({ length: uploadProgress.total }).map((_, index) => {
                 // אם התמונה כבר הועלתה, לא מציגים skeleton
