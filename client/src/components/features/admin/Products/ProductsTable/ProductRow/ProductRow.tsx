@@ -5,6 +5,7 @@ import { Button } from '../../../../../ui/Button';
 import { Icon } from '../../../../../ui/Icon';
 import { getColorNameHebrew } from '../../../../../../utils/colorUtils';
 import styles from './ProductRow.module.css';
+import { ProductService } from '../../../../../../services/productService'; // Prefetch optimization on hover
 
 /**
  * ProductRow - שורת מוצר בטבלת ניהול מוצרים
@@ -147,7 +148,13 @@ export const ProductRow: React.FC<ProductRowProps> = ({
     : product.description || 'אין תיאור';
 
   return (
-    <tr className={styles.row}>
+    <tr
+      className={styles.row}
+      onPointerEnter={() => {
+        // Prefetch product details when hovering row to speed up edit flow
+        ProductService.preFetchProductById(product._id);
+      }}
+    >
       {/* עמודת Checkbox */}
       {/* <td className={styles.cellCheckbox}>
         <Checkbox

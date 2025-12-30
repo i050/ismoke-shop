@@ -28,6 +28,9 @@ import type { ProductFormData } from '../../../schemas/productFormSchema';
 import { ProductService } from '../../../services/productService'; // 🔧 FIX: הוספת import לטעינת מוצר עם SKUs
 import productManagementService from '../../../services/productManagementService'; // Phase 7.2: עבור מחיקה לצמיתות
 import styles from './ProductsManagementPage.module.css';
+
+// ברירת מחדל לגודל דף ברשימות ניהול (מניעת טעינת מאות פריטים בבת אחת)
+const DEFAULT_ADMIN_PAGE_LIMIT = 50;
 import { useLocation } from 'react-router-dom';
 
 /**
@@ -93,7 +96,7 @@ const ProductsManagementPage: React.FC = () => {
     console.log('📦 טוען מוצרים... (viewMode:', viewMode, ')');
     // בהתאם ל-viewMode, נשלח isActive: true (פעילים) או isActive: false (נמחקים)
     const isActiveFilter = viewMode === 'active' ? true : false;
-    dispatch(fetchProducts({ filters: { ...filters, isActive: isActiveFilter } })).then((result: any) => {
+    dispatch(fetchProducts({ filters: { ...filters, isActive: isActiveFilter }, limit: DEFAULT_ADMIN_PAGE_LIMIT })).then((result: any) => {
       if (result.payload) {
         console.log('✅ מוצרים נטענו:', result.payload.total);
       }
@@ -131,7 +134,8 @@ const ProductsManagementPage: React.FC = () => {
         filters: { 
           stockStatus: stockFilter, 
           isActive: true // תמיד מוצרים פעילים כשמגיעים מהדשבורד
-        } 
+        },
+        limit: DEFAULT_ADMIN_PAGE_LIMIT
       }));
       // נקה את ה-state כדי למנוע הפעלה חוזרת בניווטים עתידיים
       window.history.replaceState({}, document.title);
@@ -210,7 +214,7 @@ const ProductsManagementPage: React.FC = () => {
     try {
       await dispatch(deleteProduct(productId)).unwrap();
       dispatch(setModeList());
-      dispatch(fetchProducts({ filters, sortBy, sortDirection }));
+      dispatch(fetchProducts({ filters, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
     } catch (error) {
       console.error('❌ שגיאה במחיקת מוצר:', error);
       throw error;
@@ -242,14 +246,14 @@ const ProductsManagementPage: React.FC = () => {
     console.log('📦 פילטרים מאוחדים:', { ...filters, ...newFilters });
     dispatch(setFilters(newFilters));
     // טעינה מחדש עם הפילטרים החדשים
-    dispatch(fetchProducts({ filters: { ...filters, ...newFilters } }));
+    dispatch(fetchProducts({ filters: { ...filters, ...newFilters }, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
   };
 
   // איפוס פילטרים
   const handleResetFilters = () => {
     console.log('🔄 איפוס פילטרים');
     dispatch(resetFilters());
-    dispatch(fetchProducts({}));
+    dispatch(fetchProducts({ limit: DEFAULT_ADMIN_PAGE_LIMIT }));
   };
 
   // טיפול בחיפוש
@@ -257,7 +261,7 @@ const ProductsManagementPage: React.FC = () => {
     console.log('🔍 מבצע חיפוש:', query);
     const newFilters = { ...filters, search: query };
     dispatch(setFilters({ search: query }));
-    dispatch(fetchProducts({ filters: newFilters }));
+    dispatch(fetchProducts({ filters: newFilters, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
   };
 
   // טיפול במיון
@@ -272,6 +276,7 @@ const ProductsManagementPage: React.FC = () => {
         filters,
         sortBy: newSortBy,
         sortDirection: newSortDirection,
+        limit: DEFAULT_ADMIN_PAGE_LIMIT,
       })
     );
   };
@@ -327,7 +332,7 @@ const ProductsManagementPage: React.FC = () => {
         
         // טעינה מחדש של הרשימה (כדי לעדכן מונים ומצב)
         const isActiveFilter = viewMode === 'active' ? true : false;
-        dispatch(fetchProducts({ filters: { ...filters, isActive: isActiveFilter }, sortBy, sortDirection }));
+        dispatch(fetchProducts({ filters: { ...filters, isActive: isActiveFilter }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
       } catch (error) {
         // טיפול בשגיאה
         console.error('❌ שגיאה במחיקת המוצר:', error);
@@ -365,7 +370,7 @@ const ProductsManagementPage: React.FC = () => {
         showToast('success', `המוצר "${product.name}" שוחזר בהצלחה`);
         
         // טעינה מחדש של הרשימה
-        dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection }));
+        dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
       } catch (error) {
         // טיפול בשגיאה
         console.error('❌ שגיאה בשחזור המוצר:', error);
@@ -406,7 +411,7 @@ const ProductsManagementPage: React.FC = () => {
           showToast('success', `המוצר "${product.name}" נמחק לצמיתות`);
           
           // טעינה מחדש של הרשימה (נמחקים)
-          dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection }));
+          dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
         }
       } catch (error) {
         // טיפול בשגיאה
@@ -455,14 +460,14 @@ const ProductsManagementPage: React.FC = () => {
         dispatch(clearProductSelection());
         
         // טעינה מחדש של הרשימה
-        dispatch(fetchProducts({ filters, sortBy, sortDirection }));
+        dispatch(fetchProducts({ filters, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
       } catch (error) {
         // טיפול בשגיאה
         console.error('❌ שגיאה במחיקת מוצרים:', error);
         showToast('error', `שגיאה במחיקת מוצרים: ${error}`);
         
         // גם במקרה של שגיאה - נטען מחדש כדי לראות מה בכל זאת נמחק
-        dispatch(fetchProducts({ filters, sortBy, sortDirection }));
+        dispatch(fetchProducts({ filters, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
       }
     }
   };

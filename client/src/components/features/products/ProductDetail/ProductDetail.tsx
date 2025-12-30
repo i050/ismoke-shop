@@ -320,9 +320,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   };
 
   // הוספה למועדפים
-  const handleAddToFavorites = () => {
-    console.log('הוספה למועדפים:', product?._id);
-  };
+  // const handleAddToFavorites = () => {
+  //   console.log('הוספה למועדפים:', product?._id);
+  // };
 
   // שיתוף המוצר
   const handleShare = () => {
@@ -593,14 +593,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
           {/* פעולות משניות */}
           <div className={styles.secondaryActions}>
-            <Button
+            {/* <Button
               variant="ghost"
               size="md"
               icon={<Icon name="Heart" size={20} />}
               onClick={handleAddToFavorites}
             >
               הוסף למועדפים
-            </Button>
+            </Button> */}
             <Button
               variant="ghost"
               size="md"
