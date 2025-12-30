@@ -197,12 +197,11 @@ export const productSchema = yup.object({
   // קטגוריה
   categoryId: yup
     .string()
-    .optional()
+    .required('קטגוריה היא שדה חובה')
     .matches(
       /^[0-9a-fA-F]{24}$/,
       'מזהה קטגוריה לא תקין (חייב להיות ObjectId של MongoDB)'
-    )
-    .nullable(),
+    ),
 
   // תמונות
   // תומך במבנה החדש (DigitalOcean Spaces) והישן (Cloudinary)

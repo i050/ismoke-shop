@@ -223,8 +223,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   // כך המנהל יראה מיד את השגיאות לפני שהוא ממלא את השדות
   useEffect(() => {
     if (mode === 'create') {
-      // הפעלת validation לשדות הקריטיים מיד
-      trigger(['name', 'basePrice']);
+      // הפעלת validation לשדות הקריטיים מיד (כולל קטגוריה שחובה)
+      trigger(['name', 'basePrice', 'categoryId']);
     }
   }, [mode, trigger]);
 
@@ -232,9 +232,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   // כדי שהשגיאות יעלמו בזמן אמת כשהמנהל מתקן את הבעיות
   useEffect(() => {
     if (mode === 'create' || isDirty) {
-      trigger(['name', 'basePrice']);
+      trigger(['name', 'basePrice', 'categoryId']);
     }
-  }, [formValues.name, formValues.basePrice, trigger, mode, isDirty]);
+  }, [formValues.name, formValues.basePrice, formValues.categoryId, trigger, mode, isDirty]);
 
   // 🆕 עדכון אוטומטי של SKU ראשוני כשמשנים את שם המוצר
   // רק במצב יצירה וכאשר יש SKU ראשוני בלבד (לא נערך ידנית)
