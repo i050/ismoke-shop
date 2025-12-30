@@ -9,6 +9,8 @@ import { Button } from '../../../../components/ui';
 // שימוש ב-hooks המוקלדים של היישום במקום hooks גנריים
 import { useAppDispatch, useAppSelector } from '../../../../hooks/reduxHooks';
 import type { CategoryTreeNodeClient } from '@/services/categoryService';
+// ייבוא ProductService עבור Prefetch אופטימיזציה של קטגוריות
+import { ProductService } from '../../../../services/productService';
 // ייבוא פעולות ו-selectors של קטגוריות מ-Redux
 import { 
   fetchCategoriesTree,
@@ -84,6 +86,11 @@ const SecondaryHeader: React.FC = () => {
                   navigate(`/products?category=${encodeURIComponent(cat.name)}`); // ניווט לדף מוצרים
                 }}
                 onMouseEnter={() => setOpenDropdown(cat._id)} // פתיחה ב-hover
+                onPointerEnter={() => {
+                  // 🚀 Prefetch Products by Category כשהמשתמש מעביר עליה את העכבר
+                  // זה חוסך זמן טעינה כשהמשתמש בעצם לוחץ על הקטגוריה
+                  ProductService.preFetchProductsByCategory(cat.name);
+                }}
                 onMouseLeave={() => setOpenDropdown(null)} // סגירה ביציאה
               >
                 {cat.name}
@@ -105,6 +112,10 @@ const SecondaryHeader: React.FC = () => {
                         setOpenDropdown(null); // סגירת dropdown
                         dispatch(resetFilterTree()); // איפוס עץ הפילטרים
                         navigate(`/products?category=${encodeURIComponent(subCat.name)}`); // ניווט לדף מוצרים
+                      }}
+                      onPointerEnter={() => {
+                        // 🚀 Prefetch Products by Subcategory כשהמשתמש מעביר עליה את העכבר
+                        ProductService.preFetchProductsByCategory(subCat.name);
                       }}
                     >
                       {subCat.name}

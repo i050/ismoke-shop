@@ -471,6 +471,34 @@ export class ProductService {
     return fetchPromise;
   }
 
+  // 🚀 Prefetch Products by Category - קרא ל-API כשהמשתמש מעביר עליה את העכבר על קישור קטגוריה
+  // מטרה: להעלות את המוצרים לcache ולBundleלפני שהמשתמש לוחץ
+  // זה חוסך זמן טעינה משמעותי עבור קטגוריות שיש בהן הרבה מוצרים
+  static preFetchProductsByCategory(categoryName: string): void {
+    // יצירת params עבור קטגוריה
+    // בדוק: האם הcache כבר יש את הקטגוריה?
+    const params: FilteredProductsRequestParams = {
+      categoryIds: [categoryName], // השרת מטפל בתרגום שם לID
+      page: 1,
+      pageSize: 20, // ברירת מחדל סטנדרטית
+    };
+
+    const cacheKey = ProductService.buildFilteredKey(params);
+
+    // אם כבר בcache או בطריק, לא צריך לrefetch
+    if (filteredProductsCache.has(cacheKey) || inflightRequests.has(cacheKey)) {
+      return;
+    }
+
+    // קרא ל-getFilteredProducts עם nonblocking signal (prefetch לא צריך להיות cancellable)
+    // זה יטפל בcache + deduplication אוטומטית
+    this.getFilteredProducts(params)
+      .catch(() => {
+        // לא חשוב אם prefetch נכשל - זו רק אופטימיזציה
+        // הבקשה הרגילה תטפל בשגיאה
+      });
+  }
+
   // ============================================================================
   // Autocomplete - חיפוש מוצרים בזמן אמת
   // ============================================================================
