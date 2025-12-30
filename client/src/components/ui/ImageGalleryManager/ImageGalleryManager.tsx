@@ -442,21 +442,39 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
         {...getRootProps()}
         className={`${styles.dropzone} ${isDragActive ? styles.active : ''} ${
           currentImageCount >= maxImages ? styles.disabled : ''
-        }`}
+        } ${isUploading ? styles.uploading : ''}`}
       >
         <input {...getInputProps()} />
-        <Icon name="Upload" size={48} className={styles.uploadIcon} />
-        {isDragActive ? (
-          <p className={styles.dropzoneText}>שחרר את הקבצים כאן...</p>
+        {isUploading ? (
+          <>
+            <div className={styles.uploadingSpinner}>
+              <div className={styles.spinnerRing}></div>
+              <div className={styles.spinnerRing}></div>
+              <div className={styles.spinnerRing}></div>
+            </div>
+            <p className={styles.dropzoneText}>מעלה תמונות...</p>
+            {uploadProgress && (
+              <p className={styles.dropzoneSubtext}>
+                {uploadProgress.current} מתוך {uploadProgress.total} קבצים ({uploadProgress.percent}%)
+              </p>
+            )}
+          </>
         ) : (
           <>
-            <p className={styles.dropzoneText}>
-              גרור קבצים לכאן או לחץ לבחירת קבצים
-            </p>
-            <p className={styles.dropzoneSubtext}>
-              JPG, PNG או WEBP (עד {effectiveMaxSize >= 1024 * 1024 ? `${effectiveMaxSize / 1024 / 1024}MB` : `${effectiveMaxSize / 1024}KB`})
-              {!onUpload && <span style={{ color: '#f59e0b', display: 'block', fontSize: '0.75rem', marginTop: '0.25rem' }}>⚠️ בגלל Base64, הגבלת גודל: 500KB</span>}
-            </p>
+            <Icon name="Upload" size={48} className={styles.uploadIcon} />
+            {isDragActive ? (
+              <p className={styles.dropzoneText}>שחרר את הקבצים כאן...</p>
+            ) : (
+              <>
+                <p className={styles.dropzoneText}>
+                  גרור קבצים לכאן או לחץ לבחירת קבצים
+                </p>
+                <p className={styles.dropzoneSubtext}>
+                  JPG, PNG או WEBP (עד {effectiveMaxSize >= 1024 * 1024 ? `${effectiveMaxSize / 1024 / 1024}MB` : `${effectiveMaxSize / 1024}KB`})
+                  {!onUpload && <span style={{ color: '#f59e0b', display: 'block', fontSize: '0.75rem', marginTop: '0.25rem' }}>⚠️ בגלל Base64, הגבלת גודל: 500KB</span>}
+                </p>
+              </>
+            )}
           </>
         )}
         {currentImageCount >= maxImages && (
@@ -494,8 +512,9 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
       )}
 
       {/* גלריית תמונות */}
-      {images.length > 0 && (
+      {(images.length > 0 || isUploading) && (
         <div className={styles.imagesGrid}>
+          {/* תמונות קיימות */}
           {images.map((image, index) => {
             const isMarked = deleteMode === 'soft' && imagesToDelete.has(index);
             const isDragging = draggedIndex === index;
@@ -549,6 +568,18 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
               </div>
             );
           })}
+          
+          {/* Skeleton placeholders בזמן העלאה */}
+          {isUploading && uploadProgress && Array.from({ length: uploadProgress.total - uploadProgress.current }).map((_, index) => (
+            <div key={`skeleton-${index}`} className={`${styles.imageWrapper} ${styles.skeletonWrapper}`}>
+              <div className={styles.skeleton}>
+                <div className={styles.skeletonShimmer}></div>
+                <div className={styles.skeletonIcon}>
+                  <Icon name="Image" size={32} />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
