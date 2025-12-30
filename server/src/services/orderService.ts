@@ -15,6 +15,7 @@ import Sku from '../models/Sku';
 import User from '../models/User';
 import { logger } from '../utils/logger';
 import { addEmailJob } from '../queues';
+import { incrementProductSalesCount } from './productService';
 
 // ============================================================================
 // DTOs - אובייקטי העברת נתונים
@@ -539,6 +540,37 @@ class OrderService {
         logger.error('ORDER_CONFIRMATION_EMAIL_FAILED', {
           orderId: String(order._id),
           error: emailError.message
+        });
+      }
+      
+      // =====================================
+      // שלב 7: עדכון salesCount למוצרים שנמכרו
+      // =====================================
+      // מבוצע מחוץ ל-transaction כדי לא לחסום את ההזמנה
+      // עדכון "פופולרי" - משפיע על מיון בדף הבית
+      try {
+        // קיבוץ פריטים לפי productId כדי לעדכן פעם אחת לכל מוצר
+        const salesByProduct = new Map<string, number>();
+        for (const item of orderItems) {
+          const productId = item.productId.toString();
+          const currentCount = salesByProduct.get(productId) || 0;
+          salesByProduct.set(productId, currentCount + item.quantity);
+        }
+        
+        // עדכון salesCount לכל מוצר
+        for (const [productId, quantity] of salesByProduct) {
+          await incrementProductSalesCount(productId, quantity);
+        }
+        
+        logger.info('ORDER_SALES_COUNT_UPDATED', {
+          orderId: String(order._id),
+          productsUpdated: salesByProduct.size
+        });
+      } catch (salesError: any) {
+        // לא מכשילים את ההזמנה בגלל כישלון עדכון סטטיסטיקות
+        logger.error('ORDER_SALES_COUNT_UPDATE_FAILED', {
+          orderId: String(order._id),
+          error: salesError.message
         });
       }
       
