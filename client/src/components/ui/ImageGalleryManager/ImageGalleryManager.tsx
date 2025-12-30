@@ -162,8 +162,10 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
     setError('');
     
     // בדיקת מספר תמונות מקסימלי
+    // במצב soft delete: תמונות קיימות (פחות מסומנות למחיקה) + תמונות חדשות
+    // במצב immediate: images כבר מעודכן לאחר מחיקה מיידית
     const currentCount = deleteMode === 'soft' 
-      ? images.length + newImages.length 
+      ? (images.length - imagesToDelete.size) + newImages.length 
       : images.length;
     
     if (currentCount + files.length > maxImages) {
@@ -415,8 +417,9 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
     }
   }, [handleUpload, maxFileSize, onUpload]);
 
+  // חישוב מספר תמונות נוכחי (מתחשב במחיקות מסומנות)
   const currentImageCount = deleteMode === 'soft' 
-    ? images.length + newImages.length 
+    ? (images.length - imagesToDelete.size) + newImages.length 
     : images.length;
 
   // אם אין onUpload (משתמשים ב-Base64), הגבל לקבצים קטנים
