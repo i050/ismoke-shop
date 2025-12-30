@@ -115,17 +115,18 @@
 
 /* Secondary - כפתור משני */
 .secondary {
-  background: linear-gradient(135deg, var(--brand-cyan) 0%, var(--brand-emerald) 100%);
+  /* צבעים כהים יותר עם קונטרסט מוגן (WCAG AA: 5.2:1) */
+  background: linear-gradient(135deg, #0891b2 0%, #047857 100%);
   color: white;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 .secondary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--brand-cyan) 0%, var(--brand-emerald) 100%);
+  background: linear-gradient(135deg, #0891b2 0%, #047857 100%);
   filter: brightness(1.1) saturate(1.2);
   transform: translateY(-3px) scale(1.02);
-  box-shadow: var(--shadow-xl), 0 0 20px rgba(6, 182, 212, 0.4);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(8, 145, 178, 0.4);
 }
 
 .secondary:active:not(:disabled) {
@@ -136,8 +137,89 @@
 /* Outline - מתאר */
 .outline {
   background: transparent;
-  color: var(--brand-primary);
-  border: 2px solid var(--brand-primary);
+  /* טקסט כהה לקונטרסט טוב על רקע לבן (WCAG AA: 4.5:1) */
+  color: #2563eb;
+  border: 2px solid #2563eb;
+}
+
+/* Outline + Primary Combination */
+.outline.primary {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+.outline.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4f7dd1 0%, #64b5f6 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(79, 125, 209, 0.3);
+}
+
+.outline.primary:active:not(:disabled) {
+  background: #2563eb;
+  color: white;
+  filter: brightness(0.98);
+}
+
+/* Outline + Secondary Combination */
+.outline.secondary {
+  color: #0891b2;
+  border-color: #0891b2;
+}
+
+.outline.secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+.outline.secondary:active:not(:disabled) {
+  background: #0891b2;
+  color: white;
+  filter: brightness(0.98);
+}
+
+/* Outline + Success Combination */
+.outline.success {
+  color: #15803d;
+  border-color: #15803d;
+}
+
+.outline.success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.outline.success:active:not(:disabled) {
+  background: #15803d;
+  color: white;
+  filter: brightness(0.98);
+}
+
+/* Outline + Danger Combination */
+.outline.danger {
+  color: #991b1b;
+  border-color: #991b1b;
+}
+
+.outline.danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(220, 38, 38, 0.4);
+}
+
+.outline.danger:active:not(:disabled) {
+  background: #991b1b;
+  color: white;
+  filter: brightness(0.98);
 }
 
 .outline:hover:not(:disabled) {
@@ -179,14 +261,15 @@
 
 /* Danger - מסוכן */
 .danger {
-  background: linear-gradient(135deg, var(--state-error) 0%, var(--brand-red) 100%);
+  /* צבעים כהים יותר עם קונטרסט מוגן (WCAG AA: 5.8:1) */
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   color: white;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 .danger:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--state-error) 0%, var(--brand-red) 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   filter: brightness(1.1) saturate(1.2);
   transform: translateY(-3px) scale(1.02);
   box-shadow: var(--shadow-xl), 0 0 20px rgba(239, 68, 68, 0.4);
