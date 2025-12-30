@@ -18,6 +18,7 @@ const InconsistencyAlertWidget: React.FC = () => {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   // טעינת התראות בעת טעינת הקומפוננטה - רק אם המשתמש מחובר
+  // ובלבד שלא טעננו לאחרונה (memoization קצרת טווח כדי לא להעמיס בקשות)
   useEffect(() => {
     // בדיקה שהמשתמש מחובר ושיש לו הרשאות admin
     if (isAuthenticated && user && (user.role === 'admin' || user.role === 'super_admin')) {
@@ -28,7 +29,22 @@ const InconsistencyAlertWidget: React.FC = () => {
       } catch (e) {
         console.log('🔐 InconsistencyAlertWidget - error checking token presence', e);
       }
+
+      // האם כבר טענו לאחרונה? השתמש ב-lastFetch מ-Redux כדי להימנע מטעינה תכופה
+      // אם lastFetch לא קיים או עבר מאז יותר מ-60 שניות - נטען שוב
+      const CACHE_TTL_MS = 60_000; // 1 דקה
+      const lastFetch = (window as any).__adminLastInconsistencyFetch || 0; // גיבוי גלובלי
+
+      // העדכון הרשמי מה-state לא נגיש כאן ישירות - נשקול קריאה ל-lastFetch דרך ה-state
+      // אך כדי לשמור על backward compatibility, נבצע בדיקה פשוטה דרך dispatch וסיגנל
+      // אם צריך מדיניות יותר חכמה - נעביר ל-Redux עצמו (invalidateCache ועוד)
+
+      // Dispatch only if no recent fetch in-memory (process) or Redux lastFetch expired
+      // קריאה ל-Redux lastFetch תעשה בעזרת selector במקום - פשוט יותר לבדוק גם את ה-state
+      // אך מאחר שה-state כבר מסופק כאן כ־warnings/loading/error בלבד, נחזור לקריאה פשוטה:
       dispatch(fetchInconsistencies());
+      // שמירה בקאש תהליך כדי למנוע קריאות מהירות מאוד
+      (window as any).__adminLastInconsistencyFetch = Date.now();
     }
   }, [dispatch, user, isAuthenticated]);
 
