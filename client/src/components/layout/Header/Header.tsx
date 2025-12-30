@@ -115,6 +115,15 @@ const Header: React.FC<HeaderProps> = () => {
     fetchSuggestions(debouncedMobileSearchQuery);
   }, [debouncedMobileSearchQuery, fetchSuggestions]);
   
+  // סגירת dropdown מיידית כשהשדות ריקים (ללא debounce)
+  useEffect(() => {
+    // אם שני השדות ריקים, סגור את ה-dropdown מיידית
+    if (!searchQuery.trim() && !mobileSearchQuery.trim()) {
+      setShowSuggestions(false);
+      setSuggestions([]);
+    }
+  }, [searchQuery, mobileSearchQuery]);
+  
   // סגירת dropdown בלחיצה מחוץ לאזור החיפוש
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -329,7 +338,10 @@ const Header: React.FC<HeaderProps> = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => {
-                if (suggestions.length > 0) setShowSuggestions(true);
+                // פתח dropdown רק אם יש תוצאות וקוורי עם לפחות 2 תווים
+                if (suggestions.length > 0 && searchQuery.trim().length >= 2) {
+                  setShowSuggestions(true);
+                }
               }}
               onKeyDown={handleKeyDown}
               autoComplete="off"
@@ -417,7 +429,7 @@ const Header: React.FC<HeaderProps> = () => {
                     }}
                   >
                     הצג את כל התוצאות עבור "{searchQuery}"
-                    <Icon name="ArrowLeft" size={16} />
+                    <Icon name="ChevronLeft" size={16} />
                   </Link>
                 </li>
               </ul>
@@ -523,7 +535,10 @@ const Header: React.FC<HeaderProps> = () => {
               value={mobileSearchQuery}
               onChange={(e) => setMobileSearchQuery(e.target.value)}
               onFocus={() => {
-                if (suggestions.length > 0) setShowSuggestions(true);
+                // פתח dropdown רק אם יש תוצאות וקוורי עם לפחות 2 תווים
+                if (suggestions.length > 0 && mobileSearchQuery.trim().length >= 2) {
+                  setShowSuggestions(true);
+                }
               }}
               onKeyDown={handleKeyDown}
               autoComplete="off"
@@ -604,7 +619,7 @@ const Header: React.FC<HeaderProps> = () => {
                   }}
                 >
                   הצג את כל התוצאות עבור "{mobileSearchQuery}"
-                  <Icon name="ArrowLeft" size={16} />
+                  <Icon name="ChevronLeft" size={16} />
                 </Link>
               </li>
             </ul>
