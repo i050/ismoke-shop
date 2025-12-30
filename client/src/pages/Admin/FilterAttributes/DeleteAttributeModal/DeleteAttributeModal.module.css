@@ -94,13 +94,7 @@
   width: 100%;
 }
 
-.removeButton {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-}
-
-.removeButton:hover {
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-}
+/* .removeButton styles removed - Button component handles outline→filled on hover */
 
 /* סקשן ספירה לאחור */
 .countdownSection {

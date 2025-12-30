@@ -185,7 +185,6 @@ const DeleteAttributeModal: React.FC<DeleteAttributeModalProps> = ({
                 <Button
                   variant="danger"
                   onClick={startCountdown}
-                  className={styles.removeButton}
                 >
                   <Icon name="Trash2" size={18} />
                   הסר מכל המוצרים ומחק
