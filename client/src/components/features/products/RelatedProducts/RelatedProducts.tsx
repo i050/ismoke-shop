@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Typography, Button, LogoLoader } from '@ui';
-import ProductPrice from '../ProductPrice';
+import { Typography, LogoLoader } from '@ui';
+import { ProductCard } from '../ProductCard';
 import type { Product } from '../../../../types';
 import { ProductService } from '../../../../services/productService';
-import { getImageUrl } from '../../../../utils/imageUtils'; // Phase 1.4: ייבוא פונקציית עזר לטיפול בתמונות
 import styles from './RelatedProducts.module.css';
 
 interface RelatedProductsProps {
@@ -79,107 +77,25 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
         </Typography>
       </div>
 
-      {/* רשת המוצרים */}
+      {/* רשת המוצרים - משתמשת באותה קומפוננטת ProductCard כמו בדף המוצרים */}
       <div className={styles.productsGrid}>
         {relatedProducts.map((product) => (
-          <div key={product._id} className={styles.productCard}>
-            
-            {/* תמונת המוצר */}
-            <div className={styles.productImageContainer}>
-              <Link to={`/product/${product._id}`} className={styles.productLink}>
-                <img
-                  src={getImageUrl(product.images?.[0])} 
-                  alt={product.name}
-                  className={styles.productImage}
-                  onError={(e) => {
-                    e.currentTarget.src = '/ismoke-placeholder.png';
-                  }}
-                />
-              </Link>
-              
-              {/* תגית "חדש" אם המוצר חדש */}
-              {product.createdAt && 
-               new Date(product.createdAt).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000 && (
-                <span className={styles.newBadge}>חדש</span>
-              )}
-              
-              {/* תגית "אזל" אם המוצר אזל */}
-              {product.quantityInStock === 0 && (
-                <span className={styles.outOfStockBadge}>אזל</span>
-              )}
-            </div>
-
-            {/* פרטי המוצר */}
-            <div className={styles.productInfo}>
-              
-              {/* שם המוצר */}
-              <Link to={`/product/${product._id}`} className={styles.productLink}>
-                <Typography variant="h5" className={styles.productName}>
-                  {product.name}
-                </Typography>
-              </Link>
-
-              {/* תיאור קצר */}
-              {product.description && (
-                <Typography variant="body2" className={styles.productDescription}>
-                  {product.description.length > 80 
-                    ? `${product.description.substring(0, 80)}...` 
-                    : product.description}
-                </Typography>
-              )}
-
-              {/* מחיר */}
-              <div className={styles.priceContainer}>
-                <ProductPrice 
-                  pricing={product.pricing}
-                  size="medium"
-                />
-              </div>
-
-              {/* דירוג מהיר */}
-              <div className={styles.quickRating}>
-                <div className={styles.stars}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span key={star} className={`${styles.star} ${
-                      star <= (Math.floor(Math.random() * 2) + 3) ? styles.filled : ''
-                    }`}>
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <span className={styles.reviewCount}>
-                  ({Math.floor(Math.random() * 50) + 5})
-                </span>
-              </div>
-
-              {/* כפתור הוספה מהירה */}
-              <div className={styles.quickActions}>
-                <Button
-                  variant={product.quantityInStock > 0 ? 'primary' : 'ghost'}
-                  className={`${styles.quickAddButton} ${
-                    product.quantityInStock === 0 ? styles.disabled : ''
-                  }`}
-                  disabled={product.quantityInStock === 0}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log('הוספה מהירה לעגלה:', product._id);
-                  }}
-                >
-                  {product.quantityInStock > 0 ? 'הוסף לעגלה' : 'אזל מהמלאי'}
-                </Button>
-              </div>
-            </div>
+          <div key={product._id} className={styles.gridItem}>
+            <ProductCard
+              product={product}
+              variant="grid"
+            />
           </div>
         ))}
       </div>
 
       {/* קישור לכל המוצרים */}
       <div className={styles.viewAll}>
-        <Link to="/products" className={styles.viewAllLink}>
-          <Button variant="ghost" className={styles.viewAllButton}>
+        <a href="/products" className={styles.viewAllLink}>
+          <button className={styles.viewAllButton}>
             צפה בכל המוצרים →
-          </Button>
-        </Link>
+          </button>
+        </a>
       </div>
     </div>
   );
