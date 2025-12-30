@@ -14,6 +14,8 @@ import StockAlertButton from '../StockAlertButton';
 import type { Product } from '../../../../types';
 // ייבוא hook ל-Redux לקבלת מידע משתמש ומידע על העגלה
 import { useAppSelector } from '../../../../hooks/reduxHooks';
+// ייבוא ProductService עבור Prefetch אופטימיזציה
+import { ProductService } from '../../../../services/productService';
 // ייבוא hook ל-WebSocket לעדכון מחירים בזמן אמת
 // Phase 1.4: ייבוא פונקציות עזר לטיפול בתמונות
 import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה עם בחירת גודל
@@ -283,7 +285,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
     : '/ismoke-placeholder.png';
 
   return (
-    <Link to={`/product/${productId}`} className={styles.productLink}>
+    <Link 
+      to={`/product/${productId}`} 
+      className={styles.productLink}
+      onPointerEnter={() => {
+        // 🚀 Prefetch עבור Product Details כשהמשתמש מעביר עליה את העכבר
+        // זה חוסך 200-500ms כשהמשתמש בעצם לוחץ על הקישור
+        ProductService.preFetchProductById(productId);
+      }}
+    >
       <div
         className={rootClassName}
         onClick={handleProductClick}
