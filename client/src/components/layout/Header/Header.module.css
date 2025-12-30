@@ -649,14 +649,15 @@
     display: block;
     width: 100%;
     max-height: 0; /* סגור כברירת מחדל */
-    overflow: visible; /* אפשר ל-dropdown להופיע מחוץ לשורת החיפוש */
+    overflow: hidden;
     background-color: var(--color-bg-secondary);
     border-top: 1px solid var(--color-border-light, #e5e7eb);
     transition: max-height 0.3s ease, padding 0.3s ease;
   }
 
   .mobileSearchBar.open {
-    max-height: 60px; /* גובה כשפתוח */
+    max-height: 600px; /* גובה גדול מספיק ל-dropdown */
+    overflow: visible; /* אפשר ל-dropdown להופיע מחוץ לשורת החיפוש */
     padding: 8px 12px;
   }
 

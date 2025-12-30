@@ -113,7 +113,7 @@ const Footer: React.FC<FooterProps> = ({
         { name: 'דף בית', url: '/', icon: '🏠' },
         { name: 'כל המוצרים', url: '/products', icon: '🛍️' },
         { name: 'מבצעים', url: '/sales', icon: '🔥' },
-        { name: 'חשבון', url: '/account', icon: '👤' },
+        { name: 'חשבון', url: '/profile', icon: '👤' },
         { name: 'עגלת קניות', url: '/cart', icon: '🛒' }
       ]
     }
