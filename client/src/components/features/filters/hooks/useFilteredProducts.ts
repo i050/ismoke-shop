@@ -223,14 +223,21 @@ export function useFilteredProducts(filters: FiltersState): UseFilteredProductsR
     const sameSort = previous.sort === filters.sort;
     const samePrice = previous.price.min === filters.price.min && previous.price.max === filters.price.max;
     const sameCategories = areStringArraysEqual(previous.categoryIds, filters.categoryIds);
-    const paginationChangedOnly = sameSort && samePrice && sameCategories && (
+    const sameSearch = previous.search === filters.search;
+    
+    // בדיקה האם רק pagination השתנה
+    const paginationChangedOnly = sameSort && samePrice && sameCategories && sameSearch && (
       previous.page !== filters.page || previous.pageSize !== filters.pageSize
     );
+    
+    // בדיקה האם רק קטגוריה השתנתה (ללא debounce - פעולה מכוונת של משתמש)
+    const categoryChangedOnly = !sameCategories && sameSort && samePrice && sameSearch;
 
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
 
-    if (paginationChangedOnly) {
-      // שינוי עמוד/גודל עמוד – לא מבזבזים זמן בדיבאונס כדי להשיב תגובה מהירה
+    if (paginationChangedOnly || categoryChangedOnly) {
+      // שינוי עמוד/גודל עמוד או קטגוריה – לא מבזבזים זמן בדיבאונס
+      // קטגוריה: לחיצה מכוונת מההדר/סרגל צד - לא צריך debounce
       previousFiltersRef.current = cloned;
       runFetch(true);
     } else {
