@@ -17,6 +17,7 @@ import {
   checkSkuAvailability,
   getProductsForManagement,
   getProductsAutocomplete,
+  getRelatedProducts,
 } from '../controllers/productController';
 import { authMiddleware, optionalAuthMiddleware, requireAdmin } from '../middleware/authMiddleware';
 import { 
@@ -141,6 +142,11 @@ router.post(
 
 // POST /api/products - Create a new product (Simple - ללא SKUs)
 router.post('/', createProduct);
+
+// GET /api/products/:id/related - Get related products for a specific product
+// מחזיר מוצרים מאותה קטגוריה, ממוינים לפי פופולריות
+// Query params: limit (default: 4)
+router.get('/:id/related', optionalAuthMiddleware, getRelatedProducts);
 
 // GET /api/products/:id - Get a single product by its ID
 router.get('/:id', optionalAuthMiddleware, getProductById);

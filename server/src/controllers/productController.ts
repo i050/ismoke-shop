@@ -236,6 +236,42 @@ export const getProductById = async (req: Request, res: Response) => {
   }
 };
 
+// Get related products for a specific product
+export const getRelatedProducts = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const limit = parseInt(req.query.limit as string) || 4;
+    
+    const relatedProducts = await productService.fetchRelatedProducts(id, limit);
+    
+    // קבלת מזהה המשתמש מהטוקן (אם קיים)
+    const userId = (req as any).user?.userId;
+    
+    // הוספת מחירים מותאמים ו-SKUs לכל מוצר
+    const productsWithPricing = await Promise.all(
+      relatedProducts.map(async (product: any) => {
+        const priceInfo = await pricingService.calculatePriceForUser(
+          product._id.toString(), 
+          userId, 
+          product
+        );
+        const skus = await productService.fetchProductSkus(product._id.toString());
+        
+        return {
+          ...product.toObject ? product.toObject() : product,
+          pricing: priceInfo,
+          skus: skus,
+        };
+      })
+    );
+    
+    res.json(productsWithPricing);
+  } catch (error) {
+    console.error('Error fetching related products:', error);
+    res.status(500).json({ message: 'שגיאה בקבלת מוצרים קשורים', error });
+  }
+};
+
 // Create new product
 export const createProduct = async (req: Request, res: Response) => {
   try {

@@ -609,6 +609,65 @@ export const fetchProductById = async (id: string): Promise<IProduct | null> => 
 };
 
 /**
+ * מחזיר מוצרים קשורים למוצר נתון
+ * הלוגיקה:
+ * 1. ראשית - מוצרים מאותה קטגוריה (ללא המוצר הנוכחי)
+ * 2. אם אין מספיק - ממלאים עם מוצרים פופולריים מקטגוריות אחרות
+ * 3. ממוינים לפי פופולריות (viewCount + salesCount)
+ * @param {string} productId - מזהה המוצר הנוכחי
+ * @param {number} limit - כמה מוצרים להחזיר (ברירת מחדל: 4)
+ * @returns {Promise<IProduct[]>} מערך של מוצרים קשורים
+ */
+export const fetchRelatedProducts = async (
+  productId: string,
+  limit: number = 4
+): Promise<any[]> => {
+  // שלב 1: מציאת המוצר הנוכחי כדי לקבל את הקטגוריה שלו
+  const currentProduct = await Product.findById(productId).select('categoryId').lean();
+  
+  if (!currentProduct) {
+    // אם המוצר לא נמצא, מחזירים מוצרים פופולריים כללי
+    return Product.find({ isActive: true })
+      .sort({ salesCount: -1, viewCount: -1 })
+      .limit(limit)
+      .lean();
+  }
+
+  const categoryId = (currentProduct as any).categoryId;
+  
+  // שלב 2: חיפוש מוצרים מאותה קטגוריה (ללא המוצר הנוכחי)
+  const sameCategoryProducts = await Product.find({
+    _id: { $ne: productId },        // לא המוצר הנוכחי
+    categoryId: categoryId,         // אותה קטגוריה
+    isActive: true,                 // רק מוצרים פעילים
+    quantityInStock: { $gt: 0 }     // רק מוצרים במלאי
+  })
+    .sort({ salesCount: -1, viewCount: -1 }) // מיון לפי פופולריות
+    .limit(limit)
+    .lean();
+
+  // שלב 3: אם יש מספיק מוצרים מאותה קטגוריה, מחזירים אותם
+  if (sameCategoryProducts.length >= limit) {
+    return sameCategoryProducts.slice(0, limit);
+  }
+
+  // שלב 4: אם אין מספיק, ממלאים עם מוצרים פופולריים מקטגוריות אחרות
+  const existingIds = [productId, ...sameCategoryProducts.map(p => (p as any)._id.toString())];
+  
+  const additionalProducts = await Product.find({
+    _id: { $nin: existingIds },     // לא כוללים מוצרים שכבר יש לנו
+    isActive: true,                 // רק מוצרים פעילים
+    quantityInStock: { $gt: 0 }     // רק מוצרים במלאי
+  })
+    .sort({ salesCount: -1, viewCount: -1 }) // מיון לפי פופולריות
+    .limit(limit - sameCategoryProducts.length)
+    .lean();
+
+  // שלב 5: שילוב התוצאות - קודם מאותה קטגוריה, אחר כך פופולריים
+  return [...sameCategoryProducts, ...additionalProducts];
+};
+
+/**
  * Phase 3.2: שליפת SKUs של מוצר מה-SKU Collection
  * @param {string} productId מזהה המוצר
  * @returns {Promise<any[]>} מערך של SKUs פעילים

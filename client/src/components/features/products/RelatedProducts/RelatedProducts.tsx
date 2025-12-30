@@ -9,50 +9,31 @@ import styles from './RelatedProducts.module.css';
 
 interface RelatedProductsProps {
   currentProductId: string;
-  categoryId?: string;
+  categoryId?: string; // לא בשימוש יותר - השרת מטפל בזה
 }
 
 /**
- * מוצרים קשורים - מחקה בדיוק את ה-HTML המצורף
- * מציג רשת של מוצרים דומים או מאותה קטגוריה
+ * מוצרים קשורים - גרסה משופרת
+ * משתמש ב-endpoint ייעודי בשרת לקבלת מוצרים רלוונטיים
+ * השרת מחזיר מוצרים מאותה קטגוריה, ממוינים לפי פופולריות
  */
 const RelatedProducts: React.FC<RelatedProductsProps> = ({
   currentProductId,
-  categoryId,
 }) => {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // טעינת מוצרים קשורים
+  // טעינת מוצרים קשורים מה-endpoint הייעודי
   useEffect(() => {
     const loadRelatedProducts = async () => {
       try {
         setLoading(true);
         
-        // קבלת כל המוצרים וסינון המוצרים הרלוונטיים
-        const allProducts = await ProductService.getAllProducts();
+        // קבלת מוצרים קשורים מהשרת (ממוינים לפי פופולריות)
+        const products = await ProductService.getRelatedProducts(currentProductId, 4);
         
-        // סינון המוצר הנוכחי
-        const filteredProducts = allProducts.filter(
-          product => product._id !== currentProductId && product.isActive
-        );
-        
-        // העדפה למוצרים מאותה קטגוריה
-        const categoryProducts = categoryId 
-          ? filteredProducts.filter(product => product.categoryId === categoryId)
-          : [];
-        
-        // אם יש מוצרים מאותה קטגוריה, נעדיף אותם
-        const productsToShow = categoryProducts.length >= 4 
-          ? categoryProducts 
-          : filteredProducts;
-        
-        // לקחת עד 4 מוצרים רנדומליים
-        const shuffled = [...productsToShow].sort(() => 0.5 - Math.random());
-        const selected = shuffled.slice(0, 4);
-        
-        setRelatedProducts(selected);
+        setRelatedProducts(products);
         setError(null);
       } catch (err) {
         setError('שגיאה בטעינת מוצרים קשורים');
@@ -62,8 +43,10 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({
       }
     };
 
-    loadRelatedProducts();
-  }, [currentProductId, categoryId]);
+    if (currentProductId) {
+      loadRelatedProducts();
+    }
+  }, [currentProductId]);
 
   // אם אין מוצרים קשורים
   if (loading) {

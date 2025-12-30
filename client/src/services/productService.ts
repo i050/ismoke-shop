@@ -228,6 +228,35 @@ export class ProductService {
     }
   }
 
+  // קבלת מוצרים קשורים למוצר ספציפי (endpoint ייעודי בשרת)
+  static async getRelatedProducts(productId: string, limit: number = 4): Promise<Product[]> {
+    try {
+      const token = localStorage.getItem('authToken');
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(
+        `${API_BASE_URL}/products/${productId}/related?limit=${limit}`, 
+        { headers }
+      );
+
+      if (!response.ok) {
+        let msg = `HTTP error! status: ${response.status}`;
+        try {
+          const json = await response.json();
+          if (json && typeof json === 'object' && json.message) msg = String(json.message);
+        } catch (e) {}
+        throw new ApiError(response.status, msg);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+      throw error;
+    }
+  }
+
   // קבלת מוצרים פופולריים (endpoint ייעודי בשרת)
   static async getPopularProducts(): Promise<Product[]> {
     try {
