@@ -6,7 +6,7 @@ import Modal from '../../../../../ui/Modal';
 import { Input } from '../../../../../ui/Input';
 import { ColorSelect } from '../../../../../ui/ColorSelect';
 import { Collapsible } from '../../../../../ui/Collapsible';
-import ImageUploader from '../../../../../ui/ImageUploader';
+import ImageGalleryManager from '../../../../../ui/ImageGalleryManager';
 import type { SKUFormData } from '../../../../../../schemas/productFormSchema';
 import { defaultSKUValues } from '../../../../../../schemas/productFormSchema';
 import { FilterAttributeService } from '../../../../../../services/filterAttributeService';
@@ -52,11 +52,24 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
   // Hook for confirmations
   const confirm = useConfirm();
   
+  /**
+   * 🔧 Helper function ליצירת עותק עמוק של SKU עם מערך תמונות נפרד
+   * מונע שיתוף reference בין SKUs שונים
+   */
+  const createSkuWithDeepCopy = (base: Partial<SKUFormData>, override?: Partial<SKUFormData>): SKUFormData => {
+    const merged = { ...base, ...override };
+    return {
+      ...merged,
+      images: merged.images ? merged.images.map(img => ({ ...img })) : [],
+      attributes: merged.attributes ? { ...merged.attributes } : {},
+    } as SKUFormData;
+  };
+
   // State לנתוני SKU חדש - משלב ערכי ברירת מחדל עם initialSku אם סופק
-  const [newSKU, setNewSKU] = useState<SKUFormData>({
-    ...defaultSKUValues,
-    ...initialSku,
-  } as SKUFormData);
+  // 🔧 עותק עמוק כדי למנוע שיתוף reference של מערך תמונות
+  const [newSKU, setNewSKU] = useState<SKUFormData>(() => 
+    createSkuWithDeepCopy(defaultSKUValues, initialSku)
+  );
 
   // State לבדיקת זמינות
   const [checkingSKU, setCheckingSKU] = useState(false);
@@ -104,17 +117,15 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
   }, [isOpen]);
 
   /**
-   * � עדכון הטופס כשהמודאל נפתח עם initialSku חדש
+   * 🔧 עדכון הטופס כשהמודאל נפתח עם initialSku חדש
    * זה חיוני כדי שכל פעם שמוסיפים SKU חדש, קוד SKU אחר יוצר
    * (למשל PRODUCTNAME-001, אחר כך PRODUCTNAME-002, וכו')
+   * 🔧 משתמש ב-createSkuWithDeepCopy למניעת שיתוף reference
    */
   useEffect(() => {
     if (isOpen) {
-      // כשהמודאל נפתח, אתחל את הטופס עם ה-initialSku החדש
-      setNewSKU({
-        ...defaultSKUValues,
-        ...initialSku,
-      } as SKUFormData);
+      // כשהמודאל נפתח, אתחל את הטופס עם ה-initialSku החדש (עותק עמוק)
+      setNewSKU(createSkuWithDeepCopy(defaultSKUValues, initialSku));
       setErrors({});
       setSkuAvailable(null);
       console.log('🔄 עדכון initialSku בטופס:', initialSku?.sku);
@@ -222,9 +233,10 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
 
   /**
    * איפוס הטופס - חזרה לערכי ברירת מחדל או initialSku אם סופק
+   * 🔧 משתמש ב-createSkuWithDeepCopy למניעת שיתוף reference
    */
   const resetForm = useCallback(() => {
-    setNewSKU({ ...defaultSKUValues, ...initialSku } as SKUFormData);
+    setNewSKU(createSkuWithDeepCopy(defaultSKUValues, initialSku));
     setErrors({});
     setSkuAvailable(null);
   }, [initialSku]);
@@ -275,84 +287,6 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
   }, []);
 
   // אין צורך ב-handleSizeChange ייעודי - גודל מטופל דינמית דרך attributes
-
-  /**
-   * הוספת תמונות - מעלה ל-Cloudinary אם יש onUploadImages
-   */
-  const handleImagesUpload = useCallback(async (files: File[]) => {
-    try {
-      let imageObjects: Array<{
-        url: string;
-        public_id: string;
-        format?: string;
-        width?: number;
-        height?: number;
-      }>;
-
-      if (onUploadImages && newSKU.sku) {
-        // העלאה ל-Cloudinary עם SKU
-        imageObjects = await onUploadImages(files, newSKU.sku);
-      } else {
-        // fallback - המרה ל-Base64 (אם אין SKU עדיין או אין onUploadImages)
-        const readers = files.map((file) => {
-          return new Promise<{
-            url: string;
-            public_id: string;
-            format?: string;
-            width?: number;
-            height?: number;
-          }>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64String = reader.result as string;
-              const imageObject = {
-                url: base64String,
-                public_id: '',
-                format: file.type.split('/')[1] || 'jpeg',
-              };
-              resolve(imageObject);
-            };
-            reader.readAsDataURL(file);
-          });
-        });
-        imageObjects = await Promise.all(readers);
-      }
-
-      // הוספת התמונות ל-SKU
-      setNewSKU((prev) => ({
-        ...prev,
-        images: [...(prev.images || []), ...imageObjects],
-      }));
-    } catch (error) {
-      console.error('❌ שגיאה בהעלאת תמונות:', error);
-      // כאן אפשר להוסיף הצגת שגיאה למשתמש
-    }
-  }, [onUploadImages, newSKU.sku]);
-
-  /**
-   * מחיקת תמונה
-   */
-  const handleImageDelete = useCallback((index: number) => {
-    setNewSKU((prev) => ({
-      ...prev,
-      images: prev.images?.filter((_, i) => i !== index) || [],
-    }));
-  }, []);
-
-  /**
-   * שינוי סדר תמונות
-   */
-  const handleImagesReorder = useCallback((fromIndex: number, toIndex: number) => {
-    setNewSKU((prev) => {
-      const newImages = [...(prev.images || [])];
-      const [movedImage] = newImages.splice(fromIndex, 1);
-      newImages.splice(toIndex, 0, movedImage);
-      return {
-        ...prev,
-        images: newImages,
-      };
-    });
-  }, []);
 
   /**
    * 🆕 בודק אילו מאפיינים חסרים - גרסה דינמית
@@ -814,13 +748,19 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
           icon={<ImageIcon size={18} />}
           defaultOpen={false}
         >
-          <ImageUploader
-            images={(newSKU.images || []).map(img => typeof img === 'string' ? img : img.url)}
-            onUpload={handleImagesUpload}
-            onDelete={handleImageDelete}
-            onReorder={handleImagesReorder}
+          <ImageGalleryManager
+            mode="inline"
+            images={newSKU.images || []}
+            onChange={(updatedImages) => {
+              handleChange('images', updatedImages);
+            }}
+            onUpload={onUploadImages ? (files) => onUploadImages(files, newSKU.sku) : undefined}
             maxImages={5}
             maxFileSize={5 * 1024 * 1024}
+            deleteMode="hard"
+            allowReorder={true}
+            showPrimaryBadge={false}
+            showProgress={true}
           />
           <p className={styles.helperText}>
             תמונות ספציפיות לוריאנט זה (עד 5 תמונות)

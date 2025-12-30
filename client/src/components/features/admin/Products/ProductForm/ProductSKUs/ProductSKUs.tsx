@@ -150,12 +150,15 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     // אם זה הוריאנט הראשון - נמלא גם מחיר, מלאי ותמונות מהטופס הראשי
     if (value.length === 0) {
       const { basePrice = 0, stockQuantity = 0, images = [] } = productFormData;
+      // 🔧 חשוב: יוצרים עותק עמוק של מערך התמונות כדי למנוע שיתוף reference
+      // זה מונע בעיה שבה שינוי תמונות ב-SKU אחד משפיע על SKUs אחרים
+      const imagesCopy = images ? images.map(img => ({ ...img })) : [];
       return {
         sku: generateNextSkuCode(name, value),
         name: name || 'מוצר ברירת מחדל',
         price: basePrice || null,
         stockQuantity: stockQuantity || 0,
-        images: images || [],
+        images: imagesCopy,
         color: '',
         attributes: {},
         isActive: true,
@@ -168,7 +171,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       name: '', // שדה ריק - המשתמש ימלא
       price: null,
       stockQuantity: 0,
-      images: [],
+      images: [], // מערך חדש ריק - לא reference!
       color: '',
       attributes: {},
       isActive: true,
@@ -176,28 +179,28 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   }, [productFormData, value]);
 
   /**
-   * useEffect - פתיחה אוטומטית של המודאל במצב create
+   * useEffect - פתיחה אוטומטית של מצב עריכה לוריאנט הראשוני במצב create
    * נפתח אוטומטית פעם אחת כאשר:
    * 1. mode === 'create'
-   * 2. אין SKUs במערך
-   * 3. יש productFormData (שדות מהטופס מולאו)
-   * 4. טרם נפתח אוטומטית (didAutoOpenRef)
+   * 2. יש SKU ראשוני אחד שנוצר אוטומטית (שם 'וריאנט ראשוני')
+   * 3. טרם נפתח אוטומטית (didAutoOpenRef)
+   * 
+   * זה מאפשר למשתמש לערוך מיד את שם הוריאנט, להוסיף תמונות, וכו'
    */
   useEffect(() => {
-    // תנאי לפתיחה אוטומטית
-    const shouldAutoOpen = 
-      mode === 'create' &&           // רק במצב יצירה
-      value.length === 0 &&          // אין SKUs קיימים
-      productFormData &&             // יש נתונים מהטופס
-      productFormData.name &&        // יש שם למוצר (חובה)
-      !didAutoOpenRef.current;       // טרם נפתח אוטומטית
+    // תנאי לפתיחת עריכה אוטומטית לוריאנט הראשוני
+    const isInitialVariant = 
+      mode === 'create' &&                          // רק במצב יצירה
+      value.length === 1 &&                         // יש בדיוק SKU אחד
+      value[0]?.name === 'וריאנט ראשוני' &&         // זה הוריאנט הראשוני שנוצר אוטומטית
+      !didAutoOpenRef.current;                      // טרם נפתח אוטומטית
     
-    if (shouldAutoOpen) {
-      console.log('🚀 [ProductSKUs] Auto-opening modal for initial SKU creation');
-      didAutoOpenRef.current = true; // סימון שנפתח
-      setShowAddModal(true);         // פתיחת המודאל
+    if (isInitialVariant) {
+      console.log('🚀 [ProductSKUs] Auto-opening initial variant for editing');
+      didAutoOpenRef.current = true;  // סימון שנפתח
+      setEditingIndex(0);             // פתיחת הוריאנט הראשון למצב עריכה
     }
-  }, [mode, value.length, productFormData]);
+  }, [mode, value]);
 
   /**
    * התחלת עריכה

@@ -415,8 +415,12 @@ const SKURow: React.FC<SKURowProps> = ({
   return (
     <>
     <div className={`${styles.skuCard} ${styles.skuCardEditing}`}>
-      {/* אזור תמונות - תצוגה בלבד במצב עריכה */}
-      <div className={styles.skuImages}>
+      {/* אזור תמונות - עם כפתור לניהול תמונות */}
+      <div 
+        className={`${styles.skuImages} ${styles.skuImagesClickable}`}
+        onClick={() => setShowImageManager(true)}
+        title="לחץ לניהול תמונות"
+      >
         {sku.images && sku.images.length > 0 ? (
           <>
             {sku.images.slice(0, 3).map((img, idx) => (
@@ -430,11 +434,15 @@ const SKURow: React.FC<SKURowProps> = ({
             {sku.images.length > 3 && (
               <div className={styles.moreImages}>+{sku.images.length - 3}</div>
             )}
+            <div className={styles.editImagesOverlay}>
+              <span>📷 ערוך תמונות</span>
+            </div>
           </>
         ) : (
           <div className={styles.noImagesPlaceholder}>
-            <span>אין תמונות</span>
-            <small>לערוך תמונות שמור קודם</small>
+            <span>📷</span>
+            <span>הוסף תמונות</span>
+            <small>לחץ להוספה</small>
           </div>
         )}
       </div>
