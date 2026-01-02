@@ -258,7 +258,10 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
   } = options; 
 
   // בניית אובייקט פילטור
-  const filter: Record<string, any> = {};
+  // 🛡️ מוצרים באשפה (isActive: false) לא יוצגו ללקוחות
+  const filter: Record<string, any> = {
+    isActive: true,
+  };
   
   // פילטר חיפוש טקסט חופשי בשם ותיאור
   if (search && search.trim() !== '') {
@@ -527,27 +530,31 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
 
 /**
  * מחזיר את כל המוצרים ממוינים לפי תאריך יצירה מהחדש לישן (createdAt יורד).
+ * 🛡️ מוצרים באשפה (isActive: false) לא יוצגו ללקוחות
  * @returns {Promise<IProduct[]>}
  */
 export const fetchAllProductsSortedByDate = async (): Promise<any[]> => {
-  return Product.find().sort({ createdAt: -1 }).lean();
+  return Product.find({ isActive: true }).sort({ createdAt: -1 }).lean();
 };
 
 /**
  * מחזיר את המוצרים החדשים ביותר (ממוינים לפי createdAt מהחדש לישן).
+ * 🛡️ מוצרים באשפה (isActive: false) לא יוצגו
  * @param {number} limit - כמה מוצרים להחזיר (ברירת מחדל 8)
  * @returns {Promise<IProduct[]>}
  */
 export const fetchRecentProducts = async (limit: number = 8): Promise<any[]> => {
-  return Product.find().sort({ createdAt: -1 }).limit(limit).lean();
+  return Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(limit).lean();
 };
 /**
  * מחזיר את המוצרים הפופולריים ביותר, ממוינים לפי viewCount ו-salesCount.
+ * 🛡️ מוצרים באשפה (isActive: false) לא יוצגו
  * @param {number} limit - כמה מוצרים להחזיר
  * @returns {Promise<IProduct[]>}
  */
 export const fetchPopularProducts = async (limit: number = 8): Promise<any[]> => {
-  return Product.find()
+  // 🛡️ רק מוצרים פעילים - מוצרים באשפה לא יוצגו ללקוחות
+  return Product.find({ isActive: true })
     .sort({ 
       viewCount: -1,    // קודם לפי כמות צפיות (מהגבוה לנמוך)
       salesCount: -1,   // לאחר מכן לפי כמות מכירות (מהגבוה לנמוך)
@@ -601,11 +608,13 @@ export const fetchAllProducts = async (): Promise<any[]> => {
 /**
  * מחפש מוצר בודד לפי מזהה (ID).
  * כרגע מחפש רק במסד הנתונים המקומי.
+ * 🛡️ מוצרים באשפה (isActive: false) לא יוצגו ללקוחות
  * @param {string} id מזהה המוצר לחיפוש.
  * @returns {Promise<IProduct | null>} מסמך המוצר או null אם לא נמצא.
  */
 export const fetchProductById = async (id: string): Promise<IProduct | null> => {
-  return Product.findById(id);
+  // רק מוצרים פעילים - מוצרים באשפה לא יוצגו
+  return Product.findOne({ _id: id, isActive: true });
 };
 
 /**
