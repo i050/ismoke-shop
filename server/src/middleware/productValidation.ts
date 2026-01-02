@@ -31,11 +31,11 @@ const productSchema = Joi.object({
 
   // תיאור המוצר - אופציונלי
   // אם המשתמש מחליט למלא, חייב להכיל עד 2000 תווים (כל אורך מותר)
+  // ⚠️ NO TRIM: משמר newlines (\n) במדויק כמו שהם - יש הערה בתצוגה (ProductTabs)
   description: Joi.string()
     .max(2000)
     .allow('')
     .optional()
-    .trim()
     .messages({
       'string.max': 'תיאור המוצר לא יכול להכיל יותר מ-2000 תווים',
     }),

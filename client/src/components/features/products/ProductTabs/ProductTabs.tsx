@@ -48,7 +48,8 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
       label: 'תיאור המוצר',
       content: (
         <div className={styles.tabContent}>
-          {/* תיאור המוצר - מוזן על ידי המנהל באזור הניהול */}
+          {/* תיאור המוצר - מוזן על ידי המנהל באזור הניהול 
+              ✅ CSS white-space: pre-wrap משמר ירידות שורה (newlines) */}
           <Typography variant="body1" className={styles.description}>
             {product.description || 'תיאור המוצר לא זמין כרגע.'}
           </Typography>

@@ -89,6 +89,9 @@
   resize: vertical;
   min-height: 120px;
   transition: all 0.2s ease;
+  white-space: pre-wrap;  /* משמר ירידות שורה שהמנהל מקליד */
+  word-wrap: break-word;  /* שובר מילים ארוכות */
+  overflow-wrap: break-word;  /* תאימות לדפדפנים ישנים */
 }
 
 .textarea:focus {

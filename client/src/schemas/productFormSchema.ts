@@ -155,11 +155,11 @@ export const productSchema = yup.object({
 
   // תיאור המוצר - אופציונלי
   // אם המשתמש מחליט למלא, חייב להכיל עד 5000 תווים (כל אורך מותר)
+  // ⚠️ NO TRIM: משמר newlines (\n) במדויק כמו שהם - לתצוגה עם white-space: pre-wrap
   description: yup
     .string()
     .optional()
     .max(5000, 'תיאור המוצר לא יכול להכיל יותר מ-5000 תווים')
-    .trim()
     .typeError('תיאור חייב להיות טקסט')
     .nullable(),
 

@@ -195,6 +195,8 @@ const ProductSchema: Schema = new Schema({
     trim: true,
   },
   // תיאור המוצר - אופציונלי (משתמש לא חייב למלא)
+  // משמר newlines (\n) לייצוג ירידות שורה שהמנהל קלד
+  // בצד Client, יחד עם CSS white-space: pre-wrap, זה יוצג כראוי
   description: {
     type: String,
     required: false,

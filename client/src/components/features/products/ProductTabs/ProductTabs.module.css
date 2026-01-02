@@ -68,6 +68,9 @@
   margin-bottom: 25px;
   font-size: 16px;
   color: #333;
+  white-space: pre-wrap;  /* משמר ירידות שורה (newlines) שהמנהל הזין */
+  word-wrap: break-word;  /* שובר מילים ארוכות */
+  overflow-wrap: break-word;  /* תאימות לדפדפנים ישנים */
 }
 
 .features {
