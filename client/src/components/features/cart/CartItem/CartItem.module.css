@@ -214,6 +214,41 @@
   }
 }
 
+/* Compact-specific overrides for QuantitySelector inside MiniCart */
+.cartItem.compact .quantitySelector {
+  height: 28px; /* smaller control */
+  border-radius: 8px;
+}
+
+.cartItem.compact .quantitySelector .button {
+  width: 22px;
+  height: 22px;
+  margin: 1px;
+  font-weight: 700;
+}
+
+.cartItem.compact .quantitySelector .icon {
+  font-size: 0.95em;
+}
+
+.cartItem.compact .quantitySelector .input {
+  min-width: 32px;
+  padding: 0 6px;
+  font-size: 0.75rem; /* 12px */
+}
+
+.cartItem.compact .quantityWrapper {
+  gap: 6px;
+}
+
+/* Ensure visual alignment in compact mode */
+.cartItem.compact .quantityDesktop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 /* אנימציית הסרה */
 .cartItem.removing {
   opacity: 0;

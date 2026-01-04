@@ -350,7 +350,7 @@ const CartItem = ({
                 onChange={handleQuantityChange}
                 onOverMax={showStockPill}
                 disabled={isRemoving}
-                size="small"
+                size="small" // מובייל - כבר קטן
               />
               {/* הודעת מלאי קלה וברורה מוצהרת אך ממוקמת באבסולוט כך שלא מזיזה תוכן */}
               <div
@@ -398,7 +398,7 @@ const CartItem = ({
               onChange={handleQuantityChange}
               onOverMax={showStockPill}
               disabled={isRemoving}
-              size="medium"
+              size={compact ? 'small' : 'medium'}
             />
             {/* הודעת מלאי קלה וברורה מוצהרת אך ממוקמת באבסולוט כך שלא מזיזה תוכן */}
             <div
