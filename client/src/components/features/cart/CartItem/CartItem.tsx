@@ -284,15 +284,15 @@ const CartItem = ({
                 const displayColor = isHex ? getColorNameHebrew(variantColor) : variantColor;
                 const swatchColor = isHex ? (variantColor.startsWith('#') ? variantColor : `#${variantColor}`) : '';
                 return (
-                  <span className={styles.variantItem}>
+                  <div className={styles.colorBlock}>
                     <span
                       className={styles.colorDot}
                       style={{ backgroundColor: swatchColor || 'transparent' }}
                       title={displayColor || variantColor}
                       aria-hidden={false}
                     />
-                    צבע: <strong>{displayColor || variantColor}</strong>
-                  </span>
+                    <span className={styles.colorLabel}>צבע: <strong>{displayColor || variantColor}</strong></span>
+                  </div>
                 );
               })()
             )}
