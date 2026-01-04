@@ -312,6 +312,16 @@
 /* תמיכה ב-RTL - אין צורך לשנות כלום, הגישה עם transform עובדת אוטומטית */
 /* ה-drawer כבר מוגדר עם right:0 ו-translateX(-100%) שעובד נכון ב-RTL */
 
+/* Desktop-only: shrink header thickness (25% of original) and smaller title */
+@media (min-width: 1024px) {
+  .drawer .header {
+    padding: calc(var(--spacing-xl) / 4); /* ראש סגול - רבע מהעובי */
+  }
+  .drawer .title {
+    font-size: 0.875rem; /* כותרת קטנה יותר במיני-סל Desktop */
+  }
+}
+
 /* גלילה מותאמת מודרנית */
 .content::-webkit-scrollbar {
   width: 6px;

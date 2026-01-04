@@ -150,8 +150,15 @@
 
 /* תמונה קטנה משמעותית - 45px במקום 60px */
 .cartItem.compact .image {
-  width: 45px;
-  height: 45px;
+  width: 36px; /* הקטנה נוספת לגרסה הקומפקטית */
+  height: 36px;
+}
+
+/* Container of image also reduced in compact mode */
+.cartItem.compact .imageContainer {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
 }
 
 /* checkbox זעיר */
@@ -185,7 +192,11 @@
 }
 
 .cartItem.compact .priceValue {
-  font-size: 0.875rem; /* 14px במקום 15px */
+  font-size: 0.75rem; /* הקטנה נוספת - 12px */
+}
+
+.cartItem.compact .priceLabel {
+  font-size: 0.625rem; /* 10px - עוד הקטנה */
 }
 
 /* כפתורי פעולות זעירים */
