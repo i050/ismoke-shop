@@ -314,6 +314,11 @@
 
 /* Desktop-only: shrink header thickness (25% of original) and smaller title */
 @media (min-width: 1024px) {
+  /* הגבלת גובה ל-~חצי ממה שהיה (85vh -> ~42vh) */
+  .drawer {
+    max-height: 42vh; /* מקטין משמעותית את הגובה על שולחנות עבודה */
+  }
+
   .drawer .header {
     padding: calc(var(--spacing-xl) / 4); /* ראש סגול - רבע מהעובי */
   }

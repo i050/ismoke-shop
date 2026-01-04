@@ -225,31 +225,31 @@
   }
 }
 
-/* Compact-specific overrides for QuantitySelector inside MiniCart */
+/* Compact-specific overrides for QuantitySelector inside MiniCart - further reduced */
 .cartItem.compact .quantitySelector {
-  height: 28px; /* smaller control */
-  border-radius: 8px;
+  height: 24px; /* עוד הקטנה */
+  border-radius: 6px;
 }
 
 .cartItem.compact .quantitySelector .button {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   margin: 1px;
   font-weight: 700;
 }
 
 .cartItem.compact .quantitySelector .icon {
-  font-size: 0.95em;
+  font-size: 0.85em;
 }
 
 .cartItem.compact .quantitySelector .input {
-  min-width: 32px;
-  padding: 0 6px;
-  font-size: 0.75rem; /* 12px */
+  min-width: 28px;
+  padding: 0 4px;
+  font-size: 0.65rem; /* כעת ~10.4px */
 }
 
 .cartItem.compact .quantityWrapper {
-  gap: 6px;
+  gap: 4px;
 }
 
 /* Ensure visual alignment in compact mode */
@@ -257,6 +257,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Reduce attributes/color label font size further */
+.cartItem.compact .attributes {
+  font-size: 0.55rem; /* כעת כותרות צבעים/מאפיינים זעירות */
+  gap: 3px;
 }
 
 
