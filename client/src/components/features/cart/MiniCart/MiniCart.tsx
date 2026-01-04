@@ -224,21 +224,10 @@ const MiniCart = () => {
               )}
             </div>
 
-            {/* כפתורי פעולה */}
+            {/* כפתורי פעולה - רק צפיה בסל המלא */}
             <div className={styles.actions}>
               <Button
                 variant="primary"
-                size="lg"
-                onClick={handleCheckout}
-                disabled={!hasSelectedItems}
-                className={styles.checkoutButton}
-              >
-                {hasSelectedItems 
-                  ? `המשך לתשלום (${selectedItemsCount})`
-                  : 'בחר פריטים'}
-              </Button>
-              <Button
-                variant="outline"
                 size="md"
                 onClick={handleViewCart}
                 className={styles.viewCartButton}

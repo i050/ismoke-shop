@@ -181,9 +181,9 @@
   box-shadow: var(--shadow-primary);
 }
 
-/* תחתית מודרנית */
+/* תחתית קומפקטי */
 .footer {
-  padding: var(--spacing-lg);
+  padding: 10px; /* הקטנה מ-16px */
   background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -191,42 +191,32 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* סיכום מחיר מודרני */
+/* סיכום מחיר קומפקטי */
 .summary {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 8px; /* הקטנה מ-var(--spacing-lg) */
 }
 
 .summaryRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-sm);
+  margin-bottom: 4px; /* הקטנה משמעותית */
+  font-size: var(--font-size-xs);
 }
 
 .summaryLabel {
-  font-size: var(--font-size-base);
+  font-size: 0.6875rem; /* 11px */
   font-weight: var(--font-weight-medium);
   color: var(--color-text-tertiary);
 }
 
 .summaryValue {
-  font-size: var(--font-size-2xl);
+  font-size: 1.5rem; /* הקטנה מ-1.5rem */
   font-weight: var(--font-weight-bold);
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%, 100% {
-    filter: brightness(1);
-  }
-  50% {
-    filter: brightness(1.2);
-  }
 }
 
 .summaryNote {
@@ -235,19 +225,19 @@
   margin: 0;
 }
 
-/* Phase 4.1: הודעה על אין פריטים נבחרים */
+/* הודעה על אין פריטים נבחרים */
 .noSelectionNote {
-  font-size: var(--font-size-xs);
+  font-size: 0.6875rem; /* 11px */
   color: var(--brand-primary);
   margin: 0;
   font-weight: var(--font-weight-medium);
 }
 
-/* כפתורי פעולה מודרניים */
+/* כפתורי פעולה - רק כפתור אחד וקטן */
 .actions {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 6px; /* הקטנה משמעותית */
 }
 
 .checkoutButton {
