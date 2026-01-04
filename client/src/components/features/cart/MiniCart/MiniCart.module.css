@@ -26,13 +26,13 @@
   }
 }
 
-/* המגירה המודרנית - עיצוב זהה ל-MobileMenu */
+/* המגירה המודרנית - קומפקטי בצד שמאל */
 .drawer {
   position: fixed;
   top: 0;
-  right: 0;
+  left: 0; /* 🔄 שונה מימין לשמאל */
   bottom: 0;
-  width: min(100vw, 420px); /* רוחב מקסימלי 420px או כל המסך אם קטן יותר */
+  width: min(100vw, 320px); /* 📏 הקטנה מ-420px ל-320px */
   background: var(--color-bg-primary);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
@@ -42,11 +42,11 @@
   flex-direction: column;
   direction: rtl;
   overflow: hidden;
-  /* אנימציית כניסה מימין */
-  animation: slideInFromRight var(--transition-normal) ease-out forwards;
+  /* אנימציית כניסה משמאל */
+  animation: slideInFromLeft var(--transition-normal) ease-out forwards;
 }
 
-@keyframes slideInFromRight {
+@keyframes slideInFromLeft {
   from {
     transform: translateX(-100%);
   }
