@@ -211,8 +211,7 @@
 }
 
 .summaryValue {
-  font-size: 1.5rem; /* הקטנה מ-1.5rem */
-  font-weight: var(--font-weight-bold);
+  font-size: 1.125rem; /* מוקטן ל-1.125rem עבור subtotal קומפקטי */
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   background-clip: text;
@@ -314,9 +313,9 @@
 
 /* Desktop-only: shrink header thickness (25% of original) and smaller title */
 @media (min-width: 1024px) {
-  /* הגבלת גובה ל-~חצי ממה שהיה (85vh -> ~42vh) */
+  /* הגבלת גובה מעודכנת: מעט גדול יותר מה־42vh - עכשיו 55vh */
   .drawer {
-    max-height: 42vh; /* מקטין משמעותית את הגובה על שולחנות עבודה */
+    max-height: 55vh; /* הגברת גובה קלילה עבור חווית צפייה טובה יותר */
   }
 
   .drawer .header {
