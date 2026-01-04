@@ -683,8 +683,21 @@
     display: none;
   }
 
+  /* אם זה compact בתוך MiniCart - גם אז נסיר את בורר דסקטופ במובייל */
+  .cartItem.compact .quantityDesktop {
+    display: none;
+  }
+
   /* הצגת בורר כמות מובייל */
   .quantityMobile {
+    display: flex;
+    margin-top: 0.5rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* ודא שגם במצב compact בורר מובייל יוצג */
+  .cartItem.compact .quantityMobile {
     display: flex;
     margin-top: 0.5rem;
     justify-content: center;
