@@ -33,6 +33,7 @@
   left: 0; /* 🔄 שונה מימין לשמאל */
   bottom: 0;
   width: min(100vw, 320px); /* 📏 הקטנה מ-420px ל-320px */
+  max-height: 85vh; /* 📐 הגבלת גובה - לא full screen */
   background: var(--color-bg-primary);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);

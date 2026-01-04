@@ -192,6 +192,7 @@ const MiniCart = () => {
                   onToggleSelection={handleToggleSelection}
                   isUpdating={!!item._id && updatingIds.includes(item._id)}
                   updateError={item._id ? updatingErrors[item._id] || null : null}
+                  compact={true} 
                 />
               ))}
             </div>

@@ -23,6 +23,7 @@ interface CartItemProps {
   isUpdating?: boolean;                         // האם בתהליך עדכון
   updateError?: string | null;                  // הודעת שגיאה מקומית לפריט (לכמה שניות)
   showSelection?: boolean;                      // Phase 4.1: האם להציג checkbox לבחירה
+  compact?: boolean;                            // 📏 מצב קומפקטי ל-MiniCart - גופנים קטנים, תמונה קטנה
 }
 
 /**
@@ -37,6 +38,7 @@ const CartItem = ({
   isUpdating = false,
   updateError = null,
   showSelection = true,
+  compact = false, // 📏 מצב קומפקטי - ל-MiniCart
 }: CartItemProps) => {
   // קבלת אימייל המשתמש המחובר לשימוש בכפתור התראת מלאי
   const user = useAppSelector((state) => state.auth.user);
@@ -229,7 +231,7 @@ const CartItem = ({
 
   return (
     <div
-      className={`${styles.cartItem} ${isRemoving ? styles.removing : ''} ${isOutOfStock ? styles.outOfStock : ''} ${needsQuantityAdjustment ? styles.needsAdjustment : ''} ${!item.isSelected ? styles.notSelected : ''}`}
+      className={`${styles.cartItem} ${compact ? styles.compact : ''} ${isRemoving ? styles.removing : ''} ${isOutOfStock ? styles.outOfStock : ''} ${needsQuantityAdjustment ? styles.needsAdjustment : ''} ${!item.isSelected ? styles.notSelected : ''}`}
       style={{ direction: 'ltr' }}
     >
       {/* Phase 4.1: Checkbox לבחירת פריט לרכישה */}
