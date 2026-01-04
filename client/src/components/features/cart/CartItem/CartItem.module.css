@@ -236,10 +236,10 @@
 
   /* כפתורי ± קטנים מאוד כדי להתאים למקום */
   .cartItem.compact .quantitySelector .button {
-    width: 10px;
-    height: 10px;
+    width: 5px;
+    height: 5px;
     margin: 0;
-    font-weight: 700;
+    font-weight: 400;
     padding: 0;
   }
 
