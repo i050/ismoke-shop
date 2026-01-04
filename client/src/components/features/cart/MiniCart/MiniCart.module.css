@@ -324,7 +324,12 @@
   .drawer .title {
     font-size: 0.875rem; /* כותרת קטנה יותר במיני-סל Desktop */
   }
-}
+
+  /* Desktop-only: make subtotal (summary value) much smaller for compact preview */
+  .drawer .summaryValue {
+    font-size: 0.75rem; /* הרבה יותר קטן על Desktop */
+  }
+} 
 
 /* גלילה מותאמת מודרנית */
 .content::-webkit-scrollbar {

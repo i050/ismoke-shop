@@ -226,30 +226,33 @@
 }
 
 /* Compact-specific overrides for QuantitySelector inside MiniCart - further reduced */
-.cartItem.compact .quantitySelector {
-  height: 24px; /* עוד הקטנה */
-  border-radius: 6px;
-}
+@media (min-width: 1024px) {
+  /* Apply additional shrinking only on Desktop for extreme compactness */
+  .cartItem.compact .quantitySelector {
+    height: 20px; /* עוד הקטנה עבור Desktop */
+    border-radius: 6px;
+  }
 
-.cartItem.compact .quantitySelector .button {
-  width: 18px;
-  height: 18px;
-  margin: 1px;
-  font-weight: 700;
-}
+  .cartItem.compact .quantitySelector .button {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    font-weight: 700;
+  }
 
-.cartItem.compact .quantitySelector .icon {
-  font-size: 0.85em;
-}
+  .cartItem.compact .quantitySelector .icon {
+    font-size: 0.75em;
+  }
 
-.cartItem.compact .quantitySelector .input {
-  min-width: 28px;
-  padding: 0 4px;
-  font-size: 0.65rem; /* כעת ~10.4px */
-}
+  .cartItem.compact .quantitySelector .input {
+    min-width: 24px;
+    padding: 0 4px;
+    font-size: 0.6rem; /* קטן מאוד ל-Desktop compact */
+  }
 
-.cartItem.compact .quantityWrapper {
-  gap: 4px;
+  .cartItem.compact .quantityWrapper {
+    gap: 4px;
+  }
 }
 
 /* Ensure visual alignment in compact mode */
