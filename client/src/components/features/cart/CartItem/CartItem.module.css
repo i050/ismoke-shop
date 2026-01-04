@@ -236,8 +236,8 @@
 
   /* כפתורי ± קטנים מאוד כדי להתאים למקום */
   .cartItem.compact .quantitySelector .button {
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
     margin: 0;
     font-weight: 700;
     padding: 0;
