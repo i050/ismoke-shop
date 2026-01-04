@@ -109,15 +109,13 @@ export const fetchCart = createAsyncThunk(
     try {
       const cart = await cartService.getCart();
       
-      // Phase 5.0: אם מוצר אזל מהמלאי, הפוך אותו ל-not selected
+      // כל הפריטים תמיד נבחרים - הלקוח קונה את כל העגלה
+      // פריטים שאזלו מהמלאי עדיין יוצגו בעגלה עם התראה מתאימה
       if (cart && cart.items) {
-        cart.items = cart.items.map(item => {
-          const availableStock = (item as any).availableStock ?? 0;
-          if (availableStock === 0) {
-            return { ...item, isSelected: false };
-          }
-          return item;
-        });
+        cart.items = cart.items.map(item => ({
+          ...item,
+          isSelected: true
+        }));
       }
       
       // שמירה גם ב-localStorage לגיבוי
@@ -372,10 +370,8 @@ const cartSlice = createSlice({
     },
     /**
      * עדכון מלאי זמין לפריט ספציפי - משמש לשמירה על המלאי העדכני לאחר בדיקה מהשרת
-     */
-    /**
-     * עדכון כמות הזמינה במלאי לפריט ספציפי
-     * Phase 5.0: אם מלאי הפך ל-0, כנסה את isSelected ל-false
+     * הפריט נשאר תמיד isSelected: true - הלקוח קונה את כל העגלה
+     * פריטים חסרי מלאי יוצגו עם התראה ולא יאפשרו checkout
      */
     setItemAvailableStock: (state, action: PayloadAction<{ itemId: string; availableStock: number }>) => {
       if (!state.cart) return;
@@ -383,11 +379,7 @@ const cartSlice = createSlice({
       const item = state.cart.items.find(i => i._id === itemId);
       if (!item) return;
       item.availableStock = availableStock;
-      
-      // אם המוצר אזל מהמלאי (availableStock = 0), הפוך אותו ל-not selected
-      if (availableStock === 0) {
-        item.isSelected = false;
-      }
+      // isSelected נשאר true - לא משנים אותו
     },
     /**
      * הצבת הודעת שגיאה עבור פריט ספציפי (נמשכת לזמן קצר)
@@ -412,45 +404,8 @@ const cartSlice = createSlice({
       state.transientErrors = (state.transientErrors || []).filter(e => e.id !== action.payload);
     },
     
-    // ======================================
-    // Phase 4.1: בחירה סלקטיבית של פריטים
-    // ======================================
-    
-    /**
-     * החלפת מצב הבחירה של פריט ספציפי (נבחר/לא נבחר)
-     */
-    toggleItemSelection: (state, action: PayloadAction<string>) => {
-      if (!state.cart) return;
-      const item = state.cart.items.find(i => i._id === action.payload);
-      if (item) {
-        item.isSelected = !item.isSelected;
-      }
-    },
-    
-    /**
-     * בחירת כל הפריטים בסל (פרט לפריטים שאזלו מהמלאי)
-     * Phase 5.0: דלג על items עם availableStock === 0
-     */
-    selectAllItems: (state) => {
-      if (!state.cart) return;
-      state.cart.items.forEach(item => {
-        // בחר רק פריטים שיש להם מלאי (availableStock > 0)
-        const availableStock = (item as any).availableStock ?? 0;
-        if (availableStock > 0) {
-          item.isSelected = true;
-        }
-      });
-    },
-    
-    /**
-     * ביטול בחירת כל הפריטים בסל
-     */
-    deselectAllItems: (state) => {
-      if (!state.cart) return;
-      state.cart.items.forEach(item => {
-        item.isSelected = false;
-      });
-    },
+    // הוסר: toggleItemSelection, selectAllItems, deselectAllItems
+    // הלקוח קונה את כל העגלה - אין בחירה סלקטיבית
   },
   
   // ExtraReducers - לטיפול בתוצאות של async thunks
@@ -464,12 +419,12 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Phase 4.1: הוספת isSelected = true לכל פריט שלא נקבע לו ערך קודם
+        // כל הפריטים תמיד נבחרים - הלקוח קונה את כל העגלה
         const cart = action.payload;
         if (cart?.items) {
           cart.items = cart.items.map(item => ({
             ...item,
-            isSelected: item.isSelected ?? true
+            isSelected: true
           }));
         }
         state.cart = cart;
@@ -667,6 +622,7 @@ const cartSlice = createSlice({
 });
 
 // ייצוא ה-actions (הפעולות הסינכרוניות)
+// הוסר: toggleItemSelection, selectAllItems, deselectAllItems - הלקוח קונה את כל העגלה
 export const {
   openMiniCart,
   closeMiniCart,
@@ -680,10 +636,6 @@ export const {
   addTransientError,
   clearTransientError,
   setItemAvailableStock,
-  // Phase 4.1: בחירה סלקטיבית של פריטים
-  toggleItemSelection,
-  selectAllItems,
-  deselectAllItems,
 } = cartSlice.actions;
 
 // ייצוא ה-reducer (לשימוש ב-store)

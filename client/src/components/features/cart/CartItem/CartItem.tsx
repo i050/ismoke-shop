@@ -15,14 +15,13 @@ import { getColorNameHebrew } from '../../../../utils/colorUtils';
 import { isHexColor } from '../../../../utils/colorConstants';
 
 // ממשק Props של הקומפוננטה
+// הוסר: onToggleSelection, showSelection - לקוח קונה את כל העגלה
 interface CartItemProps {
   item: CartItemType;                           // פרטי הפריט
   onUpdateQuantity: (itemId: string, quantity: number) => void; // עדכון כמות
   onRemove: (itemId: string) => void;           // הסרת פריט
-  onToggleSelection?: (itemId: string) => void; // Phase 4.1: החלפת בחירה
   isUpdating?: boolean;                         // האם בתהליך עדכון
   updateError?: string | null;                  // הודעת שגיאה מקומית לפריט (לכמה שניות)
-  showSelection?: boolean;                      // Phase 4.1: האם להציג checkbox לבחירה
   compact?: boolean;                            // 📏 מצב קומפקטי ל-MiniCart - גופנים קטנים, תמונה קטנה
 }
 
@@ -34,10 +33,8 @@ const CartItem = ({
   item,
   onUpdateQuantity,
   onRemove,
-  onToggleSelection,
   isUpdating = false,
   updateError = null,
-  showSelection = true,
   compact = false, // 📏 מצב קומפקטי - ל-MiniCart
 }: CartItemProps) => {
   // קבלת אימייל המשתמש המחובר לשימוש בכפתור התראת מלאי
@@ -231,28 +228,9 @@ const CartItem = ({
 
   return (
     <div
-      className={`${styles.cartItem} ${compact ? styles.compact : ''} ${isRemoving ? styles.removing : ''} ${isOutOfStock ? styles.outOfStock : ''} ${needsQuantityAdjustment ? styles.needsAdjustment : ''} ${!item.isSelected ? styles.notSelected : ''}`}
+      className={`${styles.cartItem} ${compact ? styles.compact : ''} ${isRemoving ? styles.removing : ''} ${isOutOfStock ? styles.outOfStock : ''} ${needsQuantityAdjustment ? styles.needsAdjustment : ''}`}
       style={{ direction: 'ltr' }}
     >
-      {/* Phase 4.1: Checkbox לבחירת פריט לרכישה */}
-      {/* Phase 5.0: Checkbox מנוטרל אם המוצר אזל מהמלאי */}
-      {showSelection && (
-        <div className={styles.selectionCheckbox}>
-          <input
-            type="checkbox"
-            id={`select-item-${item._id}`}
-            checked={item.isSelected && !isOutOfStock}
-            onChange={() => !isOutOfStock && item._id && onToggleSelection?.(item._id)}
-            disabled={isOutOfStock}
-            className={`${styles.checkbox} ${isOutOfStock ? styles.checkboxDisabled : ''}`}
-            aria-label={`${isOutOfStock ? 'לא זמין - ' : ''}בחר ${item.name} לרכישה`}
-          />
-          <label htmlFor={`select-item-${item._id}`} className={styles.checkboxLabel}>
-            <Icon name="Check" size={14} className={styles.checkIcon} />
-          </label>
-        </div>
-      )}
-      
       {/* תמונת המוצר */}
       <div className={styles.imageContainer}>
         <img

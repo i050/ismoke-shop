@@ -1,6 +1,6 @@
 // CartPage - עמוד סל הקניות המלא
 // מציג את כל הפריטים בסל, סיכום מחירים וכפתור מעבר לתשלום
-// Phase 4.1: תמיכה בבחירה סלקטיבית של פריטים לרכישה
+// הלקוח קונה את כל העגלה - אין בחירה סלקטיבית של פריטים
 // Phase 6.0: תמיכה בהנחת סף (Threshold Discount)
 
 import { useEffect, useState } from 'react';
@@ -15,14 +15,10 @@ import {
   selectCartTotal,
   selectIsFreeShipping,
   selectAmountToFreeShipping,
-  // Phase 4.1: actions ו-selectors לבחירה סלקטיבית
-  toggleItemSelection,
-  selectAllItems,
-  deselectAllItems,
+  // Selectors לפריטים - כל הפריטים תמיד נבחרים
   selectSelectedItemsCount,
   selectSelectedSubtotal,
   selectSelectedTotal,
-  selectIsAllSelected,
   selectHasSelectedItems,
   selectSelectedIsFreeShipping,
   selectSelectedAmountToFreeShipping,
@@ -58,11 +54,10 @@ const CartPage = () => {
   const transientErrors = useAppSelector((state) => state.cart.transientErrors || []);
   const fatalError = useAppSelector((state) => state.cart.fatalError);
 
-  // Phase 4.1: נתונים לפריטים נבחרים
+  // נתונים לפריטים - כל הפריטים נבחרים תמיד
   const selectedItemsCount = useAppSelector(selectSelectedItemsCount);
   const selectedSubtotal = useAppSelector(selectSelectedSubtotal);
   const selectedTotal = useAppSelector(selectSelectedTotal);
-  const isAllSelected = useAppSelector(selectIsAllSelected);
   const hasSelectedItems = useAppSelector(selectHasSelectedItems);
   const selectedIsFreeShipping = useAppSelector(selectSelectedIsFreeShipping);
   const selectedAmountToFreeShipping = useAppSelector(selectSelectedAmountToFreeShipping);
@@ -86,6 +81,7 @@ const CartPage = () => {
     minimumAmount: number;
     discountPercentage: number;
   } | null>(null);
+
 
   // חישוב הנחת סף אם פעילה
   const thresholdDiscountAmount = thresholdDiscount?.enabled && selectedSubtotal >= thresholdDiscount.minimumAmount
@@ -129,20 +125,6 @@ const CartPage = () => {
   // פונקציה להסרת פריט
   const handleRemoveItem = (itemId: string) => {
     dispatch(removeItemFromCart(itemId));
-  };
-
-  // Phase 4.1: פונקציה להחלפת מצב בחירה של פריט
-  const handleToggleSelection = (itemId: string) => {
-    dispatch(toggleItemSelection(itemId));
-  };
-
-  // Phase 4.1: פונקציה לבחירת/ביטול בחירת כל הפריטים
-  const handleToggleSelectAll = () => {
-    if (isAllSelected) {
-      dispatch(deselectAllItems());
-    } else {
-      dispatch(selectAllItems());
-    }
   };
 
   // פונקציה לניקוי הסל
@@ -265,26 +247,6 @@ const CartPage = () => {
             </div>
           )}
 
-          {/* Phase 4.1: שורת בחירת כל הפריטים */}
-          <div className={styles.selectAllRow}>
-            <label className={styles.selectAllLabel}>
-              <input
-                type="checkbox"
-                checked={isAllSelected}
-                onChange={handleToggleSelectAll}
-                className={styles.selectAllCheckbox}
-              />
-              <span className={styles.selectAllText}>
-                {isAllSelected ? 'בטל בחירת הכל' : 'בחר הכל'}
-              </span>
-            </label>
-            <span className={styles.selectedCount}>
-              {selectedItemsCount > 0 
-                ? `נבחרו ${selectedItemsCount} פריטים`
-                : 'לא נבחרו פריטים'}
-            </span>
-          </div>
-
           {/* רשימת הפריטים */}
           <div className={styles.itemsList}>
             {items.map((item: CartItemType) => (
@@ -293,7 +255,6 @@ const CartPage = () => {
                 item={item}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemove={handleRemoveItem}
-                onToggleSelection={handleToggleSelection}
                 isUpdating={!!item._id && updatingIds.includes(item._id)}
                 updateError={item._id ? updatingErrors[item._id] || null : null}
               />
@@ -318,15 +279,7 @@ const CartPage = () => {
           <div className={styles.summaryCard}>
             <h2 className={styles.summaryTitle}>סיכום הזמנה</h2>
 
-            {/* Phase 4.1: הודעה על פריטים נבחרים */}
-            {!hasSelectedItems && (
-              <div className={styles.noSelectionWarning}>
-                <Icon name="Info" size={18} />
-                <span>בחר לפחות פריט אחד כדי להמשיך לתשלום</span>
-              </div>
-            )}
-
-            {/* Phase 4.1: פירוט מחירים - מחושב לפי פריטים נבחרים בלבד */}
+            {/* פירוט מחירים */}
             <div className={styles.summaryDetails}>
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>סה"כ ביניים ({selectedItemsCount} פריטים):</span>
@@ -338,10 +291,8 @@ const CartPage = () => {
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>משלוח:</span>
                 <span className={styles.summaryValue}>
-                  {selectedIsFreeShipping && hasSelectedItems ? (
+                  {selectedIsFreeShipping ? (
                     <span className={styles.freeShippingLabel}><Icon name="Gem" size={16} /> חינם</span>
-                  ) : !hasSelectedItems ? (
-                    <span>-</span>
                   ) : (
                     `₪${cart.shippingCost.toFixed(2)}`
                   )}
@@ -415,17 +366,16 @@ const CartPage = () => {
               </div>
             )}
 
-            {/* כפתור מעבר לתשלום - Phase 4.1: מוגבל גם לבדיקת פריטים נבחרים */}
+            {/* כפתור מעבר לתשלום */}
             <Button
               variant="primary"
               size="lg"
               onClick={handleCheckout}
-              disabled={isLoading || hasOutOfStockItems || hasAdjustmentNeeded || !hasSelectedItems}
+              disabled={isLoading || hasOutOfStockItems || hasAdjustmentNeeded}
               className={styles.checkoutButton}
             >
               {hasOutOfStockItems ? 'יש פריטים חסרי מלאי' : 
                hasAdjustmentNeeded ? 'יש להתאים כמויות' :
-               !hasSelectedItems ? 'בחר פריטים לרכישה' :
                `המשך לתשלום (${selectedItemsCount})`}
             </Button>
 

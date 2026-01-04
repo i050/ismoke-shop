@@ -1,6 +1,6 @@
 // MiniCart - מגירה הזזה עם סיכום סל הקניות
 // מציגה את הפריטים האחרונים בסל וכפתורי פעולה
-// Phase 4.1: תמיכה בבחירה סלקטיבית של פריטים לרכישה
+// הלקוח קונה את כל העגלה - אין בחירה סלקטיבית
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,11 +11,9 @@ import {
   removeItemFromCart,
   updateItemQuantityOptimistic,
   clearTransientError,
-  // Phase 4.1: actions ו-selectors לבחירה סלקטיבית
-  toggleItemSelection,
+  // Selectors לסיכום העגלה - כל הפריטים תמיד נבחרים
   selectSelectedItemsCount,
   selectSelectedSubtotal,
-  selectHasSelectedItems,
 } from '../../../../store/slices/cartSlice';
 import CartItem from '../CartItem';
 import { Button } from '../../../ui/Button';
@@ -25,7 +23,7 @@ import styles from './MiniCart.module.css';
 /**
  * קומפוננטת MiniCart
  * מגירה הזזה המציגה סיכום מהיר של סל הקניות
- * Phase 4.1: תומך בבחירה סלקטיבית של פריטים לרכישה
+ * הלקוח קונה את כל העגלה - אין בחירה סלקטיבית
  */
 const MiniCart = () => {
   const dispatch = useAppDispatch();
@@ -40,10 +38,9 @@ const MiniCart = () => {
   const transientErrors = useAppSelector((state) => state.cart.transientErrors || []);
   const itemsCount = useAppSelector(selectCartItemsCount);
   
-  // Phase 4.1: נתונים לפריטים נבחרים
+  // נתונים לסיכום העגלה - כל הפריטים תמיד נבחרים
   const selectedItemsCount = useAppSelector(selectSelectedItemsCount);
   const selectedSubtotal = useAppSelector(selectSelectedSubtotal);
-  const hasSelectedItems = useAppSelector(selectHasSelectedItems);
 
   // סגירת המגירה בלחיצה על Escape
   useEffect(() => {
@@ -96,11 +93,6 @@ const MiniCart = () => {
   // פונקציה להסרת פריט
   const handleRemoveItem = (itemId: string) => {
     dispatch(removeItemFromCart(itemId));
-  };
-
-  // Phase 4.1: פונקציה להחלפת מצב בחירה של פריט
-  const handleToggleSelection = (itemId: string) => {
-    dispatch(toggleItemSelection(itemId));
   };
 
   // אם לא פתוח - לא מציג כלום
@@ -189,7 +181,6 @@ const MiniCart = () => {
                   item={item}
                   onUpdateQuantity={handleUpdateQuantity}
                   onRemove={handleRemoveItem}
-                  onToggleSelection={handleToggleSelection}
                   isUpdating={!!item._id && updatingIds.includes(item._id)}
                   updateError={item._id ? updatingErrors[item._id] || null : null}
                   compact={true} 
@@ -202,7 +193,7 @@ const MiniCart = () => {
         {/* תחתית עם סיכום ופעולות */}
         {!isEmpty && (
           <div className={styles.footer}>
-            {/* Phase 4.1: סיכום מחיר - מבוסס על פריטים נבחרים בלבד */}
+            {/* סיכום מחיר - כל הפריטים בעגלה */}
             <div className={styles.summary}>
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>
@@ -212,16 +203,9 @@ const MiniCart = () => {
                   ₪{selectedSubtotal.toFixed(2)}
                 </span>
               </div>
-              {!hasSelectedItems && (
-                <p className={styles.noSelectionNote}>
-                  בחר לפחות פריט אחד לתשלום
-                </p>
-              )}
-              {hasSelectedItems && (
-                <p className={styles.summaryNote}>
-                  משלוח ומיסים יחושבו בתשלום
-                </p>
-              )}
+              <p className={styles.summaryNote}>
+                משלוח ומיסים יחושבו בתשלום
+              </p>
             </div>
 
             {/* כפתורי פעולה - רק צפיה בסל המלא */}
