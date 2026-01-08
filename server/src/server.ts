@@ -1,7 +1,13 @@
 // Load environment variables FIRST - before any imports that use them
+// In production (Railway), environment variables are injected automatically
+// In development, load from .env file
 import dotenv from 'dotenv';
-dotenv.config();
-console.log('✅ dotenv loaded');
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+  console.log('✅ dotenv loaded from .env file');
+} else {
+  console.log('✅ Using environment variables from hosting platform');
+}
 
 import express from 'express';
 import cors from 'cors';
