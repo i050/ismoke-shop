@@ -79,6 +79,7 @@ export interface Product {// זה הטייפ של מוצר
     };
   }>;
   skus?: Sku[]; // Phase 3.4: SKUs מה-SKU Collection (חדש)
+  secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine וכו') - null = רק צבעים
   pricing?: PricingData; // נתוני מחיר מותאמים אישית (מהשרת החדש)
   createdAt: Date;
   updatedAt: Date;

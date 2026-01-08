@@ -127,7 +127,7 @@
 }
 
 .compactMode.variantActive {
-  border-color: var(--variant-color, var(--brand-primary)) !important;
+  border-color: #1a1a1a !important;
   border-width: 2px !important;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
@@ -182,6 +182,62 @@
   background-color: var(--color-bg-elevated);
   color: var(--color-text-primary);
   font-size: 0.875rem;
+}
+
+/* 🆕 אזור תת-וריאנט (resistance/size/nicotine) */
+.secondaryVariantSection {
+  margin-top: var(--spacing-4, 16px);
+  padding-top: var(--spacing-4, 16px);
+  border-top: 1px solid var(--border-light);
+}
+
+.secondaryVariantTitle {
+  margin-bottom: var(--spacing-2, 8px);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.secondaryVariantOptions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.secondaryVariantButton {
+  padding: 8px 16px;
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.secondaryVariantButton:hover {
+  border-color: var(--brand-primary);
+  background: var(--color-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.secondaryVariantButton:active {
+  transform: translateY(0);
+}
+
+.secondaryVariantActive {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: white;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.secondaryVariantActive:hover {
+  background: var(--brand-primary-dark, var(--brand-primary));
+  border-color: var(--brand-primary-dark, var(--brand-primary));
 }
 
 /* Responsive Design */

@@ -466,6 +466,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
                 selectedSku={selectedSku}
                 onSkuChange={handleSkuChange}
                 showColorPreview={true}
+                secondaryVariantAttribute={product.secondaryVariantAttribute}
               />
             </div>
           )}

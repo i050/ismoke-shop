@@ -156,10 +156,19 @@ async function buildDynamicAttributesSchema(): Promise<Joi.ObjectSchema> {
 
     console.log(`📊 נמצאו ${attributes.length} מאפיינים דינמיים`);
 
-    // אם אין מאפיינים - החזר אובייקט ריק שדוחה הכל (unknown: false)
+    // 🆕 אם אין מאפיינים - מאפשר כל ערך (לתמיכה ב-secondaryVariantAttribute דינמי)
     if (attributes.length === 0) {
-      console.log('⚠️ לא נמצאו מאפיינים דינמיים - attributes יהיה אובייקט ריק בלבד');
-      return Joi.object({}).unknown(false).optional();
+      console.log('⚠️ לא נמצאו מאפיינים דינמיים - מאפשר כל attributes');
+      return Joi.object()
+        .pattern(
+          Joi.string(), // מפתח: כל מחרוזת
+          Joi.alternatives().try(
+            Joi.string().max(100).allow('', null),
+            Joi.number()
+          )
+        )
+        .unknown(true) // 🆕 מאפשר כל מפתח
+        .optional();
     }
 
     // בניית מפה של Validators
@@ -176,9 +185,9 @@ async function buildDynamicAttributesSchema(): Promise<Joi.ObjectSchema> {
     });
 
     // יצירת אובייקט Joi סופי
-    // unknown(false) = דחיית שדות שלא הוגדרו (Security)
+    // 🆕 unknown(true) = מאפשר גם מפתחות שלא הוגדרו (לתמיכה ב-secondaryVariantAttribute דינמי)
     const finalSchema = Joi.object(schemaMap)
-      .unknown(false)
+      .unknown(true) // 🆕 שונה מ-false ל-true כדי לאפשר attributes דינמיים
       .optional() // attributes עצמו אופציונלי (SKU יכול להיות בלי attributes בכלל)
       .messages({
         'object.unknown': 'שדה "{#label}" אינו מוכר במערכת המאפיינים',

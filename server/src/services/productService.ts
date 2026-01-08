@@ -506,11 +506,18 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
   const skip = (currentPage - 1) * size;
 
   // 🚀 Performance: שימוש ב-cache לספירת כל המוצרים + שאילתות במקביל
-  const [total, filtered, data] = await Promise.all([
+  const [total, filtered, rawData] = await Promise.all([
     getTotalProductsCount(), // cache עם TTL של 5 דקות
     Product.countDocuments(filter),
     Product.find(filter).sort(sortObj).skip(skip).limit(size).lean(),
   ]);
+
+  // 🆕 העשרת מוצרים עם שדות חדשים שאולי לא קיימים במוצרים ישנים
+  const data = rawData.map((product: any) => ({
+    ...product,
+    // וודא ששדה secondaryVariantAttribute קיים (עבור מוצרים שנוצרו לפני הוספת השדה)
+    secondaryVariantAttribute: product.secondaryVariantAttribute ?? null,
+  }));
 
   const totalPages = Math.max(1, Math.ceil(filtered / size)); // מספר העמודים הכולל
 
@@ -861,6 +868,17 @@ export const createProductWithSkus = async (
       productId: product._id
     }));
 
+    // 🔍 DEBUG: הדפסת כל ה-SKUs כולל attributes לפני השמירה
+    console.log('🔍 [createProductWithSkus] SKUs before insertMany:');
+    skusWithProductId.forEach((sku, index) => {
+      console.log(`  SKU ${index + 1}:`, {
+        sku: sku.sku,
+        color: sku.color,
+        attributes: JSON.stringify(sku.attributes),
+        stockQuantity: sku.stockQuantity,
+      });
+    });
+
     const createdSkus = await Sku.insertMany(skusWithProductId, { session });
 
     // שלב 3: Commit - הכל עבר בהצלחה!
@@ -925,15 +943,6 @@ export const updateProductWithSkus = async (
   productData: Partial<IProduct>,
   skusData: Partial<ISku>[]
 ): Promise<{ product: IProduct; skus: ISku[] }> => {
-  console.log('🔧 [updateProductWithSkus] Called with:', {
-    productId,
-    productDataKeys: Object.keys(productData),
-    specifications: productData.specifications, // 🔍 DEBUG
-    skusCount: skusData.length,
-    firstSku: skusData[0],
-    allSkus: JSON.stringify(skusData, null, 2)
-  });
-
   // Pre-validation: בדיקת duplicates (מלבד SKUs של מוצר זה)
   const skuCodes = skusData.map((s) => s.sku || '').filter(Boolean);
   if (skuCodes.length > 0) {

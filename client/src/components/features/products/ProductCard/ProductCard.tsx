@@ -382,6 +382,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 selectedSku={selectedSku}
                 onSkuChange={handleSkuChange}
                 compactMode={true}
+                secondaryVariantAttribute={product.secondaryVariantAttribute}
               />
             </div>
           )}

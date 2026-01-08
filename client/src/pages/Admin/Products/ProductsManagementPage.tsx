@@ -163,43 +163,29 @@ const ProductsManagementPage: React.FC = () => {
 
   // פונקציה זמנית להוספת מוצר (Phase 5)
   const handleAddProduct = () => {
-    console.log('🆕 פתיחת טופס יצירת מוצר חדש');
     dispatch(setModeCreate());
   };
 
   // Phase 6.2: טיפול בשמירת מוצר (create or update)
   const handleProductSubmit = async (data: ProductFormData) => {
-    console.log('💾 שמירת מוצר:', data);
-    console.log('💾 SKUs count:', data.skus?.length);
-    console.log('💾 First SKU:', data.skus?.[0]);
-    console.log('💾 First SKU images:', data.skus?.[0]?.images);
-    
     try {
       if (mode === 'create') {
-        console.log('➕ יצירת מוצר חדש...');
         await dispatch(createProduct(data)).unwrap();
-        console.log('✅ מוצר נוצר בהצלחה');
       } else if (mode === 'edit' && editingProduct) {
-        console.log('✏️ עדכון מוצר קיים...');
         // שמירת ה-ID לפני שהוא נמחק
         const productId = editingProduct._id;
-        console.log('📤 Sending to Redux - Product ID:', productId);
-        console.log('📤 Sending to Redux - Data:', JSON.stringify(data, null, 2));
         await dispatch(updateProduct({ productId, productData: data })).unwrap();
-        console.log('✅ מוצר עודכן בהצלחה');
       }
       
       // חזרה לרשימה אחרי שהטופס סיים בהצלחה
       dispatch(setModeList());
     } catch (error) {
-      console.error('❌ שגיאה בשמירת מוצר:', error);
       throw error; // ProductForm יטפל בזה
     }
   };
 
   // Phase 6: ביטול טופס
   const handleProductCancel = () => {
-    console.log('❌ ביטול טופס מוצר');
     dispatch(setModeList());
   };
 
@@ -294,17 +280,14 @@ const ProductsManagementPage: React.FC = () => {
     try {
       // 🔧 FIX: טוען את המוצר עם SKUs מה-API במקום מהרשימה
       const productWithSkus = await ProductService.getProductById(productId);
-      console.log('📦 מוצר נטען עם SKUs:', productWithSkus);
       dispatch(setModeEdit(productWithSkus));
     } catch (error) {
-      console.error('❌ שגיאה בטעינת מוצר:', error);
       showToast('error', 'שגיאה בטעינת המוצר');
     }
   };
 
   // טיפול במחיקת מוצר - Phase 4.7.1
   const handleDeleteProduct = async (productId: string) => {
-    console.log('🗑️ מחיקת מוצר:', productId);
     const product = products.find((p) => p._id === productId);
     
     if (!product) {
@@ -327,7 +310,6 @@ const ProductsManagementPage: React.FC = () => {
         await dispatch(deleteProduct(productId)).unwrap();
         
         // הצלחה - הודעה ידידותית
-        console.log('✅ מוצר נמחק בהצלחה');
         showToast('success', `המוצר "${product.name}" הועבר לפח האשפה`);
         
         // טעינה מחדש של הרשימה (כדי לעדכן מונים ומצב)

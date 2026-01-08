@@ -5,8 +5,17 @@ import { IProduct } from '../models/Product';
 import mongoose from 'mongoose';
 
 // פונקציית עזר להמרת מסמך מוצר לאובייקט שטוח
-const toPlainProduct = (product: any) =>
-  product && typeof product.toObject === 'function' ? product.toObject() : product;
+// 🆕 מוסיפה ברירות מחדל לשדות חדשים שאולי לא קיימים במוצרים ישנים
+const toPlainProduct = (product: any) => {
+  const plain = product && typeof product.toObject === 'function' ? product.toObject() : product;
+  if (plain) {
+    // 🆕 וודא ששדה secondaryVariantAttribute קיים (עבור מוצרים שנוצרו לפני הוספת השדה)
+    if (!('secondaryVariantAttribute' in plain)) {
+      plain.secondaryVariantAttribute = null;
+    }
+  }
+  return plain;
+};
 
 // פונקציית עזר ליצירת מידע מחיר ברירת מחדל
 const buildDefaultPricing = (product: any) => ({
@@ -403,7 +412,7 @@ export const updateProductWithSkus = async (req: Request, res: Response) => {
     skusData?.forEach((sku: any, index: number) => {
       console.log(`  ${index + 1}. ${sku.sku}:`);
       console.log(`     color: ${sku.color || 'לא מוגדר'}`);
-      console.log(`     size: ${sku.attributes?.size || 'לא מוגדר'}`);
+      console.log(`     attributes:`, JSON.stringify(sku.attributes));
     });
 
     // וולידציה
@@ -422,7 +431,7 @@ export const updateProductWithSkus = async (req: Request, res: Response) => {
     result.skus?.forEach((sku: any, index: number) => {
       console.log(`  ${index + 1}. ${sku.sku}:`);
       console.log(`     color: ${sku.color || 'לא מוגדר'}`);
-      console.log(`     size: ${sku.attributes?.size || 'לא מוגדר'}`);
+      console.log(`     attributes:`, JSON.stringify(sku.attributes));
     });
 
     res.json({

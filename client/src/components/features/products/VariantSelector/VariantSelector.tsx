@@ -1,5 +1,5 @@
 // ייבוא ספריית React הבסיסית
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 
 // ייבוא קובץ הסטיילים שלנו (CSS Modules)
 import styles from './VariantSelector.module.css';
@@ -19,6 +19,18 @@ interface VariantSelectorProps {
   onSkuChange: (sku: string) => void;   // פונקציה שתופעל כשבוחרים SKU חדש
   showColorPreview?: boolean;           // האם להציג תצוגה ויזואלית של הצבע
   compactMode?: boolean;                // מצב קומפקטי - מציג רק עיגול צבע קטן
+  secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine)
+}
+
+// 🆕 טיפוס לקבוצת צבע עם תת-וריאנטים
+interface ColorGroup {
+  color: string;           // שם הצבע
+  colorHex?: string;       // קוד צבע HEX (אם יש)
+  skus: Sku[];            // כל ה-SKUs של הצבע הזה
+  variants: Array<{        // תת-וריאנטים (resistance/size וכו')
+    value: string;
+    sku: string;
+  }>;
 }
 
 // הגדרת קומפוננטת VariantSelector
@@ -27,8 +39,12 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   selectedSku,
   onSkuChange,
   showColorPreview = true,
-  compactMode = false
+  compactMode = false,
+  secondaryVariantAttribute = null
 }) => {
+  
+  // 🆕 State לצבע הנבחר (שלב 1)
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   
   // פונקציה להחזרת קוד צבע CSS מטקסט צבע (תומכת בצבעים מורכבים)
   const getColorCode = (colorName: string): string => {
@@ -132,63 +148,164 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     return colorHex;
   };
 
+  // 🆕 קיבוץ SKUs לפי צבעים
+  const colorGroups = useMemo<ColorGroup[]>(() => {
+    const groups: { [color: string]: ColorGroup } = {};
+    
+    for (const sku of skus) {
+      const color = getSkuColor(sku);
+      if (!color) continue;
+      
+      if (!groups[color]) {
+        groups[color] = {
+          color,
+          colorHex: color.startsWith('#') ? color : undefined,
+          skus: [],
+          variants: []
+        };
+      }
+      
+      groups[color].skus.push(sku);
+      
+      // אם יש תת-וריאנט, הוסף אותו לרשימה
+      if (secondaryVariantAttribute && sku.attributes?.[secondaryVariantAttribute]) {
+        groups[color].variants.push({
+          value: sku.attributes[secondaryVariantAttribute]!,
+          sku: sku.sku
+        });
+      }
+    }
+    
+    return Object.values(groups);
+  }, [skus, secondaryVariantAttribute]);
+
+  // 🆕 אתחול selectedColor לפי SKU הנבחר
+  React.useEffect(() => {
+    if (selectedSku) {
+      const currentSku = skus.find(s => s.sku === selectedSku);
+      if (currentSku) {
+        const color = getSkuColor(currentSku);
+        setSelectedColor(color);
+      }
+    }
+  }, [selectedSku, skus]);
+
   // אם אין SKUs זמינים, לא נציג כלום
-  if (!skus || skus.length <= 1) {
+  if (!skus || skus.length === 0) {
     return null;
   }
 
-  // מציאת ה-SKU הנבחר
-  const selectedSkuData = skus.find(s => s.sku === selectedSku);
+  // 🔍 **קביעת מצב התצוגה:**
+  // מצב פשוט רק אם:
+  // 1. אין secondaryVariantAttribute (מוצר ישן)
+  // 2. יש רק SKU אחד בסה"כ
+  // אם יש secondaryVariantAttribute - תמיד מצב היררכי (גם עם צבע אחד!)
+  const useSimpleMode = !secondaryVariantAttribute || skus.length === 1;
 
-  return (
-    <div className={styles.variantSection}>
-      {/* <h3 className={styles.variantTitle}>צבע:</h3> */}
-      <div className={styles.variantOptions}>
-        {skus.map((skuItem, index) => {
-          // קבלת שם הצבע מה-SKU
-          const colorName = getSkuColor(skuItem);
-          const colorCode = getColorCode(colorName);
-          const isSelected = skuItem.sku === selectedSku;
-          
+  // **תצוגה פשוטה (מצב ישן - תאימות לאחור)**
+  if (useSimpleMode) {
+    return (
+      <div className={styles.variantSection}>
+        <div className={styles.variantOptions}>
+          {skus.map((skuItem, index) => {
+            const colorName = getSkuColor(skuItem);
+            const colorCode = getColorCode(colorName);
+            const isSelected = skuItem.sku === selectedSku;
+            
             return (
-            <Button
+              <Button
                 key={`${skuItem.sku}-${index}`}
-                // תמיד נשתמש ב-ghost כדי למנוע מהכפתור לקבל את סגנון ה-primary המנוגד לעיצוב הווריאנט
                 variant={'ghost'}
-              size="sm"
-              className={`${styles.variantButton} ${
-                isSelected ? styles.variantActive : ''
-              } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
-              onClick={() => onSkuChange(skuItem.sku)}
-                // הגדרת משתני CSS דינמיים: צבע הווריאנט (hex/named) וגם rgba לשימוש ברקע/active
+                size="sm"
+                className={`${styles.variantButton} ${
+                  isSelected ? styles.variantActive : ''
+                } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
+                onClick={() => onSkuChange(skuItem.sku)}
                 style={{
                   ['--variant-color' as any]: colorCode,
                   ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
                 }}
-              title={`בחר צבע ${colorName}`}
+                title={`בחר צבע ${colorName}`}
+              >
+                {showColorPreview && !compactMode && (
+                  <div className={styles.colorPreview} />
+                )}
+                
+                {!compactMode && (
+                  <>
+                    {skuItem.images && skuItem.images.length > 0 ? (
+                      <img 
+                        src={getImageUrl(skuItem.images[0])} 
+                        alt={`${getColorDisplayName(colorName) || colorName} variant`}
+                        className={styles.variantImage}
+                      />
+                    ) : (
+                      getColorDisplayName(colorName) && (
+                        <span className={styles.variantColorName}>{getColorDisplayName(colorName)}</span>
+                      )
+                    )}
+                  </>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // 🆕 **תצוגה היררכית (דו-שלבית)**
+  
+  // קבוצת הצבע הנבחרת
+  const selectedColorGroup = selectedColor 
+    ? colorGroups.find(g => g.color === selectedColor) 
+    : null;
+
+  return (
+    <div className={styles.variantSection}>
+      {/* שלב 1: בחירת צבע */}
+      <h3 className={styles.variantTitle}>צבע:</h3>
+      <div className={styles.variantOptions}>
+        {colorGroups.map((group, index) => {
+          const colorCode = getColorCode(group.color);
+          const isSelected = group.color === selectedColor;
+          
+          return (
+            <Button
+              key={`color-${group.color}-${index}`}
+              variant={'ghost'}
+              size="sm"
+              className={`${styles.variantButton} ${
+                isSelected ? styles.variantActive : ''
+              } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
+              onClick={() => {
+                setSelectedColor(group.color);
+                // בחירת SKU ראשון של הצבע (אוטומטית)
+                if (group.skus.length > 0) {
+                  onSkuChange(group.skus[0].sku);
+                }
+              }}
+              style={{
+                ['--variant-color' as any]: colorCode,
+                ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
+              }}
+              title={`בחר צבע ${group.color}`}
             >
-              {/* תצוגת צבע ויזואלית אם מבוקש */}
               {showColorPreview && !compactMode && (
-                // אלמנט ריק שמשמש כעמוד Accent; הצבע מוגדר במשתנה CSS --variant-color
-                <div 
-                  className={styles.colorPreview}
-                />
+                <div className={styles.colorPreview} />
               )}
               
-              {/* אם מצב קומפקטי, לא מציגים תמונה או טקסט */}
               {!compactMode && (
                 <>
-                  {/* אם יש תמונה ל-SKU, נציג אותה */}
-                  {skuItem.images && skuItem.images.length > 0 ? (
+                  {group.skus[0].images && group.skus[0].images.length > 0 ? (
                     <img 
-                      src={getImageUrl(skuItem.images[0])} 
-                      alt={`${getColorDisplayName(colorName) || colorName} variant`}
+                      src={getImageUrl(group.skus[0].images[0])} 
+                      alt={`${getColorDisplayName(group.color) || group.color} variant`}
                       className={styles.variantImage}
                     />
                   ) : (
-                    // אם אין תמונה ואין שם תצוגה, נציג רק את ריבוע הצבע (colorPreview כבר מוצג)
-                    getColorDisplayName(colorName) && (
-                      <span className={styles.variantColorName}>{getColorDisplayName(colorName)}</span>
+                    getColorDisplayName(group.color) && (
+                      <span className={styles.variantColorName}>{getColorDisplayName(group.color)}</span>
                     )
                   )}
                 </>
@@ -197,26 +314,38 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
           );
         })}
       </div>
-      
-      {/* הצגת שם הצבע הנבחר - הסרה לקומפקטיות */}
-      {/* {selectedSkuData && getColorDisplayName(getSkuColor(selectedSkuData)) && (
-        <div 
-          className={styles.selectedVariantInfo}
-          style={{
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            // Inline style נחוץ כאן כי הצבע משתנה דינמית לפי הווריאנט הנבחר
-            ['--variant-color' as any]: getColorCode(getSkuColor(selectedSkuData)),
-          }}
-        >
-          <span className={styles.selectedColorLabel}> נבחר: </span>
-          <span className={styles.selectedColorName}>
-            {getColorDisplayName(getSkuColor(selectedSkuData))}
-          </span>
+
+      {/* שלב 2: בחירת תת-וריאנט (אם נבחר צבע ויש תת-וריאנטים) */}
+      {selectedColorGroup && selectedColorGroup.variants.length > 1 && (
+        <div className={styles.secondaryVariantSection}>
+          <h4 className={styles.secondaryVariantTitle}>
+            {secondaryVariantAttribute === 'size' && 'מידה:'}
+            {secondaryVariantAttribute === 'htngdvt_slylym' && 'התנגדות:'}
+            {secondaryVariantAttribute === 'nicotine' && 'ניקוטין:'}
+            {!['size', 'htngdvt_slylym', 'nicotine'].includes(secondaryVariantAttribute || '') && 'בחר:'}
+          </h4>
+          <div className={styles.secondaryVariantOptions}>
+            {selectedColorGroup.variants.map((variant, index) => {
+              const isSelected = variant.sku === selectedSku;
+              
+              return (
+                <button
+                  key={`variant-${variant.value}-${index}`}
+                  className={`${styles.secondaryVariantButton} ${
+                    isSelected ? styles.secondaryVariantActive : ''
+                  }`}
+                  onClick={() => onSkuChange(variant.sku)}
+                  title={`בחר ${variant.value}`}
+                >
+                  {variant.value}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 };
 
-// ייצוא הקומפוננטה כדי שניתן יהיה להשתמש בה במקומות אחרים
 export default VariantSelector;

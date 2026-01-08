@@ -175,6 +175,16 @@ const productSchema = Joi.object({
     .messages({
       'array.max': 'ניתן להוסיף עד 50 מאפייני מפרט טכני',
     }),
+
+  // 🆕 ציר וריאנט משני - size/resistance/nicotine וכו'
+  // מאפשר למנהל לבחור איזה מאפיין דינמי ישמש כציר המשני
+  secondaryVariantAttribute: Joi.string()
+    .max(50)
+    .allow(null, '')
+    .optional()
+    .messages({
+      'string.max': 'מזהה ציר וריאנט משני לא יכול להכיל יותר מ-50 תווים',
+    }),
 });
 
 // ============================================================================

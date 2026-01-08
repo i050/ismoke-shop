@@ -260,7 +260,8 @@ export class ProductService {
 
       const data = await response.json();
       
-      // 💾 שמירה בcache עם זמן תפוגה
+
+      // �💾 שמירה בcache עם זמן תפוגה
       productDetailsCache.set(id, {
         data,
         expiresAt: Date.now() + PRODUCT_DETAILS_CACHE_TTL_MS

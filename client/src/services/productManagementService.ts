@@ -322,6 +322,9 @@ class ProductManagementService {
       
       // תמיד נשתמש ב-/with-skus endpoint. גם כשאין SKUs נקבל מערך ריק -
       // השרת יודע ליצור SKU בסיס אוטומטית לפי כללי ה-service.
+      // 🔍 DEBUG: בדיקת secondaryVariantAttribute לפני שליחה
+      console.log('🔍 [createProduct] secondaryVariantAttribute from form:', productFields.secondaryVariantAttribute);
+      
       const payload = this.cleanPayload({
         product: {
           ...productFields,
@@ -329,11 +332,12 @@ class ProductManagementService {
           quantityInStock: productFields.stockQuantity ?? 0,
           sku: productFields.sku || undefined,
           lowStockThreshold: productFields.lowStockThreshold ?? 5,
+          secondaryVariantAttribute: productFields.secondaryVariantAttribute ?? null, // 🆕 ציר וריאנט משני
         },
         skus: this.normalizeSKUs(skus), // יכול להיות []
       });
-
-      console.log('📤 [createProduct] Sending payload to /with-skus:', {
+      
+      console.log('� [createProduct] Sending payload to /with-skus:', {
         url: `${this.baseUrl}/with-skus`,
         productKeys: Object.keys(payload.product),
         skusCount: payload.skus.length,
@@ -404,6 +408,7 @@ class ProductManagementService {
             quantityInStock: productFields.stockQuantity ?? 0,
             sku: productFields.sku || undefined,
             lowStockThreshold: productFields.lowStockThreshold ?? 5,
+            secondaryVariantAttribute: productFields.secondaryVariantAttribute ?? null, // 🆕 ציר וריאנט משני
           },
           skus: normalizedSkus, // 🔧 FIX: שטח attributes
         });
@@ -413,7 +418,6 @@ class ProductManagementService {
           productKeys: Object.keys(payload.product),
           skusCount: payload.skus.length,
           firstSku: payload.skus[0],
-          fullPayload: JSON.stringify(payload, null, 2)
         });
 
         const response = await this.makeRequest<
@@ -443,6 +447,7 @@ class ProductManagementService {
           quantityInStock: productFields.stockQuantity ?? 0,
           sku: productFields.sku || undefined,
           lowStockThreshold: productFields.lowStockThreshold ?? 5,
+          secondaryVariantAttribute: productFields.secondaryVariantAttribute ?? null, // 🆕 ציר וריאנט משני
         });
 
         const response = await this.makeRequest<Product | { success: boolean; data: Product; message?: string }>(

@@ -105,20 +105,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     setActiveSection(initialActiveTab);
   }, [initialActiveTab]);
 
-  // 🔍 DEBUG: בדיקת initialData
-  useEffect(() => {
-    if (initialData) {
-      console.log('🔍 [ProductForm] initialData received:', {
-        name: initialData.name,
-        basePrice: initialData.basePrice,
-        categoryId: initialData.categoryId,
-        images: initialData.images,
-        skus: initialData.skus?.length || 0,
-        fullData: initialData
-      });
-    }
-  }, [initialData]);
-
   const methods = useForm<ProductFormData>({
     // TODO [TECH-DEBT]: Fix type mismatch between yup.InferType and react-hook-form
     // Issue: yup returns required fields, RHF expects optional fields
@@ -178,6 +164,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           isActive: initialData.isActive !== undefined ? initialData.isActive : true,
           // מפרט טכני - specifications
           specifications: (initialData as any).specifications || [],
+          // 🆕 ציר וריאנט משני - size/resistance/nicotine וכו'
+          secondaryVariantAttribute: (initialData as any).secondaryVariantAttribute || null,
         };
       }
 
@@ -264,9 +252,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       basePrice: formValues.basePrice,
       categoryId: formValues.categoryId,
       images: formValues.images?.length || 0,
-      skus: formValues.skus?.length || 0
+      skus: formValues.skus?.length || 0,
+      secondaryVariantAttribute: formValues.secondaryVariantAttribute // 🔍 DEBUG
     });
-  }, [formValues.name, formValues.basePrice, formValues.categoryId]);
+  }, [formValues.name, formValues.basePrice, formValues.categoryId, formValues.secondaryVariantAttribute]);
   
   // ⚠️ FIX: במצב edit, RHF לפעמים לא מזהה dirty נכון
   // נעקוב ידנית אחרי שינויים

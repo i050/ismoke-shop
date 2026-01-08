@@ -17,6 +17,7 @@ import {
   addSizeToColorGroup,
   type ColorGroup 
 } from '../utils/skuGrouping';
+import { generateSkuFromName } from '../ProductSKUs';
 import ColorPanel from './ColorPanel';
 import AddColorModal from './AddColorModal';
 import AddVariantDialog from './AddVariantDialog';
@@ -144,8 +145,11 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     );
   }, [filterAttributes]);
 
-  // Transform flat SKUs to color groups
-  const colorGroups = useMemo(() => groupSkusByColor(value), [value]);
+  // Transform flat SKUs to color groups (🆕 with dynamic attribute key support)
+  const colorGroups = useMemo(() => {
+    const attributeKey = secondaryAttribute || 'size';
+    return groupSkusByColor(value, attributeKey);
+  }, [value, secondaryAttribute]);
 
   // Get existing color names
   const existingColors = useMemo(() => 
@@ -203,12 +207,8 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
 
   // Add new color
   const handleAddColor = useCallback((data: NewColorData) => {
-    // יצירת prefix עבור SKU מהשם (transliteration פשוטה)
-    const skuPrefix = productName
-      .toUpperCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^A-Z0-9-]/g, '')
-      .substring(0, 20) || 'SKU';
+    // יצירת prefix עבור SKU מהשם (עם תמיכה בעברית)
+    const skuPrefix = generateSkuFromName(productName);
     
     // איסוף כל ה-SKUs הקיימים לחישוב מספר שוטף
     const existingSkus = flattenColorGroups(colorGroups);
@@ -223,6 +223,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
         basePrice: data.basePrice,
         initialQuantity: data.initialQuantity,
         colorFamily: data.colorFamily,
+        attributeKey: secondaryConfig?.attributeKey || 'size', // 🆕 העברת מפתח המאפיין
       }
     );
 
@@ -261,11 +262,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
       const nextNumber = existingNumbers.length > 0 
         ? Math.max(...existingNumbers) + 1 
         : 1;
-      const skuPrefix = productName
-        .toUpperCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^A-Z0-9-]/g, '')
-        .substring(0, 20) || 'SKU';
+      const skuPrefix = generateSkuFromName(productName);
       const skuCode = `${skuPrefix}-${String(nextNumber).padStart(3, '0')}`;
       
       const updatedGroup = addSizeToColorGroup(
@@ -278,6 +275,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
           attributeKey: secondaryConfig?.attributeKey || 'size' // 🆕 העברת מפתח המאפיין
         }
       );
+      
       handleUpdateColorGroup(addingSizeToColorIndex, updatedGroup);
       setAddingSizeToColorIndex(null);
       setNewSizeValue('');
@@ -301,7 +299,12 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     if (!secondaryConfig) return [];
     
     const group = colorGroups[colorIndex];
-    const existingValues = group.sizes.map(s => s.size);
+    const attributeKey = secondaryConfig.attributeKey;
+    
+    // 🔧 תיקון: לקחת את הערך מה-attributes לפי המפתח הדינמי, לא מ-s.size
+    const existingValues = group.sizes
+      .map(s => s.attributes?.[attributeKey] || s.size)
+      .filter(Boolean); // סינון ערכים ריקים
     
     // מיפוי הערכים מהקונפיג - כל ערך הוא אובייקט עם value ו-displayName
     // הסרת כפילויות באמצעות Set

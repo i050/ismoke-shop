@@ -95,13 +95,14 @@ const normalizeColorKey = (color: string | undefined): string => {
  * קיבוץ SKUs שטוחים לפי צבע (לתצוגה בלבד)
  * 
  * @param skus - מערך SKUs שטוח
+ * @param attributeKey - 🆕 מפתח המאפיין המשני (size/htngdvt_slylym/nicotine וכו')
  * @returns מערך של קבוצות צבע
  * 
  * @example
- * const groups = groupSkusByColor(skus);
- * // groups[0] = { colorName: 'אדום', sizes: [{size: 'M'}, {size: 'L'}], totalStock: 50 }
+ * const groups = groupSkusByColor(skus, 'htngdvt_slylym');
+ * // groups[0] = { colorName: 'אדום', sizes: [{size: '0.5Ω'}, {size: '1.0Ω'}], totalStock: 50 }
  */
-export function groupSkusByColor(skus: SKUFormData[]): ColorGroup[] {
+export function groupSkusByColor(skus: SKUFormData[], attributeKey: string = 'size'): ColorGroup[] {
   // מפה לאיסוף קבוצות
   const grouped = new Map<string, ColorGroup>();
   
@@ -127,9 +128,12 @@ export function groupSkusByColor(skus: SKUFormData[]): ColorGroup[] {
     
     const group = grouped.get(colorKey)!;
     
+    // 🆕 קריאת הערך מתוך attributes לפי המפתח הדינמי
+    const variantValue = sku.attributes?.[attributeKey] || sku.attributes?.size || '';
+    
     // הוספת מידה לקבוצה
     group.sizes.push({
-      size: sku.attributes?.size || '',
+      size: variantValue,
       sku: sku.sku,
       name: sku.name,
       stockQuantity: sku.stockQuantity,
@@ -166,10 +170,9 @@ export function flattenColorGroups(colorGroups: ColorGroup[]): SKUFormData[] {
   
   for (const group of colorGroups) {
     for (const size of group.sizes) {
-      // 🆕 attributes - רק אם יש מידה אמיתית
-      const attributes = size.size 
-        ? { ...size.attributes, size: size.size }
-        : { ...size.attributes }; // בלי size אם ריק
+      // 🆕 attributes - כבר מכיל את המפתח הנכון (size/resistance/nicotine וכו')
+      // לא צריך לדרוס - פשוט נשתמש במה שכבר שמור
+      const attributes = { ...size.attributes };
       
       skus.push({
         sku: size.sku,
@@ -305,9 +308,10 @@ export function createNewColorGroup(
     basePrice?: number;
     initialQuantity?: number;
     colorFamily?: string;
+    attributeKey?: string; // 🆕 מפתח המאפיין (size/resistance/nicotine וכו')
   } = {}
 ): ColorGroup {
-  const { colorHex, basePrice = null, initialQuantity = 0, colorFamily } = options;
+  const { colorHex, basePrice = null, initialQuantity = 0, colorFamily, attributeKey = 'size' } = options;
   
   // חישוב מספר השוטף הבא מכל ה-SKUs הקיימים
   const existingNumbers = existingSkus
@@ -364,7 +368,7 @@ export function createNewColorGroup(
         stockQuantity: initialQuantity,
         price: basePrice,
         isActive: true,
-        attributes: { size },
+        attributes: { [attributeKey]: size }, // 🆕 שימוש ב-attributeKey דינמי
       };
     }),
     totalStock: initialQuantity * defaultSizes.length,

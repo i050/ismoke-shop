@@ -436,6 +436,7 @@ export const defaultProductValues: Partial<ProductFormData> = {
   lowStockThreshold: null,
   skus: [],
   specifications: [], // מפרט טכני - ברירת מחדל ריקה
+  secondaryVariantAttribute: null, // 🆕 ציר וריאנט משני - ברירת מחדל null
 };
 
 /**
