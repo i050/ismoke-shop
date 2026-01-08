@@ -1,0 +1,218 @@
+/**
+ * SizeRow Styles
+ * ==============
+ * סגנונות לשורת מידה בודדת בתוך פאנל צבע
+ */
+
+/* שורה בטבלה */
+.row {
+  transition: background-color 0.2s ease;
+}
+
+.row:hover {
+  background-color: var(--color-background-hover, #f8f9fa);
+}
+
+.row.inactive {
+  opacity: 0.6;
+  background-color: var(--color-background-muted, #f1f1f1);
+}
+
+/* תא מידה */
+.sizeCell {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 60px;
+}
+
+.sizeLabel {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-primary-light, #e3f2fd);
+  color: var(--color-primary, #1976d2);
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: 0.875rem;
+}
+
+/* תא קוד SKU */
+.skuCell {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.skuCode {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #666);
+  background-color: var(--color-background-muted, #f5f5f5);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm, 4px);
+  direction: ltr;
+}
+
+/* תא מלאי */
+.stockCell {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.stockInput {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--border-radius-sm, 4px);
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stockInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #1976d2);
+  box-shadow: 0 0 0 2px var(--color-primary-light, rgba(25, 118, 210, 0.2));
+}
+
+.stockInput:disabled {
+  background-color: var(--color-background-muted, #f5f5f5);
+  cursor: not-allowed;
+}
+
+/* תא מחיר */
+.priceCell {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.priceWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+}
+
+.priceInput {
+  width: 90px;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--border-radius-sm, 4px);
+  text-align: center;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.priceInput.usingBase {
+  border-style: dashed;
+  color: var(--color-text-secondary, #888);
+}
+
+.priceInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #1976d2);
+  box-shadow: 0 0 0 2px var(--color-primary-light, rgba(25, 118, 210, 0.2));
+}
+
+.priceInput:disabled {
+  background-color: var(--color-background-muted, #f5f5f5);
+  cursor: not-allowed;
+}
+
+.basePriceHint {
+  font-size: 0.625rem;
+  color: var(--color-text-secondary, #888);
+  background-color: var(--color-background-muted, #f5f5f5);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--border-radius-sm, 4px);
+  white-space: nowrap;
+}
+
+/* תא סטטוס */
+.statusCell {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.statusButton {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.statusButton.active {
+  background-color: var(--color-success-light, #e8f5e9);
+  color: var(--color-success, #2e7d32);
+}
+
+.statusButton.active:hover {
+  background-color: var(--color-success, #2e7d32);
+  color: white;
+}
+
+.statusButton.inactive {
+  background-color: var(--color-error-light, #ffebee);
+  color: var(--color-error, #c62828);
+}
+
+.statusButton.inactive:hover {
+  background-color: var(--color-error, #c62828);
+  color: white;
+}
+
+.statusButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* תא פעולות */
+.actionsCell {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--border-radius-sm, 4px);
+  background-color: transparent;
+  color: var(--color-text-secondary, #888);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+  background-color: var(--color-error-light, #ffebee);
+  color: var(--color-error, #c62828);
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .skuCell {
+    display: none;
+  }
+
+  .stockInput,
+  .priceInput {
+    width: 70px;
+    font-size: 0.8125rem;
+  }
+
+  .sizeLabel {
+    font-size: 0.8125rem;
+    padding: 0.2rem 0.5rem;
+  }
+}

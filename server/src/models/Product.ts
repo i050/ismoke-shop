@@ -72,6 +72,14 @@ export interface IProduct extends Document {
   // true = מוצר מורכב → SKUs ידניים (צבעים, מידות וכו')
   hasVariants: boolean;
 
+  // 🆕 ציר וריאנט משני - קובע את סוג התת-וריאנט בתוך כל צבע
+  // null = רק צבעים, ללא תת-וריאנט (כל צבע = SKU אחד)
+  // 'size' = צבע + מידה (ברירת מחדל למוצרי לבוש)
+  // 'resistance' = צבע + התנגדות (מוצרי vape)
+  // 'nicotine' = צבע + אחוז ניקוטין
+  // או כל key אחר מ-FilterAttributes
+  secondaryVariantAttribute?: string | null;
+
   // Popularity and analytics
   viewCount: number;
   salesCount: number;
@@ -236,6 +244,17 @@ const ProductSchema: Schema = new Schema({
   hasVariants: {
     type: Boolean,
     default: false, // ברירת מחדל: מוצר פשוט (SKU בסיס אוטומטי)
+  },
+
+  // 🆕 ציר וריאנט משני - קובע את סוג התת-וריאנט בתוך כל צבע
+  // null = רק צבעים, ללא תת-וריאנט
+  // key של FilterAttribute = צבע + תת-וריאנט מהסוג הזה
+  secondaryVariantAttribute: {
+    type: String,
+    required: false,
+    default: null, // ברירת מחדל: ללא תת-וריאנט
+    trim: true,
+    sparse: true, // אינדקס sparse כי רוב המוצרים יהיו null
   },
 
   // Popularity and analytics

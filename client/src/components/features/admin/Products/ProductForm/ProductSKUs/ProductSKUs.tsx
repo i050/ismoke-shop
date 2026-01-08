@@ -1,5 +1,6 @@
 // Product SKUs Component
 // מטרת הקומפוננטה: ניהול SKUs (וריאנטים) של המוצר
+// 🆕 תמיכה בתצוגה מקובצת לפי צבע
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { SKUFormData } from '../../../../../../schemas/productFormSchema';
@@ -7,7 +8,11 @@ import { Icon } from '../../../../../ui/Icon';
 import SKURow from './SKURow';
 import AddSKUModal from './AddSKUModal';
 import ConfirmDialog from '../../../../../ui/ConfirmDialog';
+import ColorGroupedView from './ColorGroupedView';
 import styles from './ProductSKUs.module.css';
+
+/** סוג תצוגת SKUs */
+type ViewMode = 'flat' | 'grouped';
 
 /**
  * פונקציה ליצירת קוד SKU בסיסי מתוך שם המוצר
@@ -108,6 +113,10 @@ interface ProductSKUsProps {
     stockQuantity?: number;
     images?: Array<{ url: string; public_id: string; format?: string; width?: number; height?: number; }>;
   };
+  /** 🆕 ציר וריאנט משני - null = ללא תת-וריאנט (רק צבעים) */
+  secondaryVariantAttribute?: string | null;
+  /** 🆕 callback לשינוי ציר משני */
+  onSecondaryVariantAttributeChange?: (attr: string | null) => void;
 }
 
 /**
@@ -123,6 +132,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   mode = 'create', // 🆕 ברירת מחדל: create
   onUploadImages,
   productFormData, // 🆕 נתונים מהטופס הראשי
+  secondaryVariantAttribute, // 🆕 ציר משני
+  onSecondaryVariantAttributeChange, // 🆕 callback לשינוי
 }) => {
   // State לעריכה
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -133,6 +144,9 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
 
   // State למחיקה
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+
+  // 🆕 State לתצוגה מקובצת/שטוחה
+  const [viewMode, setViewMode] = useState<ViewMode>('flat');
   
   // Ref למעקב אחרי פתיחה אוטומטית - כדי למנוע פתיחה חוזרת
   const didAutoOpenRef = useRef<boolean>(false);
@@ -370,76 +384,87 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             }
           </p>
         </div>
-        <button
-          type="button"
-          className={styles.addButton}
-          onClick={() => setShowAddModal(true)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          <span>הוסף SKU</span>
-        </button>
+
+        {/* 🆕 Toggle בין תצוגה שטוחה למקובצת */}
+        <div className={styles.headerActions}>
+          <div className={styles.viewToggle}>
+            <button
+              type="button"
+              className={`${styles.toggleButton} ${viewMode === 'flat' ? styles.active : ''}`}
+              onClick={() => setViewMode('flat')}
+              title="תצוגת רשימה"
+            >
+              <Icon name="List" size={18} />
+            </button>
+            <button
+              type="button"
+              className={`${styles.toggleButton} ${viewMode === 'grouped' ? styles.active : ''}`}
+              onClick={() => setViewMode('grouped')}
+              title="תצוגה לפי צבעים"
+            >
+              <Icon name="Palette" size={18} />
+            </button>
+          </div>
+
+          {viewMode === 'flat' && (
+            <button
+              type="button"
+              className={styles.addButton}
+              onClick={() => setShowAddModal(true)}
+            >
+              <Icon name="Plus" size={20} />
+              <span>הוסף SKU</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Grid של כרטיסי SKUs */}
-      {value.length > 0 ? (
-        <div className={styles.skuGrid}>
-          {value.map((sku, index) => (
-            <SKURow
-              key={`${sku.sku}-${index}`}
-              sku={sku}
-              index={index}
-              isEditing={editingIndex === index}
-              errors={
-                errors?.[`skus[${index}]`]
-                  ? { [errors[`skus[${index}]`]]: 'שגיאה' }
-                  : undefined
-              }
-              onEdit={handleEdit}
-              onChange={handleChange}
-              onDelete={(i) => setDeletingIndex(i)}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              onCheckAvailability={handleCheckAvailability}
-              onUploadImages={onUploadImages}
-              allSkus={value}
-            />
-          ))}
-        </div>
+      {/* 🆕 תצוגה מקובצת לפי צבע */}
+      {viewMode === 'grouped' ? (
+        <ColorGroupedView
+          value={value}
+          onChange={onChange}
+          basePrice={productFormData?.basePrice || 0}
+          productName={productFormData?.name || ''}
+          onUploadImages={onUploadImages}
+          secondaryAttribute={secondaryVariantAttribute}
+          onSecondaryAttributeChange={onSecondaryVariantAttributeChange}
+        />
       ) : (
-        <div className={styles.emptyState}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="9" y1="9" x2="15" y2="15"></line>
-            <line x1="15" y1="9" x2="9" y2="15"></line>
-          </svg>
-          <p className={styles.emptyText}>אין SKUs עדיין</p>
-          <p className={styles.emptySubtext}>
-            לחץ על "הוסף SKU" כדי להתחיל
-          </p>
-        </div>
+        /* Grid של כרטיסי SKUs - תצוגה שטוחה */
+        value.length > 0 ? (
+          <div className={styles.skuGrid}>
+            {value.map((sku, index) => (
+              <SKURow
+                key={`${sku.sku}-${index}`}
+                sku={sku}
+                index={index}
+                isEditing={editingIndex === index}
+                errors={
+                  errors?.[`skus[${index}]`]
+                    ? { [errors[`skus[${index}]`]]: 'שגיאה' }
+                    : undefined
+                }
+                onEdit={handleEdit}
+                onChange={handleChange}
+                onDelete={(i) => setDeletingIndex(i)}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                onCheckAvailability={handleCheckAvailability}
+                onUploadImages={onUploadImages}
+                allSkus={value}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <Icon name="Package" size={48} />
+            <p className={styles.emptyText}>אין SKUs עדיין</p>
+            <p className={styles.emptySubtext}>
+              לחץ על "הוסף SKU" כדי להתחיל
+            </p>
+          </div>
+        )
       )}
 
       {/* שגיאה כללית */}

@@ -10,22 +10,36 @@
 
 import { Worker, Job } from 'bullmq';
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { QUEUE_NAMES, EmailJobData, getSharedRedisConnection } from '../index';
 import { logger } from '../../utils/logger';
 
 // =============================================================================
-// הגדרת Nodemailer Transporter
+// הגדרת ספקי מייל - Resend כראשי, Gmail SMTP כגיבוי
 // =============================================================================
 
-const transporter = nodemailer.createTransport({
+// Resend - ספק ראשי (מהיר, אמין, 99.99% uptime)
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Gmail SMTP - ספק גיבוי במקרה של כישלון
+const gmailTransporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
-  }
+  },
+  pool: true,
+  connectionTimeout: parseInt(process.env.SMTP_CONNECTION_TIMEOUT || '10000'),
+  greetingTimeout: parseInt(process.env.SMTP_GREETING_TIMEOUT || '20000'),
+  socketTimeout: parseInt(process.env.SMTP_SOCKET_TIMEOUT || '20000')
 });
+
+// בדיקת חיבור ראשונית ל-Gmail SMTP לצורך דיאגנוסטיקה
+gmailTransporter.verify()
+  .then(() => logger.info('✅ Gmail SMTP transporter verified (emailWorker fallback ready)'))
+  .catch((err: any) => logger.warn('⚠️ Gmail SMTP transporter verify failed (emailWorker fallback unavailable)', { error: err && err.message }));
 
 // =============================================================================
 // תבניות מייל מלאות
@@ -464,39 +478,79 @@ async function sendEmail(
     };
   }
   
-  // שליחה אמיתית עם Nodemailer
+  // שליחה אמיתית עם Resend (ספק ראשי) + Gmail fallback
+  // ניסיון ראשון - Resend
   try {
-    const result = await transporter.sendMail({
-      from: `"${storeName}" <${fromEmail}>`,
+    const result = await resend.emails.send({
+      from: `${storeName} <${fromEmail}>`,
       to,
       subject,
       html
     });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
     
-    logger.info('📧 מייל נשלח בהצלחה', {
+    logger.info('📧 מייל נשלח בהצלחה דרך Resend (primary)', {
       to,
       subject,
-      messageId: result.messageId
+      messageId: result.data?.id
     });
     
     return {
       success: true,
-      messageId: result.messageId
+      messageId: result.data?.id || `resend-${Date.now()}`
     };
     
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'שגיאה בשליחת מייל';
-    
-    logger.error('❌ שגיאת Nodemailer', {
+  } catch (resendError: any) {
+    // לוג כישלון Resend
+    logger.warn('⚠️ Resend נכשל בעובד התור, מעבר ל-Gmail fallback', {
       to,
       subject,
-      error: errorMessage
+      error: resendError.message,
+      code: resendError.code
     });
-    
-    return {
-      success: false,
-      error: errorMessage
-    };
+
+    // ניסיון שני - Gmail SMTP (גיבוי)
+    try {
+      const result = await gmailTransporter.sendMail({
+        from: `"${storeName}" <${fromEmail}>`,
+        to,
+        subject,
+        html
+      });
+      
+      logger.info('📧 מייל נשלח בהצלחה דרך Gmail (fallback)', {
+        to,
+        subject,
+        messageId: result.messageId
+      });
+      
+      return {
+        success: true,
+        messageId: result.messageId
+      };
+      
+    } catch (gmailError: any) {
+      // שני הספקים נכשלו
+      const errorMessage = gmailError && gmailError.message ? gmailError.message : 'שגיאה לא ידועה';
+
+      logger.error('❌ כישלון שליחת מייל בשני הספקים (Resend + Gmail)', {
+        to,
+        subject,
+        resendError: resendError.message,
+        gmailError: errorMessage,
+        gmailCode: gmailError && gmailError.code,
+        gmailResponse: gmailError && gmailError.response,
+        stack: gmailError && gmailError.stack
+      });
+
+      return {
+        success: false,
+        error: `כישלון קריטי: Resend (${resendError.message}), Gmail (${errorMessage})`
+      };
+    }
   }
 }
 

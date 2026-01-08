@@ -879,6 +879,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   stockQuantity: formValues.stockQuantity ?? 0,
                   images: formValues.images,
                 }}
+                secondaryVariantAttribute={formValues.secondaryVariantAttribute}
+                onSecondaryVariantAttributeChange={(attr) => setValueWithDirty('secondaryVariantAttribute', attr)}
               />
             </div>
           )}

@@ -1,15 +1,100 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+import { logger } from '../utils/logger';
 
-// הגדרת transporter לשליחת מיילים
-const transporter = nodemailer.createTransport({
+// =============================================================================
+// הגדרת ספקי מייל - Resend כראשי, Gmail SMTP כגיבוי
+// =============================================================================
+
+// Resend - ספק ראשי (מהיר, אמין, 99.99% uptime)
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Gmail SMTP - ספק גיבוי במקרה של כישלון
+const gmailTransporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
+  secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
-  }
+  },
+  pool: true,
+  connectionTimeout: parseInt(process.env.SMTP_CONNECTION_TIMEOUT || '10000'),
+  greetingTimeout: parseInt(process.env.SMTP_GREETING_TIMEOUT || '20000'),
+  socketTimeout: parseInt(process.env.SMTP_SOCKET_TIMEOUT || '20000')
 });
+
+// בדיקת חיבור ראשונית ל-Gmail SMTP לצורך דיאגנוסטיקה
+gmailTransporter.verify()
+  .then(() => logger.info('✅ Gmail SMTP transporter verified (fallback ready)'))
+  .catch((err: any) => logger.warn('⚠️ Gmail SMTP transporter verify failed (fallback unavailable)', { error: err && err.message }));
+
+/**
+ * פונקציה מרכזית לשליחת מייל עם fallback אוטומטי
+ * מנסה Resend תחילה, ואם נכשל עובר ל-Gmail SMTP
+ */
+async function sendEmailWithFallback(
+  to: string,
+  subject: string,
+  html: string,
+  from: string = `${process.env.STORE_NAME || 'E-commerce'} <${process.env.SMTP_USER}>`
+): Promise<void> {
+  // ניסיון ראשון - Resend (ספק ראשי)
+  try {
+    const result = await resend.emails.send({
+      from,
+      to,
+      subject,
+      html
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    logger.info('✅ מייל נשלח בהצלחה דרך Resend (primary)', { 
+      to, 
+      subject,
+      messageId: result.data?.id 
+    });
+    return;
+  } catch (resendError: any) {
+    // לוג כישלון Resend
+    logger.warn('⚠️ Resend נכשל, מעבר ל-Gmail fallback', {
+      to,
+      subject,
+      error: resendError.message,
+      code: resendError.code
+    });
+
+    // ניסיון שני - Gmail SMTP (גיבוי)
+    try {
+      const info = await gmailTransporter.sendMail({
+        from,
+        to,
+        subject,
+        html
+      });
+
+      logger.info('✅ מייל נשלח בהצלחה דרך Gmail (fallback)', {
+        to,
+        subject,
+        messageId: info.messageId
+      });
+    } catch (gmailError: any) {
+      // שני הספקים נכשלו - שגיאה קריטית
+      logger.error('❌ כישלון שליחת מייל בשני הספקים (Resend + Gmail)', {
+        to,
+        subject,
+        resendError: resendError.message,
+        gmailError: gmailError.message,
+        gmailCode: gmailError.code,
+        gmailResponse: gmailError.response
+      });
+      throw new Error('כישלון קריטי בשליחת מייל - כל הספקים נכשלו');
+    }
+  }
+}
 
 /**
  * שליחת מייל איפוס סיסמה
@@ -44,10 +129,13 @@ export const sendPasswordResetEmail = async (email: string, resetToken: string):
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`📧 Password reset email sent to ${email}`);
+    await sendEmailWithFallback(
+      email,
+      'איפוס סיסמה - E-commerce App',
+      mailOptions.html
+    );
   } catch (error) {
-    console.error('❌ Error sending password reset email:', error);
+    logger.error('❌ שגיאה בשליחת מייל איפוס סיסמה', { email, error });
     throw new Error('שגיאה בשליחת מייל איפוס סיסמה');
   }
 };
@@ -84,10 +172,13 @@ export const sendVerificationEmail = async (email: string, verificationToken: st
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`📧 Verification email sent to ${email}`);
+    await sendEmailWithFallback(
+      email,
+      'אימות חשבון - E-commerce App',
+      mailOptions.html
+    );
   } catch (error) {
-    console.error('❌ Error sending verification email:', error);
+    logger.error('❌ שגיאה בשליחת מייל אימות', { email, error });
     throw new Error('שגיאה בשליחת מייל אימות');
   }
 };
@@ -124,10 +215,13 @@ export const sendLoginOTPEmail = async (email: string, otpCode: string): Promise
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`📧 Login OTP email sent to ${email}`);
+    await sendEmailWithFallback(
+      email,
+      'קוד אימות להתחברות - E-commerce App',
+      mailOptions.html
+    );
   } catch (error) {
-    console.error('❌ Error sending login OTP email:', error);
+    logger.error('❌ שגיאה בשליחת מייל קוד אימות', { email, error });
     throw new Error('שגיאה בשליחת מייל קוד אימות');
   }
 };

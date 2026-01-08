@@ -1,0 +1,415 @@
+/**
+ * ColorPanel Styles
+ * =================
+ * סגנונות לפאנל אקורדיון של צבע בודד
+ */
+
+/* ============================================================================
+   Panel Container
+   ============================================================================ */
+
+.panel {
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 8px;
+  background: var(--color-bg-primary, #fff);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.panel:hover {
+  border-color: var(--color-border-medium, #d1d5db);
+}
+
+.panel.expanded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-primary-light, #a5b4fc);
+}
+
+/* ============================================================================
+   Header (Accordion Button)
+   ============================================================================ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+  transition: background-color 0.15s ease;
+}
+
+.header:hover {
+  background: var(--color-bg-hover, #f9fafb);
+}
+
+.header:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Color Indicator */
+.colorIndicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.colorSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.colorIcon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+
+.colorName {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text-primary, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.statItem svg {
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+/* Arrow */
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary, #9ca3af);
+  transition: transform 0.2s ease;
+  margin-inline-start: 8px;
+}
+
+.arrowUp {
+  transform: rotate(180deg);
+}
+
+/* ============================================================================
+   Content
+   ============================================================================ */
+
+.content {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--color-border-light, #e5e7eb);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Section Title */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.sectionHint {
+  margin: 4px 0 12px;
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+/* ============================================================================
+   Images Section
+   ============================================================================ */
+
+.imagesSection {
+  padding-top: 16px;
+}
+
+/* ============================================================================
+   Sizes Section
+   ============================================================================ */
+
+.sizesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 🆕 סקשן SKU יחיד (ללא ציר משני) */
+.singleSkuSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sizesSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sizeActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Buttons */
+.fillAllButton,
+.addSizeButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fillAllButton {
+  background: var(--color-bg-secondary, #f3f4f6);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.fillAllButton:hover:not(:disabled) {
+  background: var(--color-bg-hover, #e5e7eb);
+  color: var(--color-text-primary, #111827);
+}
+
+.addSizeButton {
+  background: var(--color-primary, #4f46e5);
+  border: 1px solid var(--color-primary, #4f46e5);
+  color: white;
+}
+
+.addSizeButton:hover:not(:disabled) {
+  background: var(--color-primary-dark, #4338ca);
+  border-color: var(--color-primary-dark, #4338ca);
+}
+
+.fillAllButton:disabled,
+.addSizeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Sizes Table
+   ============================================================================ */
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 8px;
+}
+
+.sizesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.sizesTable th {
+  padding: 10px 12px;
+  text-align: start;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #6b7280);
+  background: var(--color-bg-secondary, #f9fafb);
+  border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+  white-space: nowrap;
+}
+
+.sizesTable th:last-child {
+  width: 50px;
+  text-align: center;
+}
+
+/* ============================================================================
+   No Sizes State
+   ============================================================================ */
+
+.noSizes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  background: var(--color-bg-secondary, #f9fafb);
+  border: 2px dashed var(--color-border-light, #e5e7eb);
+  border-radius: 8px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.noSizes svg {
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.noSizes p {
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ============================================================================
+   Danger Zone
+   ============================================================================ */
+
+.dangerZone {
+  padding-top: 16px;
+  border-top: 1px dashed var(--color-border-light, #e5e7eb);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.deleteColorButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--color-danger-light, #fecaca);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-danger, #dc2626);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.deleteColorButton:hover:not(:disabled) {
+  background: var(--color-danger-bg, #fef2f2);
+  border-color: var(--color-danger, #dc2626);
+}
+
+.deleteColorButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Fill All Dialog
+   ============================================================================ */
+
+.fillAllDialogContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fillAllDialogContent p {
+  margin: 0;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.fillAllInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-medium, #d1d5db);
+  border-radius: 6px;
+  font-size: 1rem;
+  text-align: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fillAllInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #4f46e5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .colorIndicator {
+    flex: 1 1 100%;
+    order: 1;
+  }
+
+  .stats {
+    order: 3;
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .arrow {
+    order: 2;
+    position: absolute;
+    inset-inline-end: 16px;
+  }
+
+  .header {
+    position: relative;
+    padding-inline-end: 44px;
+  }
+
+  .content {
+    padding: 0 16px 16px;
+  }
+
+  .sizesSectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sizeActions {
+    justify-content: flex-end;
+  }
+
+  .sizesTable th,
+  .sizesTable td {
+    padding: 8px 10px;
+  }
+
+  .dangerZone {
+    justify-content: center;
+  }
+
+  .deleteColorButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

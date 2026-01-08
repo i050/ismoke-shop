@@ -1,0 +1,340 @@
+/**
+ * ColorGroupedView Styles
+ * =======================
+ * סגנונות לתצוגה המקובצת לפי צבע
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.title svg {
+  color: var(--color-primary, #4f46e5);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statBadge {
+  padding: 4px 10px;
+  background: var(--color-bg-secondary, #f3f4f6);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #6b7280);
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   Header Actions
+   ============================================================================ */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 6px;
+  background: white;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.expandButton:hover:not(:disabled) {
+  background: var(--color-bg-secondary, #f3f4f6);
+  border-color: var(--color-border-medium, #d1d5db);
+  color: var(--color-text-primary, #111827);
+}
+
+.expandButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.addColorButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary, #4f46e5);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.addColorButton:hover:not(:disabled) {
+  background: var(--color-primary-dark, #4338ca);
+}
+
+.addColorButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Panels List
+   ============================================================================ */
+
+.panelsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 60px 20px;
+  background: var(--color-bg-secondary, #f9fafb);
+  border: 2px dashed var(--color-border-light, #e5e7eb);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.emptyState svg {
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.emptyState h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.emptyAddButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary, #4f46e5);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  margin-top: 8px;
+}
+
+.emptyAddButton:hover:not(:disabled) {
+  background: var(--color-primary-dark, #4338ca);
+}
+
+.emptyAddButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Add Size Dialog
+   ============================================================================ */
+
+.addSizeDialogContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.addSizeDialogContent p {
+  margin: 0;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.addSizeDialogContent strong {
+  color: var(--color-text-primary, #111827);
+}
+
+.sizeSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sizeSelectorButton {
+  min-width: 44px;
+  padding: 8px 14px;
+  border: 2px solid var(--color-border-medium, #d1d5db);
+  border-radius: 6px;
+  background: white;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sizeSelectorButton:hover {
+  border-color: var(--color-primary-light, #a5b4fc);
+  background: var(--color-primary-bg, #eef2ff);
+}
+
+.sizeSelectorButton.selected {
+  border-color: var(--color-primary, #4f46e5);
+  background: var(--color-primary, #4f46e5);
+  color: white;
+}
+
+.orText {
+  font-size: 0.85rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  text-align: center;
+  margin-top: 4px;
+}
+
+.customSizeInput {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-medium, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.customSizeInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #4f46e5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* ============================================================================
+   Attribute Selector
+   ============================================================================ */
+
+.attributeSelector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-bg-secondary, #f3f4f6);
+  border-radius: 8px;
+}
+
+.attributeLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #6b7280);
+  white-space: nowrap;
+}
+
+.attributeSelect {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.9rem;
+  color: var(--color-text-primary, #111827);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  min-width: 120px;
+}
+
+.attributeSelect:hover {
+  border-color: var(--color-border-medium, #d1d5db);
+}
+
+.attributeSelect:focus {
+  outline: none;
+  border-color: var(--color-primary, #4f46e5);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.loadingText {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #9ca3af);
+  font-style: italic;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerInfo {
+    align-items: center;
+    text-align: center;
+  }
+
+  .stats {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .headerActions {
+    justify-content: center;
+  }
+
+  .emptyState {
+    padding: 40px 16px;
+  }
+}

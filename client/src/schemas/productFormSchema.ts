@@ -278,6 +278,16 @@ export const productSchema = yup.object({
     .optional()
     .default(true),
 
+  // 🆕 ציר וריאנט משני - קובע את סוג התת-וריאנט בתוך כל צבע
+  // null = רק צבעים, ללא תת-וריאנט (כל צבע = SKU אחד)
+  // 'size' = צבע + מידה
+  // או כל key אחר מ-FilterAttributes
+  secondaryVariantAttribute: yup
+    .string()
+    .optional()
+    .nullable()
+    .default(null),
+
   lowStockThreshold: yup
     .number()
     .optional()
