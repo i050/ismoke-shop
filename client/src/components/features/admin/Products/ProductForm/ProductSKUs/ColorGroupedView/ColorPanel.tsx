@@ -207,15 +207,6 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
                       <Icon name="Plus" size={14} />
                       הוסף {variantConfig.attributeName}
                     </button>
-                    <button
-                      type="button"
-                      className={styles.addSizeButton}
-                      onClick={onAddSize}
-                      disabled={disabled}
-                    >
-                      <Icon name="Plus" size={14} />
-                      הוסף {variantConfig.attributeName}
-                    </button>
                   </div>
                 </div>
 

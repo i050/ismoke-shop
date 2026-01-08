@@ -298,10 +298,15 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     
     const group = colorGroups[colorIndex];
     const existingValues = group.sizes.map(s => s.size);
+    
+    // מיפוי הערכים מהקונפיג - כל ערך הוא אובייקט עם value ו-displayName
+    // הסרת כפילויות באמצעות Set
+    const allValueStrings = [...new Set(secondaryConfig.values.map(v => v.value))];
+    
     // סינון ערכים שכבר קיימים בצבע זה
-    return secondaryConfig.values
-      .map(v => v.value)
-      .filter(v => !existingValues.includes(v));
+    const available = allValueStrings.filter(v => !existingValues.includes(v));
+    
+    return available;
   }, [colorGroups, secondaryConfig]);
 
   return (
