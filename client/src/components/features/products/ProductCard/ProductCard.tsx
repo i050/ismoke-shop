@@ -366,13 +366,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {updatedProduct.name}
           </Typography>
 
-          <div>
+          {/* <div>
             {product.description && (
               <Typography variant="body2" className={styles.description}>
                 {product.description}
               </Typography>
             )}
-          </div>
+          </div> */}
 
           {/* בחירת SKU - תמיד אם יש SKUs */}
           {product.skus && product.skus.length > 0 && (

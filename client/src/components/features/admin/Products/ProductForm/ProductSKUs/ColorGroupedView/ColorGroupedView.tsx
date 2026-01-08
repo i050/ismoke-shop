@@ -272,13 +272,17 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
         group,
         sizeValue,
         skuCode,
-        { basePrice, initialQuantity: 0 }
+        { 
+          basePrice, 
+          initialQuantity: 0,
+          attributeKey: secondaryConfig?.attributeKey || 'size' // 🆕 העברת מפתח המאפיין
+        }
       );
       handleUpdateColorGroup(addingSizeToColorIndex, updatedGroup);
       setAddingSizeToColorIndex(null);
       setNewSizeValue('');
     }
-  }, [addingSizeToColorIndex, newSizeValue, colorGroups, productName, basePrice, handleUpdateColorGroup]);
+  }, [addingSizeToColorIndex, newSizeValue, colorGroups, productName, basePrice, handleUpdateColorGroup, secondaryConfig]);
 
   // Calculate totals
   const totalStock = useMemo(() => 

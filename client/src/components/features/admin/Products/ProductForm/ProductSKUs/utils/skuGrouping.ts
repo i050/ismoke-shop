@@ -195,9 +195,9 @@ export function flattenColorGroups(colorGroups: ColorGroup[]): SKUFormData[] {
  * הוספת מידה חדשה לקבוצת צבע קיימת
  * 
  * @param group - קבוצת הצבע
- * @param size - שם המידה
+ * @param size - שם המידה/ערך הוריאנט
  * @param skuCode - קוד SKU ייחודי
- * @param options - אפשרויות נוספות (basePrice, initialQuantity)
+ * @param options - אפשרויות נוספות (basePrice, initialQuantity, attributeKey)
  * @returns קבוצה מעודכנת (immutable)
  */
 export function addSizeToColorGroup(
@@ -207,9 +207,10 @@ export function addSizeToColorGroup(
   options: {
     basePrice?: number | null;
     initialQuantity?: number;
+    attributeKey?: string; // 🆕 מפתח המאפיין (size/resistance/nicotine וכו')
   } = {}
 ): ColorGroup {
-  const { basePrice = null, initialQuantity = 0 } = options;
+  const { basePrice = null, initialQuantity = 0, attributeKey = 'size' } = options;
   
   return {
     ...group,
@@ -222,7 +223,7 @@ export function addSizeToColorGroup(
         stockQuantity: initialQuantity,
         price: basePrice,
         isActive: true,
-        attributes: { size },
+        attributes: { [attributeKey]: size }, // 🆕 שימוש ב-attributeKey דינמי
       },
     ],
     // עדכון סה"כ מלאי
