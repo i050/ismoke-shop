@@ -12,6 +12,7 @@ export { default } from './ColorGroupedView';
 export { default as ColorPanel } from './ColorPanel';
 export { default as SizeRow } from './SizeRow';
 export { default as AddColorModal } from './AddColorModal';
+export { default as AddVariantDialog } from './AddVariantDialog';
 
 // Types
 export type { NewColorData } from './AddColorModal';

@@ -19,6 +19,7 @@ import {
 } from '../utils/skuGrouping';
 import ColorPanel from './ColorPanel';
 import AddColorModal from './AddColorModal';
+import AddVariantDialog from './AddVariantDialog';
 import { Icon } from '../../../../../../ui/Icon';
 import ConfirmDialog from '../../../../../../ui/ConfirmDialog';
 import { FilterAttributeService, type FilterAttribute } from '../../../../../../../services/filterAttributeService';
@@ -241,8 +242,12 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
   }, []);
 
   // Confirm add size
-  const handleConfirmAddSize = useCallback(() => {
-    if (addingSizeToColorIndex !== null && newSizeValue.trim()) {
+  const handleConfirmAddSize = useCallback((valueToAdd?: string) => {
+    // אם הערך הועבר כפרמטר (מהדיאלוג החדש) - נשתמש בו
+    // אחרת נשתמש ב-state הישן
+    const sizeValue = valueToAdd || newSizeValue.trim();
+    
+    if (addingSizeToColorIndex !== null && sizeValue) {
       const group = colorGroups[addingSizeToColorIndex];
       
       // יצירת קוד SKU ייחודי
@@ -265,7 +270,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
       
       const updatedGroup = addSizeToColorGroup(
         group,
-        newSizeValue.trim(),
+        sizeValue,
         skuCode,
         { basePrice, initialQuantity: 0 }
       );
@@ -459,22 +464,22 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
 
       {/* Add Size Dialog - רק אם יש ציר משני */}
       {secondaryConfig && (
-        <ConfirmDialog
+        <AddVariantDialog
           isOpen={addingSizeToColorIndex !== null}
-          title={`הוספת ${secondaryConfig.attributeName}`}
-          message={`בחר או הקלד ${secondaryConfig.attributeName} להוספה לצבע ${
+          variantName={secondaryConfig.attributeName}
+          colorName={
             addingSizeToColorIndex !== null
               ? colorGroups[addingSizeToColorIndex]?.colorName
               : ''
-          }. ${secondaryConfig.attributeName}ים זמינים: ${
+          }
+          availableValues={
             addingSizeToColorIndex !== null
-              ? getAvailableValuesForColor(addingSizeToColorIndex).join(', ') || 'אין'
-              : ''
-          }`}
-          confirmText={`הוסף ${secondaryConfig.attributeName}`}
-          cancelText="ביטול"
-          variant="info"
-          onConfirm={handleConfirmAddSize}
+              ? getAvailableValuesForColor(addingSizeToColorIndex)
+              : []
+          }
+          onConfirm={(value) => {
+            handleConfirmAddSize(value);
+          }}
           onCancel={() => {
             setAddingSizeToColorIndex(null);
             setNewSizeValue('');
