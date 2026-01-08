@@ -19,7 +19,14 @@ import { logger } from '../../utils/logger';
 // =============================================================================
 
 // Resend - ספק ראשי (מהיר, אמין, 99.99% uptime)
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization - נוצר רק בפעם הראשונה שמשתמשים בו
+let resend: Resend | null = null;
+function getResend(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 // Gmail SMTP - ספק גיבוי במקרה של כישלון
 const gmailTransporter = nodemailer.createTransport({
@@ -481,7 +488,7 @@ async function sendEmail(
   // שליחה אמיתית עם Resend (ספק ראשי) + Gmail fallback
   // ניסיון ראשון - Resend
   try {
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from: `${storeName} <${fromEmail}>`,
       to,
       subject,
