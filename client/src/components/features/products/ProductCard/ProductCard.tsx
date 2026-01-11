@@ -383,13 +383,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 {isInStock ? (
                   <AddToCartPopover
                     availableStock={effectiveStock}
-                    onAddToCart={(quantity) => {
-                      // מעביר את הכמות שנבחרה בפופאובר
+                    onAddToCart={(quantity, sku) => {
+                      // מעביר את הכמות וה-SKU שנבחרו בפופאובר
                       if (onAddToCart) {
-                        onAddToCart(product, selectedSku || undefined, quantity);
+                        onAddToCart(product, sku || selectedSku || undefined, quantity);
                       }
                     }}
                     productName={updatedProduct.name}
+                    skus={product.skus}
+                    selectedSku={selectedSku}
+                    onSkuChange={handleSkuChange}
+                    secondaryVariantAttribute={product.secondaryVariantAttribute}
                   >
                     <Button 
                       variant="primary" 

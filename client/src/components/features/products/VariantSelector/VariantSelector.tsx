@@ -20,6 +20,7 @@ interface VariantSelectorProps {
   showColorPreview?: boolean;           // האם להציג תצוגה ויזואלית של הצבע
   compactMode?: boolean;                // מצב קומפקטי - מציג רק עיגול צבע קטן
   secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine)
+  secondaryOnly?: boolean;              // 🆕 מצב להצגת רק תת-וריאנט (בלי כפתורי צבע)
 }
 
 // 🆕 טיפוס לקבוצת צבע עם תת-וריאנטים
@@ -40,7 +41,8 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   onSkuChange,
   showColorPreview = true,
   compactMode = false,
-  secondaryVariantAttribute = null
+  secondaryVariantAttribute = null,
+  secondaryOnly = false
 }) => {
   
   // 🆕 State לצבע הנבחר (שלב 1)
@@ -302,9 +304,11 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
 
   return (
     <div className={styles.variantSection}>
-      {/* שלב 1: בחירת צבע */}
-      {!compactMode && <h3 className={styles.variantTitle}>צבע:</h3>}
-      <div className={styles.variantOptions}>
+      {/* שלב 1: בחירת צבע - רק אם לא במצב secondaryOnly */}
+      {!secondaryOnly && (
+        <>
+          {!compactMode && <h3 className={styles.variantTitle}>צבע:</h3>}
+          <div className={styles.variantOptions}>
         {colorGroups.map((group, index) => {
           const colorHex = getSkuColor(group.skus[0]); // קוד HEX לתצוגה בכפתור
           const colorName = getSkuColorName(group.skus[0]); // שם הצבע המקורי
@@ -355,6 +359,8 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
           );
         })}
       </div>
+        </>
+      )}
 
       {/* שלב 2: בחירת תת-וריאנט */}
       {hasSecondaryVariants && (

@@ -1,8 +1,10 @@
-// קומפוננטת AddToCartPopover - Popover לבחירת כמות לפני הוספה לעגלה
-import { useState } from 'react';
+// קומפוננטת AddToCartPopover - Popover לבחירת כמות ותת-וריאנט לפני הוספה לעגלה
+import { useState, useEffect, useMemo } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@ui';
 import QuantitySelector from '../QuantitySelector/QuantitySelector';
+import VariantSelector from '../../features/products/VariantSelector';
+import type { Sku } from '../../../types/Product';
 import styles from './AddToCartPopover.module.css';
 
 interface AddToCartPopoverProps {
@@ -10,22 +12,32 @@ interface AddToCartPopoverProps {
   children: React.ReactNode;
   /** המלאי הזמין למוצר/SKU */
   availableStock: number;
-  /** פונקציה שתקרא כאשר לוחצים "הוסף לסל" עם הכמות שנבחרה */
-  onAddToCart: (quantity: number) => void;
+  /** פונקציה שתקרא כאשר לוחצים "הוסף לסל" עם הכמות ו-SKU שנבחרו */
+  onAddToCart: (quantity: number, sku?: string) => void;
   /** האם הפופאובר מושבת (למשל אם אין מלאי) */
   disabled?: boolean;
   /** שם המוצר - להצגה בפופאובר */
   productName?: string;
+  /** 🆕 SKUs זמינים עבור הצבע הנבחר (לבחירת תת-וריאנט) */
+  skus?: Sku[];
+  /** 🆕 SKU הנבחר כרגע */
+  selectedSku?: string | null;
+  /** 🆕 פונקציה לשינוי SKU */
+  onSkuChange?: (sku: string) => void;
+  /** 🆕 שם המאפיין המשני (size/resistance וכו') */
+  secondaryVariantAttribute?: string | null;
 }
 
 /**
  * קומפוננטת AddToCartPopover
- * מציגה Popover עם בחירת כמות כשלוחצים על כפתור "הוסף לסל"
+ * מציגה Popover עם בחירת תת-וריאנט וכמות כשלוחצים על כפתור "הוסף לסל"
  * 
  * UX Flow:
- * 1. משתמש לוחץ על "הוסף לסל"
- * 2. נפתח Popover עם quantity selector (ברירת מחדל: 1)
- * 3. משתמש בוחר כמות
+ * 1. משתמש לוחץ על "הוסף לסל" (אחרי שבחר צבע בכרטיסייה)
+ * 2. נפתח Popover עם:
+ *    - בחירת תת-וריאנט (התנגדות/מידה/ניקוטין)
+ *    - quantity selector (ברירת מחדל: 1)
+ * 3. משתמש בוחר תת-וריאנט וכמות
  * 4. לוחץ "הוסף" והפופאובר נסגר
  */
 const AddToCartPopover = ({
@@ -33,18 +45,48 @@ const AddToCartPopover = ({
   availableStock,
   onAddToCart,
   disabled = false,
-  productName = 'מוצר זה'
+  productName = 'מוצר זה',
+  skus,
+  selectedSku,
+  onSkuChange,
+  secondaryVariantAttribute
 }: AddToCartPopoverProps) => {
   // state לניהול הכמות שנבחרה
   const [quantity, setQuantity] = useState(1);
   
   // state לניהול פתיחה/סגירה של הפופאובר
   const [isOpen, setIsOpen] = useState(false);
+  
+  // 🆕 state מקומי ל-SKU כדי לאפשר שינוי בתוך הפופאובר
+  const [localSelectedSku, setLocalSelectedSku] = useState<string | null>(selectedSku || null);
+  
+  // 🆕 סנכרון ה-state המקומי עם ה-prop החיצוני
+  useEffect(() => {
+    if (selectedSku) {
+      setLocalSelectedSku(selectedSku);
+    }
+  }, [selectedSku]);
+  
+  // 🆕 חישוב מלאי דינמי לפי SKU נבחר
+  const currentStock = useMemo(() => {
+    if (!skus || !localSelectedSku) return availableStock;
+    const skuData = skus.find(s => s.sku === localSelectedSku);
+    return skuData?.stockQuantity ?? availableStock;
+  }, [skus, localSelectedSku, availableStock]);
 
+  // 🆕 פונקציה לטיפול בשינוי SKU בתוך הפופאובר
+  const handleLocalSkuChange = (sku: string) => {
+    setLocalSelectedSku(sku);
+    // עדכון גם את ה-state החיצוני אם קיים callback
+    if (onSkuChange) {
+      onSkuChange(sku);
+    }
+  };
+  
   // פונקציה לטיפול בהוספה לסל
   const handleAddToCart = () => {
-    if (quantity > 0 && quantity <= availableStock) {
-      onAddToCart(quantity);
+    if (quantity > 0 && quantity <= currentStock) {
+      onAddToCart(quantity, localSelectedSku || undefined);
       setIsOpen(false); // סגירת הפופאובר
       setQuantity(1); // איפוס הכמות לברירת המחדל
     }
@@ -83,24 +125,39 @@ const AddToCartPopover = ({
           <div className={styles.container} onClick={stopEventPropagation}>
             {/* כותרת */}
             <div className={styles.header}>
-              <h3 className={styles.title}>בחר כמות</h3>
+              <h3 className={styles.title}>השלם את הבחירה</h3>
               {productName && (
                 <p className={styles.productName}>{productName}</p>
               )}
             </div>
+
+            {/* 🆕 בחירת תת-וריאנט (אם יש SKUs מרובים וזה לא מצב פשוט) */}
+            {skus && skus.length > 1 && (
+              <div className={styles.variantSection}>
+                <VariantSelector
+                  skus={skus}
+                  selectedSku={localSelectedSku}
+                  onSkuChange={handleLocalSkuChange}
+                  compactMode={false}
+                  secondaryVariantAttribute={secondaryVariantAttribute}
+                  showColorPreview={false}
+                  secondaryOnly={!!secondaryVariantAttribute}
+                />
+              </div>
+            )}
 
             {/* בורר כמות */}
             <div className={styles.quantitySection}>
               <QuantitySelector
                 value={quantity}
                 min={1}
-                max={availableStock}
+                max={currentStock}
                 onChange={setQuantity}
                 onOverMax={handleOverMax}
                 size="medium"
               />
               <p className={styles.stockInfo}>
-                {availableStock} יחידות זמינות במלאי
+                {currentStock} יחידות זמינות במלאי
               </p>
             </div>
 

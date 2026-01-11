@@ -43,6 +43,12 @@
   white-space: nowrap;
 }
 
+/* 🆕 אזור בחירת תת-וריאנט */
+.variantSection {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light, #f3f4f6);
+}
+
 /* אזור בחירת כמות */
 .quantitySection {
   display: flex;
