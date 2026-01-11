@@ -74,6 +74,13 @@ export const skuSchema = yup.object({
     .max(50, 'שם הצבע לא יכול להכיל יותר מ-50 תווים')
     .nullable(),
 
+  // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
+  colorHex: yup
+    .string()
+    .optional()
+    .matches(/^#[0-9A-Fa-f]{6}$/, 'קוד צבע HEX חייב להיות בפורמט #RRGGBB')
+    .nullable(),
+
   // size הוסר מהטופ-לבל - כעת מאפיין דינמי ב-attributes
 
   // 🆕 משפחת צבע - מתוך בנק המאפיינים הגלובלי
@@ -151,6 +158,14 @@ export const productSchema = yup.object({
     .required('שם המוצר הוא שדה חובה')
     .min(3, 'שם המוצר חייב להכיל לפחות 3 תווים')
     .max(200, 'שם המוצר לא יכול להכיל יותר מ-200 תווים')
+    .trim(),
+
+  // שם משני אופציונלי - מוצג מתחת לשם הראשי
+  subtitle: yup
+    .string()
+    .optional()
+    .max(200, 'השם המשני לא יכול להכיל יותר מ-200 תווים')
+    .nullable()
     .trim(),
 
   // תיאור המוצר - אופציונלי
@@ -422,6 +437,7 @@ export const validateProductForm = async (
  */
 export const defaultProductValues: Partial<ProductFormData> = {
   name: '',
+  subtitle: '', // שם משני אופציונלי
   description: '',
   brand: null,
   basePrice: 0,

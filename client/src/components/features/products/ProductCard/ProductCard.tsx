@@ -10,6 +10,8 @@ import ProductPrice from '../ProductPrice';
 import VariantSelector from '../VariantSelector';
 // ייבוא רכיב כפתור התראת מלאי
 import StockAlertButton from '../StockAlertButton';
+// ייבוא Popover לבחירת כמות לפני הוספה לסל
+import AddToCartPopover from '../../../ui/AddToCartPopover';
 // ייבוא הטיפוסים המרכזיים
 import type { Product } from '../../../../types';
 // ייבוא hook ל-Redux לקבלת מידע משתמש ומידע על העגלה
@@ -34,7 +36,7 @@ interface ProductCardProps {
     discountPercentage?: number;   // מתבסס על pricing.discountPercentage
   };
   variant?: 'grid' | 'carousel';                // חדש: וריאנט עיצובי - grid לגריד, carousel לקרוסלות
-  onAddToCart?: (product: Product, sku?: string) => void; // פונקציה להוספה לסל עם קוד SKU
+  onAddToCart?: (product: Product, sku?: string, quantity?: number) => void; // פונקציה להוספה לסל עם קוד SKU וכמות
   onProductClick?: (productId: string) => void; // פונקציה לקליק על המוצר - אופציונלי
   className?: string;                           // קלאס נוסף - אופציונלי
 }
@@ -228,39 +230,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  // פונקציה לטיפול בהוספה לסל
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onAddToCart) {
-      // אם יש SKUs, שלח את ה-SKU הנבחר
-      if (product.skus && product.skus.length > 0 && selectedSku) {
-        const selectedSkuData = product.skus.find(s => s.sku === selectedSku);
-        
-        debugProductLog('🎨 ProductCard - שולח SKU:', {
-          productId: product._id,
-          productName: product.name,
-          skusCount: product.skus.length,
-          selectedSku,
-          skuName: selectedSkuData?.name,
-          skuColor: selectedSkuData?.attributes?.color,
-          skuSize: selectedSkuData?.attributes?.size,
-          skuImages: selectedSkuData?.images?.length || 0
-        });
-        
-        // קריאה עם קוד SKU
-        onAddToCart(product, selectedSku);
-      } else {
-        // אין SKUs כלל - שלח רק את המוצר
-        debugProductLog('📦 ProductCard - מוצר ללא SKUs:', {
-          productId: product._id,
-          productName: product.name
-        });
-        onAddToCart(product);
-      }
-    }
-  };
-
   // פונקציה לשינוי SKU (על ידי קוד SKU)
   const handleSkuChange = (sku: string) => {
     const skuData = product.skus?.find(s => s.sku === sku);
@@ -362,9 +331,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* אזור תוכן */}
         <div className={styles.content}>
+          {/* שם המוצר */}
           <Typography variant="h6" className={styles.productName}>
             {updatedProduct.name}
           </Typography>
+
+          {/* שם משני אופציונלי - מוצג מתחת לשם הראשי בצבע בהיר יותר */}
+          {updatedProduct.subtitle && (
+            <Typography variant="body2" className={styles.productSubtitle}>
+              {updatedProduct.subtitle}
+            </Typography>
+          )}
 
           {/* <div>
             {product.description && (
@@ -376,7 +353,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* בחירת SKU - תמיד אם יש SKUs */}
           {product.skus && product.skus.length > 0 && (
-            <div className={styles.variantSelector} onClick={(e) => e.preventDefault()}>
+            <div className={styles.variantSelector} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
               <VariantSelector
                 skus={product.skus}
                 selectedSku={selectedSku}
@@ -404,9 +381,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
               <div className={styles.actionContainer}>
                 {isInStock ? (
-                  <Button variant="primary" size="sm" mobileFull onClick={handleAddToCart}>
-                    הוסף לסל
-                  </Button>
+                  <AddToCartPopover
+                    availableStock={effectiveStock}
+                    onAddToCart={(quantity) => {
+                      // מעביר את הכמות שנבחרה בפופאובר
+                      if (onAddToCart) {
+                        onAddToCart(product, selectedSku || undefined, quantity);
+                      }
+                    }}
+                    productName={updatedProduct.name}
+                  >
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      mobileFull
+                    >
+                      הוסף לסל
+                    </Button>
+                  </AddToCartPopover>
                 ) : (
                   /* מוצר אזל - הצגת כפתור התראת מלאי (וריאנט link לכרטיס) */
                   <StockAlertButton

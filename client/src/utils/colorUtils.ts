@@ -10,6 +10,45 @@ import { AVAILABLE_COLORS, isHexColor } from './colorConstants';
 import type { ColorFamily } from '../services/filterAttributeService';
 
 /**
+ * מפת צבעים - שמות עברית/אנגלית ל-HEX
+ * משמש להמרה הפוכה: משם צבע לקוד HEX
+ */
+const COLOR_NAME_TO_HEX_MAP: { [key: string]: string } = {
+  // עברית
+  'שחור': '#1a1a1a',
+  'כחול': '#007bff',
+  'אדום': '#dc3545',
+  'ירוק': '#28a745',
+  'צהוב': '#ffc107',
+  'סגול': '#6f42c1',
+  'כתום': '#fd7e14',
+  'ורוד': '#e83e8c',
+  'חום': '#795548',
+  'אפור': '#6c757d',
+  'לבן': '#f8f9fa',
+  'זהב': '#ffd700',
+  'כסף': '#c0c0c0',
+  'טורקיז': '#17a2b8',
+  
+  // אנגלית (fallback)
+  'black': '#1a1a1a',
+  'blue': '#007bff',
+  'red': '#dc3545',
+  'green': '#28a745',
+  'yellow': '#ffc107',
+  'purple': '#6f42c1',
+  'orange': '#fd7e14',
+  'pink': '#e83e8c',
+  'brown': '#795548',
+  'gray': '#6c757d',
+  'grey': '#6c757d',
+  'white': '#f8f9fa',
+  'gold': '#ffd700',
+  'silver': '#c0c0c0',
+  'turquoise': '#17a2b8',
+};
+
+/**
  * ממיר קוד HEX לשם צבע בעברית
  * @param hexColor - קוד צבע בפורמט HEX (עם או בלי #)
  * @returns אובייקט עם שם הצבע בעברית ובאנגלית
@@ -97,6 +136,67 @@ export const getColorName = (hexColor: string | null | undefined): {
 export const getColorNameHebrew = (hexColor: string | null | undefined): string => {
   return getColorName(hexColor).hebrew;
 };
+
+/**
+ * ממיר שם צבע (עברית/אנגלית) או קוד HEX לקוד HEX מנורמל
+ * תומך גם בצבעים מורכבים (צבע1-צבע2, צבע1 צבע2)
+ * 
+ * @param colorValue - שם הצבע (עברית/אנגלית) או קוד HEX
+ * @returns קוד HEX של הצבע (אם זיהה), אחרת מחזיר את הקלט כמו שהוא
+ * 
+ * @example
+ * getColorCode('אדום') // '#DC3545'
+ * getColorCode('#FF0000') // '#FF0000'
+ * getColorCode('אדום-כהה') // '#DC3545' (לוקח את הראשון)
+ * getColorCode('unknown') // 'unknown' (לא מזוהה)
+ */
+export function getColorCode(colorValue: string | null | undefined): string {
+  if (!colorValue) return '#999999'; // ברירת מחדל אפור
+
+  const trimmed = colorValue.trim();
+
+  // אם זה כבר HEX תקין, החזר מנורמל
+  if (isHexColor(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+
+  // נרמול: לאותיות קטנות והסרת רווחים מיותרים
+  const normalized = trimmed.toLowerCase();
+
+  // בדיקה ישירה במפה
+  if (COLOR_NAME_TO_HEX_MAP[normalized]) {
+    return COLOR_NAME_TO_HEX_MAP[normalized].toUpperCase();
+  }
+
+  // אם הצבע מכיל מקף (צבע מורכב), קח את הצבע הראשון
+  if (normalized.includes('-')) {
+    const firstColor = normalized.split('-')[0].trim();
+    if (COLOR_NAME_TO_HEX_MAP[firstColor]) {
+      return COLOR_NAME_TO_HEX_MAP[firstColor].toUpperCase();
+    }
+  }
+
+  // אם הצבע מכיל רווח (צבע מורכב), קח את הצבע הראשון
+  if (normalized.includes(' ')) {
+    const firstColor = normalized.split(' ')[0].trim();
+    if (COLOR_NAME_TO_HEX_MAP[firstColor]) {
+      return COLOR_NAME_TO_HEX_MAP[firstColor].toUpperCase();
+    }
+  }
+
+  // נסה לחפש ב-AVAILABLE_COLORS
+  const found = AVAILABLE_COLORS.find(c => 
+    c.name.toLowerCase() === normalized ||
+    c.hex.toLowerCase() === normalized.toLowerCase()
+  );
+  if (found) {
+    return found.hex.toUpperCase();
+  }
+
+  // אם לא מצאנו התאמה, החזר את הקלט כמו שהוא
+  // (עשוי להיות CSS color name כמו 'red', 'blue' וכו')
+  return trimmed;
+}
 
 /**
  * Convert HEX -> RGB

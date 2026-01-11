@@ -117,7 +117,33 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
 
   // פונקציה לקבלת קוד צבע HEX מ-SKU
   const getSkuColor = (sku: Sku): string => {
+    // 🆕 קודם כל - נסה להשתמש ב-colorHex אם קיים (קוד HEX אמיתי לתצוגה)
+    if ((sku as any).colorHex) {
+      return (sku as any).colorHex;
+    }
     // נסה קודם color ישירות (פורמט שרת - שדה שטוח)
+    if ((sku as any).color) {
+      return (sku as any).color;
+    }
+    // נסה attributes.color (פורמט טופס ישן - backward compatibility)
+    if (sku.attributes?.color) {
+      return sku.attributes.color;
+    }
+    // fallback - נסה לחלץ צבע מתוך שם ה-SKU (למוצרים ישנים)
+    if (sku.name) {
+      // אם השם מכיל " - ", קח רק את החלק אחרי המקף האחרון
+      const parts = sku.name.split(' - ');
+      if (parts.length > 1) {
+        return parts[parts.length - 1]; // החזר את החלק האחרון (הצבע)
+      }
+    }
+    // אין צבע זמין
+    return '';
+  };
+
+  // 🆕 פונקציה לקבלת שם הצבע (לא HEX) מ-SKU
+  const getSkuColorName = (sku: Sku): string => {
+    // נסה לקבל את שם הצבע מה-color (השם המותאם אישית שהמנהל הכניס)
     if ((sku as any).color) {
       return (sku as any).color;
     }
@@ -208,8 +234,9 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       <div className={styles.variantSection}>
         <div className={styles.variantOptions}>
           {skus.map((skuItem, index) => {
-            const colorName = getSkuColor(skuItem);
-            const colorCode = getColorCode(colorName);
+            const colorHex = getSkuColor(skuItem); // קוד HEX לתצוגה בכפתור
+            const colorName = getSkuColorName(skuItem); // שם הצבע המקורי
+            const colorCode = getColorCode(colorHex);
             const isSelected = skuItem.sku === selectedSku;
             
             return (
@@ -225,7 +252,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   ['--variant-color' as any]: colorCode,
                   ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
                 }}
-                title={`בחר צבע ${colorName}`}
+                title={`בחר צבע ${colorName || colorHex}`}
               >
                 {showColorPreview && !compactMode && (
                   <div className={styles.colorPreview} />
@@ -236,12 +263,12 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                     {skuItem.images && skuItem.images.length > 0 ? (
                       <img 
                         src={getImageUrl(skuItem.images[0])} 
-                        alt={`${getColorDisplayName(colorName) || colorName} variant`}
+                        alt={`${colorName || colorHex} variant`}
                         className={styles.variantImage}
                       />
                     ) : (
-                      getColorDisplayName(colorName) && (
-                        <span className={styles.variantColorName}>{getColorDisplayName(colorName)}</span>
+                      (colorName || colorHex) && (
+                        <span className={styles.variantColorName}>{colorName || getColorDisplayName(colorHex)}</span>
                       )
                     )}
                   </>
@@ -261,13 +288,27 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     ? colorGroups.find(g => g.color === selectedColor) 
     : null;
 
+  // 🆕 בדיקה אם יש תת-וריאנטים להציג
+  const hasSecondaryVariants = selectedColorGroup && selectedColorGroup.variants.length > 1;
+
+  // 🆕 תרגום label לפי סוג המאפיין
+  const getSecondaryAttributeLabel = (): string => {
+    if (!secondaryVariantAttribute) return 'בחר';
+    if (secondaryVariantAttribute === 'size') return 'מידה';
+    if (secondaryVariantAttribute === 'htngdvt_slylym') return 'התנגדות';
+    if (secondaryVariantAttribute === 'nicotine') return 'ניקוטין';
+    return 'בחר';
+  };
+
   return (
     <div className={styles.variantSection}>
       {/* שלב 1: בחירת צבע */}
-      <h3 className={styles.variantTitle}>צבע:</h3>
+      {!compactMode && <h3 className={styles.variantTitle}>צבע:</h3>}
       <div className={styles.variantOptions}>
         {colorGroups.map((group, index) => {
-          const colorCode = getColorCode(group.color);
+          const colorHex = getSkuColor(group.skus[0]); // קוד HEX לתצוגה בכפתור
+          const colorName = getSkuColorName(group.skus[0]); // שם הצבע המקורי
+          const colorCode = getColorCode(colorHex);
           const isSelected = group.color === selectedColor;
           
           return (
@@ -289,7 +330,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                 ['--variant-color' as any]: colorCode,
                 ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
               }}
-              title={`בחר צבע ${group.color}`}
+              title={`בחר צבע ${colorName || colorHex}`}
             >
               {showColorPreview && !compactMode && (
                 <div className={styles.colorPreview} />
@@ -300,12 +341,12 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   {group.skus[0].images && group.skus[0].images.length > 0 ? (
                     <img 
                       src={getImageUrl(group.skus[0].images[0])} 
-                      alt={`${getColorDisplayName(group.color) || group.color} variant`}
+                      alt={`${colorName || colorHex} variant`}
                       className={styles.variantImage}
                     />
                   ) : (
-                    getColorDisplayName(group.color) && (
-                      <span className={styles.variantColorName}>{getColorDisplayName(group.color)}</span>
+                    (colorName || colorHex) && (
+                      <span className={styles.variantColorName}>{colorName || getColorDisplayName(colorHex)}</span>
                     )
                   )}
                 </>
@@ -315,33 +356,56 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
         })}
       </div>
 
-      {/* שלב 2: בחירת תת-וריאנט (אם נבחר צבע ויש תת-וריאנטים) */}
-      {selectedColorGroup && selectedColorGroup.variants.length > 1 && (
+      {/* שלב 2: בחירת תת-וריאנט */}
+      {hasSecondaryVariants && (
         <div className={styles.secondaryVariantSection}>
-          <h4 className={styles.secondaryVariantTitle}>
-            {secondaryVariantAttribute === 'size' && 'מידה:'}
-            {secondaryVariantAttribute === 'htngdvt_slylym' && 'התנגדות:'}
-            {secondaryVariantAttribute === 'nicotine' && 'ניקוטין:'}
-            {!['size', 'htngdvt_slylym', 'nicotine'].includes(secondaryVariantAttribute || '') && 'בחר:'}
-          </h4>
-          <div className={styles.secondaryVariantOptions}>
-            {selectedColorGroup.variants.map((variant, index) => {
-              const isSelected = variant.sku === selectedSku;
-              
-              return (
-                <button
-                  key={`variant-${variant.value}-${index}`}
-                  className={`${styles.secondaryVariantButton} ${
-                    isSelected ? styles.secondaryVariantActive : ''
-                  }`}
-                  onClick={() => onSkuChange(variant.sku)}
-                  title={`בחר ${variant.value}`}
+          {/* 🆕 מצב רגיל - כפתורים */}
+          {!compactMode && (
+            <>
+              <h4 className={styles.secondaryVariantTitle}>{getSecondaryAttributeLabel()}:</h4>
+              <div className={styles.secondaryVariantOptions}>
+                {selectedColorGroup!.variants.map((variant, index) => {
+                  const isSelected = variant.sku === selectedSku;
+                  
+                  return (
+                    <button
+                      key={`variant-${variant.value}-${index}`}
+                      className={`${styles.secondaryVariantButton} ${
+                        isSelected ? styles.secondaryVariantActive : ''
+                      }`}
+                      onClick={() => onSkuChange(variant.sku)}
+                      title={`בחר ${variant.value}`}
+                    >
+                      {variant.value}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* 🆕 מצב קומפקטי - dropdown */}
+          {compactMode && (
+            <div className={styles.compactSecondaryVariant}>
+              <label className={styles.compactLabel}>{getSecondaryAttributeLabel()}:</label>
+              <div className={styles.selectWrapper}>
+                <select
+                  className={styles.compactSelect}
+                  value={selectedSku || ''}
+                  onChange={(e) => onSkuChange(e.target.value)}
                 >
-                  {variant.value}
-                </button>
-              );
-            })}
-          </div>
+                  {selectedColorGroup!.variants.map((variant, index) => (
+                    <option key={`opt-${variant.value}-${index}`} value={variant.sku}>
+                      {variant.value}
+                    </option>
+                  ))}
+                </select>
+                <svg className={styles.selectIcon} width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

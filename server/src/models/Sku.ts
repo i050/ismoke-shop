@@ -31,6 +31,7 @@ export interface ISku {
   price?: number | null; // מחיר הסופי של SKU זה (אופציונלי - Base Price Override)
   stockQuantity: number; // כמות במלאי
   color?: string; // צבע (שדה שטוח - יש לו לוגיקה מיוחדת עם colorFamily)
+  colorHex?: string; // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
   // size הוסר ממאפיין מובנה - עבר ל-attributes.size ✅
   attributes: {
     // תכונות גמישות נוספות - size, material וכו'
@@ -129,6 +130,13 @@ const SkuSchema = new Schema<ISkuDocument>(
     // שדות אטריביוטים שטוחים (Phase: Flat Attributes)
     // color נשאר שדה שטוח - יש לו לוגיקה מיוחדת (colorFamily)
     color: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+
+    // 🆕 קוד HEX של הצבע (לתצוגה בכפתור)
+    colorHex: {
       type: String,
       required: false,
       trim: true,
@@ -264,9 +272,14 @@ SkuSchema.pre('save', function (next) {
     this.sku = this.sku.toUpperCase();
   }
   
-  // 2. Auto-assign colorFamily מ-color (HEX) אם השדה השתנה או חדש
-  // רק אם colorFamilySource לא 'manual' (לכבד בחירה ידנית של המנהל)
-  if (this.isModified('color') || (this.isNew && this.color && !this.colorFamily)) {
+  // 2. Auto-assign colorFamily מ-color (HEX) רק אם:
+  //    - השדה color השתנה ואין colorFamily ידני (source !== 'manual')
+  //    - או שזה SKU חדש בלי colorFamily בכלל
+  const shouldAutoAssign = 
+    (this.isModified('color') && this.colorFamilySource !== 'manual') ||
+    (this.isNew && this.color && !this.colorFamily);
+    
+  if (shouldAutoAssign) {
     autoAssignColorFamily(this);
   }
   

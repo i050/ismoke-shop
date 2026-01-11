@@ -150,6 +150,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 stockQuantity: sku.stockQuantity || 0,
                 // שדה שטוח - color ישירות
                 color: sku.color || (sku.attributes as any)?.color || '',
+                // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
+                colorHex: (sku as any).colorHex || undefined,
+                // 🆕 משפחת צבע ומקור - חשוב לשמור כדי לא לדרוס בחירה ידנית!
+                colorFamily: (sku as any).colorFamily || undefined,
+                colorFamilySource: (sku as any).colorFamilySource || 'auto',
                 // 🔧 FIX: המרת תמונות ישנות (string) לפורמט חדש (object)
                 images: sku.images?.map(img => 
                   typeof img === 'string' 
@@ -362,12 +367,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
    * טיפול בשליחת הטופס
    */
   const handleFormSubmit = async (data: ProductFormData) => {
-    console.log('🚀 [ProductForm] handleFormSubmit called!', { 
-      mode, 
-      hasData: !!data,
-      dataKeys: Object.keys(data),
-      specifications: data.specifications, // 🔍 DEBUG: בדיקת specifications
-    });
+    // לוג מופחת - רק במצב פיתוח
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🚀 [ProductForm] handleFormSubmit', { mode, skusCount: data.skus?.length });
+    }
     
     setIsSubmitting(true);
     
@@ -754,6 +757,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <ProductBasicInfo
                 values={{
                   name: formValues.name || '',
+                  subtitle: formValues.subtitle || '', // שם משני אופציונלי
                   description: formValues.description || '',
                   brand: formValues.brand || null,
                 }}

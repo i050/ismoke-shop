@@ -13,17 +13,19 @@ interface ProductBasicInfoProps {
   /** ערכי השדות הנוכחיים */
   values: {
     name: string;
+    subtitle?: string; // שם משני אופציונלי
     description: string;
     brand: string | null;
   };
   /** שגיאות validation לפי שם שדה */
   errors?: {
     name?: string;
+    subtitle?: string;
     description?: string;
     brand?: string;
   };
   /** פונקציה שמופעלת כשמשנים ערך בשדה */
-  onChange: (field: 'name' | 'description' | 'brand', value: string) => void;
+  onChange: (field: 'name' | 'subtitle' | 'description' | 'brand', value: string) => void;
   /** האם הטופס במצב שמירה/loading */
   disabled?: boolean;
 }
@@ -47,6 +49,14 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange('name', e.target.value);
+    },
+    [onChange]
+  );
+
+  // טיפול בשינוי שם משני
+  const handleSubtitleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange('subtitle', e.target.value);
     },
     [onChange]
   );
@@ -96,6 +106,23 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
             error={!!errors.name}
             helperText={errors.name?.message || (!values.name ? 'מינימום 3 תווים, מקסימום 200 תווים' : undefined)}
             size="large"
+          />
+        </div>
+
+        {/* שם משני אופציונלי */}
+        <div className={styles.formGroup}>
+          <Input
+            id="product-subtitle"
+            name="subtitle"
+            label="שם משני (אופציונלי)"
+            type="text"
+            value={values.subtitle || ''}
+            onChange={handleSubtitleChange}
+            placeholder="למשל: הטכנולוגיה המתקדמת ביותר"
+            disabled={disabled}
+            error={!!errors.subtitle}
+            helperText={errors.subtitle?.message || 'יוצג מתחת לשם המוצר בצבע בהיר יותר'}
+            size="medium"
           />
         </div>
 

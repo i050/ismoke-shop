@@ -46,6 +46,29 @@ export const getAttributesForFilter = async (req: Request, res: Response) => {
 };
 
 /**
+ * 🆕 GET /api/filter-attributes/color-families
+ * קבלת כל משפחות הצבעים האפשריות (לממשק ניהול)
+ * מחזיר רק משפחות - לא variants
+ */
+export const getColorFamiliesForAdmin = (req: Request, res: Response) => {
+  try {
+    const colorFamilies = filterAttributeService.getColorFamiliesForAdmin();
+
+    res.json({
+      success: true,
+      count: colorFamilies.length,
+      data: colorFamilies,
+    });
+  } catch (error: any) {
+    console.error('❌ Error in getColorFamiliesForAdmin:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to fetch color families',
+    });
+  }
+};
+
+/**
  * POST /api/filter-attributes
  * יצירת מאפיין חדש (Admin)
  */

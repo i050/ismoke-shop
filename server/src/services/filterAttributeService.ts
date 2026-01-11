@@ -2,6 +2,7 @@ import NodeCache from 'node-cache';
 import FilterAttribute, { IFilterAttribute } from '../models/FilterAttribute';
 import SKU from '../models/Sku';
 import { clearValidationCache } from '../middleware/dynamicValidation';
+import { loadColorFamilies } from '../utils/colorFamilyDetector';
 
 // 🧠 Cache פנימי למאפייני סינון כדי להימנע משאילתות חוזרות
 const attributesCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
@@ -23,6 +24,26 @@ export const clearAttributesCache = (): void => {
  * שירות ניהול מאפייני סינון
  * מספק פונקציות CRUD ושאילתות מתקדמות למאפייני סינון
  */
+
+/**
+ * 🆕 קבלת כל משפחות הצבעים האפשריות (לממשק הניהול)
+ * מחזירה את הרשימה המלאה מ-colorFamilies.json ללא תלות בשימוש
+ * משמש ב-AddColorModal כדי להציג למנהל את כל האפשרויות
+ */
+export const getAllColorFamilies = (): Array<{
+  family: string;
+  displayName: string;
+  variants: Array<{ name: string; hex: string }>;
+}> => {
+  try {
+    const colorFamilies = loadColorFamilies();
+    console.log(`📊 Loaded ${colorFamilies.length} color families from JSON`);
+    return colorFamilies;
+  } catch (error) {
+    console.error('❌ Error loading color families:', error);
+    return [];
+  }
+};
 
 /**
  * קבלת כל המאפיינים
@@ -246,6 +267,125 @@ export const deleteAttribute = async (id: string): Promise<void> => {
   }
 };
 
+// ============================================================================
+// 🆕 קבלת משפחות צבעים להצגה למנהל (ללא variants)
+// ============================================================================
+
+/**
+ * מחזיר רשימה של משפחות צבעים בלבד - לשימוש בממשק הניהול
+ * המנהל בוחר רק משפחה (אדום, כחול וכו') - לא גוון ספציפי
+ * 
+ * @returns מערך פשוט של משפחות עם שם תצוגה ו-HEX ייצוגי
+ */
+export const getColorFamiliesForAdmin = (): Array<{
+  family: string;
+  displayName: string;
+  representativeHex: string;
+}> => {
+  try {
+    const allFamilies = loadColorFamilies();
+    
+    // מיפוי למבנה פשוט - רק משפחה + HEX ייצוגי (הראשון ברשימה)
+    return allFamilies.map((fam) => ({
+      family: fam.family,
+      displayName: fam.displayName,
+      representativeHex: fam.variants[0]?.hex || '#000000', // HEX ייצוגי
+    }));
+  } catch (error) {
+    console.error('❌ Error loading color families for admin:', error);
+    return [];
+  }
+};
+
+// ============================================================================
+// 🆕 בניית colorFamilies דינמית מה-SKUs הפעילים
+// ============================================================================
+
+/**
+ * בניית רשימת משפחות צבעים דינמית מתוך ה-SKUs הפעילים
+ * מחזירה רק את הצבעים שהמנהל בחר בפועל (לא את כל הרשימה המוכנה)
+ * 
+ * @returns מערך של משפחות צבעים עם variants שקיימים במוצרים פעילים
+ */
+const buildDynamicColorFamilies = async (): Promise<Array<{
+  family: string;
+  displayName: string;
+  variants: Array<{ name: string; hex: string }>;
+}>> => {
+  try {
+    // 1. שליפת כל הצבעים הייחודיים מ-SKUs פעילים
+    const colorData = await SKU.aggregate([
+      { $match: { isActive: true, color: { $exists: true, $nin: [null, ''] } } },
+      {
+        $group: {
+          _id: '$colorFamily', // קיבוץ לפי משפחת צבע
+          colors: { $addToSet: '$color' }, // כל הצבעים הייחודיים במשפחה
+        }
+      },
+      { $match: { _id: { $ne: null } } }, // רק משפחות עם ערך
+    ]);
+
+    if (colorData.length === 0) {
+      console.log('📊 No active colors found in SKUs');
+      return [];
+    }
+
+    // 2. טעינת רשימת הצבעים המוכנה מראש (לקבלת displayName ו-variants)
+    const allColorFamilies = loadColorFamilies();
+    
+    // 3. מיפוי לפורמט הנכון - רק משפחות שקיימות בפועל ב-SKUs
+    const dynamicFamilies = colorData
+      .map((item) => {
+        const familyKey = item._id as string;
+        
+        // מציאת המשפחה ברשימה המוכנה מראש
+        const predefinedFamily = allColorFamilies.find(
+          (f) => f.family.toLowerCase() === familyKey.toLowerCase()
+        );
+
+        if (!predefinedFamily) {
+          // משפחה לא מוכרת - ניצור אחת בסיסית
+          console.log(`⚠️ Unknown color family: ${familyKey}`);
+          return {
+            family: familyKey,
+            displayName: familyKey, // שם המשפחה כ-displayName
+            variants: (item.colors as string[]).map((hex: string) => ({
+              name: hex,
+              hex: hex.startsWith('#') ? hex : `#${hex}`,
+            })),
+          };
+        }
+
+        // סינון variants - רק אלו שקיימים בפועל ב-SKUs
+        // או אם אין התאמה מדויקת - להציג את ה-variants של המשפחה
+        const skuColors = new Set((item.colors as string[]).map((c: string) => c.toUpperCase()));
+        
+        // בדיקה אם יש התאמה ישירה ל-variants
+        const matchedVariants = predefinedFamily.variants.filter(
+          (v) => skuColors.has(v.hex.toUpperCase())
+        );
+
+        // אם יש התאמות - נציג רק אותן, אחרת נציג את כל ה-variants של המשפחה
+        const variantsToShow = matchedVariants.length > 0 
+          ? matchedVariants 
+          : predefinedFamily.variants;
+
+        return {
+          family: predefinedFamily.family,
+          displayName: predefinedFamily.displayName,
+          variants: variantsToShow,
+        };
+      })
+      .filter(Boolean);
+
+    console.log(`📊 Built ${dynamicFamilies.length} dynamic color families from SKUs`);
+    return dynamicFamilies;
+  } catch (error) {
+    console.error('❌ Error building dynamic color families:', error);
+    return [];
+  }
+};
+
 /**
  * קבלת מאפיינים שמוצגים בסינון (עם ספירת שימוש)
  * משתמש ב-Aggregation יחיד למניעת N+1 queries
@@ -313,11 +453,28 @@ export const getAttributesForFilter = async (): Promise<Array<{
     // מיפוי התוצאות
     const countMap = new Map(counts.map((c) => [c._id, c.count]));
 
+    // 🆕 בניית colorFamilies דינמית מה-SKUs הפעילים
+    // במקום להשתמש ב-colorFamilies הסטטי מה-FilterAttribute
+    const activeColorFamilies = await buildDynamicColorFamilies();
+
     const result = attributes
-      .map((attr) => ({
-        attribute: attr,
-        usageCount: countMap.get(attr.key) || 0,
-      }))
+      .map((attr) => {
+        // 🎨 עבור מאפיין צבע - החלפת colorFamilies בנתונים דינמיים
+        if (attr.key === 'color' && attr.valueType === 'color') {
+          return {
+            attribute: {
+              ...attr,
+              colorFamilies: activeColorFamilies,
+            } as IFilterAttribute,
+            usageCount: countMap.get(attr.key) || 0,
+          };
+        }
+        
+        return {
+          attribute: attr,
+          usageCount: countMap.get(attr.key) || 0,
+        };
+      })
       .filter((item) => item.usageCount > 0);
 
     console.log(`📊 Found ${result.length} attributes with products`);

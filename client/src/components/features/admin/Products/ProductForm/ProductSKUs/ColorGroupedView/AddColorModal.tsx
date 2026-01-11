@@ -8,6 +8,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Modal from '../../../../../../ui/Modal';
 import { Icon } from '../../../../../../ui/Icon';
 import type { SecondaryVariantConfig, NewColorData } from './types';
+import { FilterAttributeService } from '../../../../../../../services/filterAttributeService';
 import styles from './AddColorModal.module.css';
 
 // Re-export types for backwards compatibility
@@ -32,19 +33,22 @@ interface AddColorModalProps {
 // ============================================================================
 
 const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-const DEFAULT_COLORS = [
-  { name: 'שחור', hex: '#000000' },
-  { name: 'לבן', hex: '#FFFFFF' },
-  { name: 'אדום', hex: '#EF4444' },
-  { name: 'כחול', hex: '#3B82F6' },
-  { name: 'ירוק', hex: '#22C55E' },
-  { name: 'צהוב', hex: '#EAB308' },
-  { name: 'כתום', hex: '#F97316' },
-  { name: 'סגול', hex: '#A855F7' },
-  { name: 'ורוד', hex: '#EC4899' },
-  { name: 'אפור', hex: '#6B7280' },
-  { name: 'בז\'', hex: '#D4A373' },
-  { name: 'חום', hex: '#78350F' },
+
+// 🔄 Fallback - רשימת צבעים בסיסית במקרה שהשרת לא זמין
+// בפועל, הצבעים נטענים דינמית מהשרת
+const FALLBACK_COLORS = [
+  { name: 'שחור', hex: '#000000', family: 'black' },
+  { name: 'לבן', hex: '#FFFFFF', family: 'white' },
+  { name: 'אדום', hex: '#EF4444', family: 'red' },
+  { name: 'כחול', hex: '#3B82F6', family: 'blue' },
+  { name: 'ירוק', hex: '#22C55E', family: 'green' },
+  { name: 'צהוב', hex: '#EAB308', family: 'yellow' },
+  { name: 'כתום', hex: '#F97316', family: 'orange' },
+  { name: 'סגול', hex: '#A855F7', family: 'purple' },
+  { name: 'ורוד', hex: '#EC4899', family: 'pink' },
+  { name: 'אפור', hex: '#6B7280', family: 'gray' },
+  { name: 'בז\'', hex: '#D4A373', family: 'brown' },
+  { name: 'חום', hex: '#78350F', family: 'brown' },
 ];
 
 // ============================================================================
@@ -60,6 +64,14 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
   existingColors,
   isLoading = false,
 }) => {
+  // 🆕 טעינת משפחות צבעים מהשרת (רק משפחות - לא variants)
+  const [colorFamilies, setColorFamilies] = useState<Array<{
+    family: string;
+    displayName: string;
+    representativeHex: string;
+  }>>([]);
+  const [loadingColors, setLoadingColors] = useState(false);
+  
   // 🆕 האם יש ציר משני (אם לא - רק צבעים)
   const hasSecondaryVariant = secondaryConfig !== null;
   
@@ -73,19 +85,19 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
   // Form state
   const [colorName, setColorName] = useState('');
   const [colorHex, setColorHex] = useState('#000000');
+  const [selectedColorFamily, setSelectedColorFamily] = useState<string | undefined>(undefined); // 🆕 משפחת הצבע שנבחרה
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [initialQuantity, setInitialQuantity] = useState(10);
   const [price, setPrice] = useState(basePrice);
-  const [showCustomColor, setShowCustomColor] = useState(false);
 
   // Reset form when modal opens
   const handleOpen = useCallback(() => {
     setColorName('');
     setColorHex('#000000');
+    setSelectedColorFamily(undefined);
     setSelectedSizes([]);
     setInitialQuantity(10);
     setPrice(basePrice);
-    setShowCustomColor(false);
   }, [basePrice]);
 
   // Call handleOpen when modal opens
@@ -94,6 +106,29 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
       handleOpen();
     }
   }, [isOpen, handleOpen]);
+
+  // 🆕 טעינת משפחות צבעים מהשרת בפתיחה ראשונה
+  useEffect(() => {
+    const loadColorFamilies = async () => {
+      // טעינה רק פעם אחת (אם עדיין לא נטענו)
+      if (colorFamilies.length > 0) return;
+      
+      setLoadingColors(true);
+      try {
+        const families = await FilterAttributeService.getColorFamiliesForAdmin();
+        setColorFamilies(families);
+        console.log(`✅ Loaded ${families.length} color families from server`);
+      } catch (error) {
+        console.error('⚠️ Failed to load color families, using fallback:', error);
+        // במקרה של כשל - נשתמש ב-fallback
+        setColorFamilies([]);
+      } finally {
+        setLoadingColors(false);
+      }
+    };
+
+    loadColorFamilies();
+  }, []); // טעינה פעם אחת בלבד
 
   // Available values (from config or fallback to default sizes)
   const valuesToShow = useMemo(() => 
@@ -128,35 +163,43 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
     setSelectedSizes([]);
   }, []);
 
-  // Quick color selection
-  const selectQuickColor = useCallback((color: { name: string; hex: string }) => {
-    setColorName(color.name);
-    setColorHex(color.hex);
-    setShowCustomColor(false);
-  }, []);
+  // Quick color selection - הוסר! עכשיו רק בחירה ידנית
 
-  // Form validation - 🆕 אם אין ציר משני, לא צריך מידות
+  // Form validation - 🆕 גם color וגם colorHex הפכו לאופציונליים!
+  // אם המנהל לא בחר - המערכת תיצור אוטומטית על בסיס colorFamily
   const isValid = useMemo(() => 
-    colorName.trim().length > 0 &&
+    selectedColorFamily && // משפחת צבע חובה (לסינון)
+    selectedColorFamily.trim().length > 0 &&
+    // colorName אופציונלי! אם ריק - ייווצר אוטומטית מ-colorFamily
+    // colorHex אופציונלי! אם ריק או לא תקין - ייווצר אוטומטית
+    (!colorHex || colorHex === '#000000' || /^#[0-9A-Fa-f]{6}$/.test(colorHex)) &&
     (hasSecondaryVariant ? selectedSizes.length > 0 : true) &&
-    !colorExists,
-    [colorName, selectedSizes, colorExists, hasSecondaryVariant]
+    (!colorName.trim() || !colorExists), // אם יש שם - בדוק שלא קיים
+    [selectedColorFamily, colorName, colorHex, selectedSizes, colorExists, hasSecondaryVariant]
   );
 
-  // Handle submit
+  // Handle submit - 🆕 אם colorName ריק או colorHex ריק - שולח undefined
   const handleSubmit = useCallback(() => {
     if (!isValid) return;
 
+    // אם המנהל לא הזין שם צבע - שולח undefined כדי שהמערכת תיצור אוטומטית
+    const finalColorName = colorName.trim() || undefined;
+    
+    // אם המנהל לא בחר colorHex (נשאר על ברירת המחדל #000000) - שולח undefined
+    // כדי שהמערכת תיצור אוטומטית על בסיס colorFamily
+    const finalColorHex = (colorHex && colorHex !== '#000000') ? colorHex : undefined;
+
     onSubmit({
-      colorName: colorName.trim(),
-      colorHex,
+      colorName: finalColorName, // 🆕 יכול להיות undefined
+      colorHex: finalColorHex,
+      colorFamily: selectedColorFamily, // 🆕 העברת משפחת הצבע שנבחרה
       selectedSizes,
       initialQuantity,
       basePrice: price,
     });
 
     onClose();
-  }, [isValid, colorName, colorHex, selectedSizes, initialQuantity, price, onSubmit, onClose]);
+  }, [isValid, colorName, colorHex, selectedColorFamily, selectedSizes, initialQuantity, price, onSubmit, onClose]);
 
   return (
     <Modal
@@ -166,74 +209,125 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
       size="medium"
     >
       <div className={styles.content}>
-        {/* Color Selection */}
+        {/* משפחת צבע (לסינון) - חובה */}
         <div className={styles.section}>
-          <label className={styles.label}>בחר צבע</label>
+          <label className={styles.label}>
+            <Icon name="Filter" size={16} />
+            משפחת צבע (לסינון)
+            <span className={styles.required}>*</span>
+          </label>
+          <p className={styles.hint}>
+            קובע איך הלקוחות יסננו מוצר זה (לדוגמה: כל הגוונים של כחול יסוננו תחת "כחול")
+          </p>
           
-          {/* Quick Color Buttons */}
-          <div className={styles.quickColors}>
-            {DEFAULT_COLORS.map((color) => (
-              <button
-                key={color.hex}
-                type="button"
-                className={`${styles.quickColorButton} ${
-                  colorName === color.name ? styles.selected : ''
-                } ${existingColors.includes(color.name) ? styles.disabled : ''}`}
-                style={{ backgroundColor: color.hex }}
-                onClick={() => !existingColors.includes(color.name) && selectQuickColor(color)}
-                disabled={existingColors.includes(color.name)}
-                title={existingColors.includes(color.name) ? `${color.name} (קיים)` : color.name}
-              >
-                {colorName === color.name && (
-                  <Icon name="Check" size={14} className={styles.checkIcon} />
-                )}
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`${styles.customColorButton} ${showCustomColor ? styles.selected : ''}`}
-              onClick={() => setShowCustomColor(!showCustomColor)}
-              title="צבע מותאם"
-            >
-              <Icon name="Palette" size={16} />
-            </button>
+          {/* טעינת משפחות צבעים */}
+          {loadingColors && (
+            <div className={styles.loadingHint}>
+              <Icon name="Loader2" size={14} className={styles.spinner} />
+              טוען משפחות צבעים...
+            </div>
+          )}
+          
+          {/* כפתורי בחירת משפחת צבע */}
+          <div className={styles.colorFamilyButtons}>
+            {(() => {
+              // נורמליזציה של מבנה הנתונים לפורמט אחיד
+              const normalizedFamilies = colorFamilies.length > 0 
+                ? colorFamilies.map(fam => ({
+                    family: fam.family,
+                    displayName: fam.displayName,
+                    hex: fam.representativeHex
+                  }))
+                : FALLBACK_COLORS.map(fam => ({
+                    family: fam.family,
+                    displayName: fam.name,
+                    hex: fam.hex
+                  }));
+              
+              return normalizedFamilies.map((family) => (
+                <button
+                  key={family.family}
+                  type="button"
+                  className={`${styles.familyButton} ${
+                    selectedColorFamily === family.family ? styles.selected : ''
+                  }`}
+                  onClick={() => setSelectedColorFamily(family.family)}
+                  title={family.displayName}
+                >
+                  <span 
+                    className={styles.familyColorDot} 
+                    style={{ backgroundColor: family.hex }}
+                  />
+                  <span className={styles.familyName}>{family.displayName}</span>
+                  {selectedColorFamily === family.family && (
+                    <Icon name="Check" size={14} className={styles.checkIcon} />
+                  )}
+                </button>
+              ));
+            })()}
           </div>
+        </div>
 
-          {/* Custom Color Input */}
-          {showCustomColor && (
-            <div className={styles.customColorSection}>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>שם הצבע</label>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={colorName}
-                  onChange={(e) => setColorName(e.target.value)}
-                  placeholder="לדוגמה: טורקיז"
-                  autoFocus
-                />
-              </div>
-              <div className={styles.inputGroup}>
-                <label className={styles.inputLabel}>קוד צבע</label>
+        {/* צבע תצוגה (חופשי) - אופציונלי */}
+        <div className={styles.section}>
+          <label className={styles.label}>
+            <Icon name="Palette" size={16} />
+            צבע תצוגה
+            <span className={styles.optional}> (אופציונלי)</span>
+          </label>
+          <p className={styles.hint}>
+            שם ייחודי לגוון (לדוגמה: "תכלת עננים"). אם תשאיר ריק, ישתמש בשם ברירת המחדל של משפחת הצבע.
+          </p>
+          
+          <div className={styles.displayColorInputs}>
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>שם הצבע</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={colorName}
+                onChange={(e) => setColorName(e.target.value)}
+                placeholder="השאר ריק לשם ברירת מחדל..."
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>קוד צבע (HEX) - אופציונלי</label>
+              <div className={styles.colorPickerWrapper}>
                 <input
                   type="color"
-                  className={styles.colorInput}
+                  className={styles.colorPicker}
                   value={colorHex}
                   onChange={(e) => setColorHex(e.target.value)}
-                  title="בחר צבע"
+                  title="בחר גוון מדויק"
+                />
+                <input
+                  type="text"
+                  className={styles.hexInput}
+                  value={colorHex}
+                  onChange={(e) => {
+                    const hex = e.target.value;
+                    if (/^#[0-9A-Fa-f]{0,6}$/.test(hex)) {
+                      setColorHex(hex);
+                    }
+                  }}
+                  placeholder="#000000"
+                  maxLength={7}
                 />
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Selected Color Display */}
+          {/* תצוגה מקדימה של הצבע */}
           {colorName && (
-            <div className={styles.selectedColorDisplay}>
+            <div className={styles.colorPreviewBox}>
               <span 
                 className={styles.colorPreview} 
                 style={{ backgroundColor: colorHex }}
               />
-              <span className={styles.colorLabel}>{colorName}</span>
+              <div className={styles.previewInfo}>
+                <span className={styles.colorLabel}>{colorName}</span>
+                <span className={styles.colorCode}>{colorHex}</span>
+              </div>
               {colorExists && (
                 <span className={styles.errorTag}>
                   <Icon name="AlertCircle" size={12} />

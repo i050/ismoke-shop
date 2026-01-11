@@ -412,6 +412,8 @@ export const updateProductWithSkus = async (req: Request, res: Response) => {
     skusData?.forEach((sku: any, index: number) => {
       console.log(`  ${index + 1}. ${sku.sku}:`);
       console.log(`     color: ${sku.color || 'לא מוגדר'}`);
+      console.log(`     colorHex: ${sku.colorHex || 'לא מוגדר'}`); // 🆕 DEBUG
+      console.log(`     colorFamily: ${sku.colorFamily || 'לא מוגדר'}`); // 🆕 DEBUG
       console.log(`     attributes:`, JSON.stringify(sku.attributes));
     });
 
@@ -431,6 +433,8 @@ export const updateProductWithSkus = async (req: Request, res: Response) => {
     result.skus?.forEach((sku: any, index: number) => {
       console.log(`  ${index + 1}. ${sku.sku}:`);
       console.log(`     color: ${sku.color || 'לא מוגדר'}`);
+      console.log(`     colorHex: ${sku.colorHex || 'לא מוגדר'}`); // 🆕 DEBUG
+      console.log(`     colorFamily: ${sku.colorFamily || 'לא מוגדר'}`); // 🆕 DEBUG
       console.log(`     attributes:`, JSON.stringify(sku.attributes));
     });
 

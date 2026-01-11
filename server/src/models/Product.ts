@@ -57,6 +57,7 @@ export interface IVariant {
 export interface IProduct extends Document {
   // Basic information
   name: string;
+  subtitle?: string; // שם משני אופציונלי - מוצג מתחת לשם הראשי
   description: string;
   basePrice: number;
   quantityInStock: number;
@@ -201,6 +202,14 @@ const ProductSchema: Schema = new Schema({
     type: String,
     required: true,
     trim: true,
+  },
+  // שם משני אופציונלי - מוצג מתחת לשם הראשי בכרטיסיות ובדפי מוצר
+  // לדוגמה: "iPhone 15 Pro" → subtitle: "הטכנולוגיה הכי מתקדמת"
+  subtitle: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 200, // הגבלת אורך למניעת טקסט ארוך מדי
   },
   // תיאור המוצר - אופציונלי (משתמש לא חייב למלא)
   // משמר newlines (\n) לייצוג ירידות שורה שהמנהל קלד

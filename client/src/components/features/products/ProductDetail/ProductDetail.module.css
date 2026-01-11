@@ -19,6 +19,16 @@
   margin-bottom: 10px;
 }
 
+/* שם משני - מוצג מתחת לכותרת הראשית בצבע בהיר יותר */
+.productSubtitle {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--color-text-secondary, #6b7280);
+  line-height: 1.4;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
 /* ריווח אנכי בין ההדר המשני, ה-breadcrumb וכותרת המוצר */
 .secondaryHeader { margin-bottom: var(--spacing-md); }
 

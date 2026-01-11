@@ -138,6 +138,67 @@ export class FilterAttributeService {
   }
 
   /**
+   * 🆕 קבלת כל משפחות הצבעים האפשריות (לממשק ניהול)
+   * מחזיר את הרשימה המלאה מהשרת - לא דורש authentication
+   * משמש ב-AddColorModal להצגת אפשרויות צבע למנהל
+   */
+  static async getAllColorFamilies(): Promise<ColorFamily[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/filter-attributes/color-families`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const message = await parseErrorResponse(response);
+        throw new ApiError(response.status, message);
+      }
+
+      const result: ApiResponse<ColorFamily[]> = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('❌ Error fetching color families:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🆕 קבלת משפחות צבעים בלבד (ללא variants) - לממשק ניהול
+   * מחזיר רשימה פשוטה של משפחות עם HEX ייצוגי
+   */
+  static async getColorFamiliesForAdmin(): Promise<Array<{
+    family: string;
+    displayName: string;
+    representativeHex: string;
+  }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/filter-attributes/color-families`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const message = await parseErrorResponse(response);
+        throw new ApiError(response.status, message);
+      }
+
+      const result: ApiResponse<Array<{
+        family: string;
+        displayName: string;
+        representativeHex: string;
+      }>> = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('❌ Error fetching color families for admin:', error);
+      throw error;
+    }
+  }
+
+  /**
    * יצירת מאפיין חדש
    * דורש authentication + הרשאות מנהל
    */

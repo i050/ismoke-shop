@@ -21,8 +21,8 @@ export interface SecondaryVariantConfig {
  * נתונים להוספת צבע חדש
  */
 export interface NewColorData {
-  colorName: string;
-  colorHex: string;
+  colorName?: string; // 🆕 אופציונלי! אם לא נבחר - ייווצר אוטומטית מ-colorFamily
+  colorHex?: string; // 🆕 אופציונלי! אם לא נבחר - ייווצר אוטומטית מ-colorFamily
   colorFamily?: string;
   selectedSizes: string[];
   initialQuantity: number;

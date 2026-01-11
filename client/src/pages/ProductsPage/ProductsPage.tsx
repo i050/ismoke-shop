@@ -166,8 +166,8 @@ const ProductsPage: React.FC = () => {
     return count;
   };
 
-  // פונקציה להוספת מוצר לסל - מקבלת את ה-SKU
-  const handleAddToCart = (product: Product, sku?: string) => {
+  // פונקציה להוספת מוצר לסל - מקבלת את ה-SKU והכמות
+  const handleAddToCart = (product: Product, sku?: string, quantity: number = 1) => {
     // דגל לוגים: רק בסביבת פיתוח עם דגל מפורש נדפיס פרטי דיבאג
     // ניתן להפעיל באמצעות VITE_ENABLE_PRODUCT_DEBUG=true בקובץ .env
     const SHOULD_DEBUG_PRODUCTS_PAGE_LOGS = import.meta.env.DEV && import.meta.env.VITE_ENABLE_PRODUCT_DEBUG === 'true';
@@ -180,6 +180,7 @@ const ProductsPage: React.FC = () => {
       productName: product.name,
       hasSkus: !!product.skus && product.skus.length > 0,
       sku,
+      quantity,
     });
     
     // אם לא נשלח SKU אבל יש SKUs, קח את הראשון
@@ -189,10 +190,10 @@ const ProductsPage: React.FC = () => {
       debugPageLog('ℹ️ לא נשלח SKU, משתמש בראשון:', skuToUse);
     }
     
-    // שליחת הפעולה ל-Redux
+    // שליחת הפעולה ל-Redux עם הכמות שנבחרה
     dispatch(addItemToCart({
       productId: product._id,
-      quantity: 1,
+      quantity,
       sku: skuToUse || '' // SKU חובה
     }));
   };

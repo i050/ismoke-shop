@@ -1,0 +1,207 @@
+/**
+ * EditColorHexModal Styles
+ * ========================
+ * סגנונות למודאל עריכת צבע התצוגה
+ */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0;
+}
+
+/* הסבר */
+.infoBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--color-info-bg, #eff6ff);
+  border: 1px solid var(--color-info-border, #bfdbfe);
+  border-radius: 8px;
+  color: var(--color-info-text, #1e40af);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.infoBox p {
+  margin: 0;
+}
+
+.highlight {
+  color: var(--color-primary, #4f46e5);
+  font-weight: 600;
+}
+
+/* פרטי צבע */
+.colorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--color-bg-secondary, #f9fafb);
+  border-radius: 8px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+  font-weight: 500;
+}
+
+.value {
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #111827);
+  font-weight: 600;
+}
+
+.familyBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-on-primary, #fff);
+  background: var(--color-primary, #4f46e5);
+  border-radius: 12px;
+}
+
+/* בחירת צבע */
+.colorPickerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colorPickerWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.colorPicker {
+  width: 60px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid var(--color-border-light, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.colorPicker:hover {
+  border-color: var(--color-primary, #4f46e5);
+}
+
+.hexInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-family: 'Fira Code', monospace;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 8px;
+  background: var(--color-bg-primary, #fff);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.hexInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #4f46e5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* תצוגה מקדימה */
+.previewSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.previewBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-bg-secondary, #f9fafb);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 8px;
+}
+
+.colorSwatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.previewText {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+/* כפתורים */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+.cancelButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #6b7280);
+  background: var(--color-bg-primary, #fff);
+  border: 1px solid var(--color-border-medium, #d1d5db);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.cancelButton:hover {
+  background: var(--color-bg-hover, #f9fafb);
+  border-color: var(--color-text-secondary, #6b7280);
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-on-primary, #fff);
+  background: var(--color-primary, #4f46e5);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: var(--color-primary-dark, #4338ca);
+}
+
+.saveButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

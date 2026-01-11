@@ -35,14 +35,14 @@ const RecentlyAddedGrid: React.FC<RecentlyAddedGridProps> = ({
   const [displayedCount, setDisplayedCount] = useState(initialCount);
 
   // פונקציה להוספת מוצר לסל
-  const handleAddToCart = (product: Product, sku?: string) => {
+  const handleAddToCart = (product: Product, sku?: string, quantity: number = 1) => {
     if (!sku && product.skus && product.skus.length > 0) {
       // אם לא נשלח SKU אבל יש SKUs, קח את הראשון
       sku = product.skus[0].sku;
     }
     dispatch(addItemToCart({
       productId: product._id,
-      quantity: 1,
+      quantity,
       sku: sku || '' // SKU חובה
     }));
   };

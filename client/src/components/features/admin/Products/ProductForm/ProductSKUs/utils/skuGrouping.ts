@@ -78,6 +78,80 @@ const isHexColor = (str: string): boolean => {
 };
 
 /**
+ * מיפוי משפחות צבע ל-HEX ברירת מחדל ושמות עבריים
+ * משמש כגיבוי כשאין colorHex או color במסד הנתונים
+ */
+const COLOR_FAMILY_DEFAULTS: Record<string, { hex: string; name: string }> = {
+  red: { hex: '#FF0000', name: 'אדום' },
+  blue: { hex: '#0000FF', name: 'כחול' },
+  green: { hex: '#00FF00', name: 'ירוק' },
+  yellow: { hex: '#FFFF00', name: 'צהוב' },
+  orange: { hex: '#FFA500', name: 'כתום' },
+  purple: { hex: '#800080', name: 'סגול' },
+  pink: { hex: '#FFC0CB', name: 'ורוד' },
+  brown: { hex: '#8B4513', name: 'חום' },
+  gray: { hex: '#808080', name: 'אפור' },
+  grey: { hex: '#808080', name: 'אפור' },
+  black: { hex: '#000000', name: 'שחור' },
+  white: { hex: '#FFFFFF', name: 'לבן' },
+  beige: { hex: '#F5F5DC', name: 'בז\'' },
+  navy: { hex: '#000080', name: 'כחול כהה' },
+  teal: { hex: '#008080', name: 'טורקיז' },
+  gold: { hex: '#FFD700', name: 'זהב' },
+  silver: { hex: '#C0C0C0', name: 'כסף' },
+};
+
+/**
+ * יצירת colorHex ברירת מחדל על בסיס colorFamily או colorName
+ */
+const generateDefaultColorHex = (colorName?: string, colorFamily?: string): string | undefined => {
+  // 1. אם colorFamily קיים במילון - השתמש בו
+  if (colorFamily && COLOR_FAMILY_DEFAULTS[colorFamily.toLowerCase()]) {
+    return COLOR_FAMILY_DEFAULTS[colorFamily.toLowerCase()].hex;
+  }
+  
+  // 2. אם colorName הוא hex - השתמש בו
+  if (colorName && isHexColor(colorName)) {
+    return colorName.startsWith('#') ? colorName : `#${colorName}`;
+  }
+  
+  // 3. נסה לזהות משפחת צבע משם הצבע (אפור אדום -> gray)
+  if (colorName) {
+    const nameLower = colorName.toLowerCase();
+    for (const [family, defaults] of Object.entries(COLOR_FAMILY_DEFAULTS)) {
+      if (nameLower.includes(family)) {
+        return defaults.hex;
+      }
+    }
+  }
+  
+  // 4. ברירת מחדל - אפור
+  return '#808080';
+};
+
+/**
+ * יצירת שם צבע ברירת מחדל על בסיס colorFamily
+ * @param colorFamily - משפחת הצבע (red, blue וכו')
+ * @param existingName - שם קיים (אם יש) - תמיד נעדיף אותו
+ * @returns שם הצבע בעברית
+ */
+export const generateDefaultColorName = (colorFamily?: string, existingName?: string): string => {
+  // 1. אם יש שם קיים - השתמש בו
+  if (existingName && existingName.trim()) {
+    return existingName.trim();
+  }
+  
+  // 2. אם colorFamily קיים במילון - השתמש בשם העברי
+  if (colorFamily && COLOR_FAMILY_DEFAULTS[colorFamily.toLowerCase()]) {
+    return COLOR_FAMILY_DEFAULTS[colorFamily.toLowerCase()].name;
+  }
+  
+  // 3. ברירת מחדל
+  return 'צבע';
+};
+
+
+/**
  * נרמול שם צבע למפתח ייחודי
  * @param color - שם/קוד צבע
  * @returns מפתח מנורמל
@@ -109,14 +183,24 @@ export function groupSkusByColor(skus: SKUFormData[], attributeKey: string = 'si
   for (const sku of skus) {
     // מפתח הקיבוץ - צבע מנורמל או 'default' אם אין
     const colorKey = normalizeColorKey(sku.color ?? undefined);
-    const colorName = sku.color?.trim() || 'ללא צבע';
+    
+    // 🆕 יצירת שם צבע אוטומטי אם לא קיים
+    const colorName = sku.color?.trim() 
+      || generateDefaultColorName(sku.colorFamily ?? undefined, undefined)
+      || 'ללא צבע';
     
     // אם זו קבוצה חדשה - צור אותה
     if (!grouped.has(colorKey)) {
+      // 🔧 FIX: יצירת colorHex ברירת מחדל אם אין
+      const defaultHex = sku.colorHex 
+        || (isHexColor(colorName) ? colorName : undefined)
+        || generateDefaultColorHex(colorName, sku.colorFamily ?? undefined);
+      
       grouped.set(colorKey, {
         colorKey,
-        colorName,
-        colorHex: isHexColor(colorName) ? colorName : undefined,
+        colorName, // 🆕 עכשיו יכול להיות שם אוטומטי
+        colorHex: defaultHex, // 🆕 תמיד יש colorHex
+        colorFamily: sku.colorFamily || undefined, // 🆕 שמירת משפחת הצבע מה-SKU (המרת null ל-undefined)
         // תמונות מה-SKU הראשון - העתקה עמוקה למניעת mutation
         images: sku.images ? sku.images.map(img => ({ ...img })) : [],
         colorPrice: null,
@@ -127,6 +211,21 @@ export function groupSkusByColor(skus: SKUFormData[], attributeKey: string = 'si
     }
     
     const group = grouped.get(colorKey)!;
+    
+    // 🔧 FIX: עדכון colorHex ו-colorFamily אם SKU יש לו ערכים טובים יותר
+    // במקרה שה-SKU הראשון היה ללא colorHex אבל SKU מאוחר יותר יש לו
+    if (sku.colorHex && sku.colorHex !== '#808080') {
+      // אם ל-SKU יש colorHex שאינו ברירת המחדל - עדכן
+      group.colorHex = sku.colorHex;
+    }
+    if (!group.colorFamily && sku.colorFamily) {
+      group.colorFamily = sku.colorFamily;
+    }
+    
+    // 🆕 עדכון שם הצבע אם SKU יש שם ממשי (לא אוטומטי)
+    if (sku.color && sku.color.trim()) {
+      group.colorName = sku.color.trim();
+    }
     
     // 🆕 קריאת הערך מתוך attributes לפי המפתח הדינמי
     const variantValue = sku.attributes?.[attributeKey] || sku.attributes?.size || '';
@@ -181,8 +280,13 @@ export function flattenColorGroups(colorGroups: ColorGroup[]): SKUFormData[] {
         stockQuantity: size.stockQuantity,
         // צבע - אם 'ללא צבע' אז ריק
         color: group.colorName === 'ללא צבע' ? '' : group.colorName,
-        colorFamily: undefined, // יחושב בשרת אוטומטית
-        colorFamilySource: 'auto',
+        // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע בלקוח)
+        colorHex: group.colorHex,
+        // ✅ שימור colorFamily מה-group (אם קיים) במקום לדרוס ל-undefined
+        // כך המנהל יכול לבחור משפחת צבע מפורשת שתישמר ב-DB
+        colorFamily: group.colorFamily,
+        // אם יש colorFamily מפורש - זה manual, אחרת auto
+        colorFamilySource: group.colorFamily ? 'manual' : 'auto',
         // תמונות משותפות לצבע - העתקה עמוקה
         images: group.images ? group.images.map(img => ({ ...img })) : [],
         isActive: size.isActive,
@@ -325,22 +429,32 @@ export function createNewColorGroup(
     ? Math.max(...existingNumbers) + 1 
     : 1;
   
-  const colorKey = normalizeColorKey(colorName);
+  const colorKey = normalizeColorKey(colorName || generateDefaultColorName(colorFamily));
+  
+  // 🆕 יצירת שם צבע - אם לא סופק, יווצר אוטומטית על בסיס colorFamily
+  const finalColorName = colorName && colorName.trim()
+    ? colorName.trim()
+    : generateDefaultColorName(colorFamily, undefined);
+  
+  // 🆕 יצירת colorHex - אם לא סופק, יווצר אוטומטית על בסיס colorFamily
+  const finalColorHex = colorHex 
+    || (isHexColor(finalColorName) ? finalColorName : undefined)
+    || generateDefaultColorHex(finalColorName, colorFamily);
   
   // 🆕 אם אין מידות - יוצר SKU אחד לצבע בלבד
   if (defaultSizes.length === 0) {
     const skuCode = `${skuPrefix}-${String(nextNumber).padStart(3, '0')}`;
     return {
       colorKey,
-      colorName,
-      colorHex: colorHex || (isHexColor(colorName) ? colorName : undefined),
+      colorName: finalColorName, // 🆕 שם אוטומטי אם לא סופק
+      colorHex: finalColorHex,
       colorFamily,
       images: [],
       colorPrice: basePrice,
       sizes: [{
         size: '', // אין מידה
         sku: skuCode,
-        name: colorName, // רק שם הצבע
+        name: finalColorName, // 🆕 שם אוטומטי
         stockQuantity: initialQuantity,
         price: basePrice,
         isActive: true,
@@ -354,8 +468,8 @@ export function createNewColorGroup(
   // מקרה רגיל - עם מידות
   return {
     colorKey,
-    colorName,
-    colorHex: colorHex || (isHexColor(colorName) ? colorName : undefined),
+    colorName: finalColorName, // 🆕 שם אוטומטי אם לא סופק
+    colorHex: finalColorHex,
     colorFamily,
     images: [],
     colorPrice: basePrice,
@@ -364,7 +478,7 @@ export function createNewColorGroup(
       return {
         size,
         sku: skuCode,
-        name: `${colorName} - ${size}`,
+        name: `${finalColorName} - ${size}`, // 🆕 שימוש בשם האוטומטי
         stockQuantity: initialQuantity,
         price: basePrice,
         isActive: true,

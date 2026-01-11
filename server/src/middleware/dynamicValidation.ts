@@ -65,29 +65,17 @@ function buildAttributeValidator(attribute: IFilterAttribute): Joi.Schema {
       break;
 
     case 'text':
-      // טקסט: עם או בלי רשימה סגורה של ערכים
-      if (values && values.length > 0) {
-        // Enum - רק ערכים מוגדרים מראש
-        const allowedValues = values.map((v) => v.value);
-        validator = Joi.string()
-          .valid(...allowedValues)
-          .trim()
-          .messages({
-            'string.base': `${attribute.name} חייב להיות טקסט`,
-            'any.only': `${attribute.name} חייב להיות אחד מהערכים: ${allowedValues.join(', ')}`,
-          });
-      } else {
-        // טקסט חופשי
-        validator = Joi.string()
-          .min(1)
-          .max(100)
-          .trim()
-          .messages({
-            'string.base': `${attribute.name} חייב להיות טקסט`,
-            'string.min': `${attribute.name} לא יכול להיות ריק`,
-            'string.max': `${attribute.name} לא יכול להכיל יותר מ-100 תווים`,
-          });
-      }
+      // טקסט: תמיד מאפשר ערכים חופשיים (לא enum קשיח)
+      // גם אם יש values מוגדרים, המערכת תומכת ב-custom values (secondaryVariantAttribute דינמי)
+      validator = Joi.string()
+        .min(1)
+        .max(100)
+        .trim()
+        .messages({
+          'string.base': `${attribute.name} חייב להיות טקסט`,
+          'string.min': `${attribute.name} לא יכול להיות ריק`,
+          'string.max': `${attribute.name} לא יכול להכיל יותר מ-100 תווים`,
+        });
       break;
 
     case 'color':

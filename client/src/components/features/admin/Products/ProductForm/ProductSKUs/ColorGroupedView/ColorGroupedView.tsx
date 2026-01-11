@@ -151,6 +151,50 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     return groupSkusByColor(value, attributeKey);
   }, [value, secondaryAttribute]);
 
+  // 🔧 FIX: עדכון form state כש-colorGroups מכילים color/colorHex שלא קיימים ב-SKUs המקוריים
+  // זה קורה כש-SKUs ישנים נטענים מהשרת ללא color/colorHex, ו-groupSkusByColor יוצר להם אוטומטית
+  const hasAppliedColorFix = React.useRef(false);
+  
+  useEffect(() => {
+    // מונע ריצה חוזרת אחרי שהתיקון הופעל
+    if (hasAppliedColorFix.current) return;
+    
+    // בדיקה שיש SKUs ו-groups
+    if (value.length === 0 || colorGroups.length === 0) return;
+    
+    // בדיקה אם יש SKUs ללא color או colorHex
+    const hasSkusWithoutColor = value.some(sku => !sku.color);
+    const hasSkusWithoutColorHex = value.some(sku => !sku.colorHex);
+    
+    if (hasSkusWithoutColor || hasSkusWithoutColorHex) {
+      // בדיקה אם ה-groups יצרו color/colorHex חדש
+      const groupsHaveColor = colorGroups.some(g => g.colorName && g.colorName !== 'ללא צבע');
+      const groupsHaveColorHex = colorGroups.some(g => g.colorHex);
+      
+      if (groupsHaveColor || groupsHaveColorHex) {
+        // יצירת SKUs מעודכנים עם color/colorHex מה-groups
+        const updatedSkus = flattenColorGroups(colorGroups);
+        
+        // בדיקה אם יש שינוי אמיתי
+        const hasColorDiff = updatedSkus.some((updated, index) => {
+          const original = value[index];
+          if (!original) return false;
+          
+          const colorChanged = !original.color && updated.color;
+          const colorHexChanged = !original.colorHex && updated.colorHex;
+          
+          return colorChanged || colorHexChanged;
+        });
+        
+        if (hasColorDiff) {
+          console.log('🎨 [ColorGroupedView] Auto-updating SKUs with color/colorHex from groups');
+          hasAppliedColorFix.current = true;
+          onChange(updatedSkus);
+        }
+      }
+    }
+  }, [value, colorGroups, onChange]);
+
   // Get existing color names
   const existingColors = useMemo(() => 
     colorGroups.map(g => g.colorName),
@@ -207,6 +251,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
 
   // Add new color
   const handleAddColor = useCallback((data: NewColorData) => {
+
     // יצירת prefix עבור SKU מהשם (עם תמיכה בעברית)
     const skuPrefix = generateSkuFromName(productName);
     
@@ -214,7 +259,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     const existingSkus = flattenColorGroups(colorGroups);
     
     const newGroup = createNewColorGroup(
-      data.colorName,
+      data.colorName || '', // 🆕 אם אין שם - העברת מחרוזת ריקה (הפונקציה תיצור אוטומטית)
       data.selectedSizes,
       skuPrefix,
       existingSkus,
@@ -231,8 +276,8 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     const flatSkus = flattenColorGroups(newGroups);
     onChange(flatSkus);
 
-    // Expand the new color panel
-    setExpandedColors(prev => new Set([...prev, data.colorName]));
+    // Expand the new color panel - השתמש ב-colorName של הקבוצה שנוצרה
+    setExpandedColors(prev => new Set([...prev, newGroup.colorName]));
     setShowAddColorModal(false);
   }, [colorGroups, productName, onChange]);
 

@@ -5,6 +5,7 @@ import FilterAttribute from '../models/FilterAttribute';
 import StoreSettings from '../models/StoreSettings';
 import mongoose from 'mongoose';
 import { triggerStockAlerts } from './stockAlertService';
+import { clearAttributesCache } from './filterAttributeService';
 
 // ============================================================================
 // 🚀 Performance Optimization: In-Memory Caches
@@ -869,17 +870,28 @@ export const createProductWithSkus = async (
     }));
 
     // 🔍 DEBUG: הדפסת כל ה-SKUs כולל attributes לפני השמירה
-    console.log('🔍 [createProductWithSkus] SKUs before insertMany:');
+    console.log('🔍 [createProductWithSkus] SKUs before save:');
     skusWithProductId.forEach((sku, index) => {
       console.log(`  SKU ${index + 1}:`, {
         sku: sku.sku,
         color: sku.color,
+        colorFamily: sku.colorFamily,
+        colorFamilySource: sku.colorFamilySource,
         attributes: JSON.stringify(sku.attributes),
         stockQuantity: sku.stockQuantity,
       });
     });
 
-    const createdSkus = await Sku.insertMany(skusWithProductId, { session });
+    // ⚠️ CRITICAL FIX: insertMany לא מפעיל pre-save hooks!
+    // צריך להשתמש ב-create() במקום, או לקרוא ל-save() באופן ידני
+    // אבל create() עם session = array גם לא מפעיל hooks...
+    // הפתרון: ליצור documents ולשמור אותם ידנית
+    const createdSkus: ISku[] = [];
+    for (const skuData of skusWithProductId) {
+      const skuDoc = new Sku(skuData);
+      await skuDoc.save({ session }); // ✅ מפעיל pre-save hook!
+      createdSkus.push(skuDoc.toObject());
+    }
 
     // שלב 3: Commit - הכל עבר בהצלחה!
     // ====== סינכרון מלאי למוצר בתוך הטרנזקציה ======
@@ -896,6 +908,9 @@ export const createProductWithSkus = async (
     
     // 🚀 Performance: ניקוי cache של ספירת מוצרים כי נוסף מוצר חדש
     invalidateTotalProductsCache();
+    
+    // 🔄 ניקוי cache של מאפייני סינון - כדי שצבעים חדשים יופיעו מיד בפאנל
+    clearAttributesCache();
 
     console.log(`✅ Product created with ${createdSkus.length} SKUs (Transaction committed). TotalStock=${totalStock}`);
 
@@ -1002,7 +1017,10 @@ export const updateProductWithSkus = async (
 
     console.log(`✅ Product updated with ${createdSkus.length} SKUs (Transaction committed). TotalStock=${totalStock}`);
 
-    // 🔔 שלב 5: זיהוי SKUs שחזרו למלאי ושליחת התראות
+    // � ניקוי cache של מאפייני סינון - כדי שצבעים/מאפיינים חדשים יופיעו מיד
+    clearAttributesCache();
+
+    // �🔔 שלב 5: זיהוי SKUs שחזרו למלאי ושליחת התראות
     // בודקים אם יש SKU שהיה במלאי 0 ועכשיו יש לו מלאי חיובי
     for (const newSku of createdSkus) {
       const previousStock = previousStockMap.get(newSku.sku) || 0;
@@ -1077,6 +1095,9 @@ export const softDeleteProduct = async (productId: string): Promise<void> => {
     // שלב 3: Commit
     await session.commitTransaction();
 
+    // 🔄 ניקוי cache של מאפייני סינון
+    clearAttributesCache();
+
     console.log(`✅ Product and SKUs soft deleted (Transaction committed)`);
 
   } catch (error) {
@@ -1118,6 +1139,9 @@ export const restoreProduct = async (productId: string): Promise<void> => {
 
     // שלב 3: Commit
     await session.commitTransaction();
+
+    // 🔄 ניקוי cache של מאפייני סינון
+    clearAttributesCache();
 
     console.log(`✅ Product and SKUs restored (Transaction committed)`);
 

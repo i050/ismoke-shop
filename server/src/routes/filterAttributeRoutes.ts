@@ -13,6 +13,9 @@ const router = express.Router();
 // GET /api/filter-attributes/for-filter - מאפיינים לסינון
 router.get('/for-filter', filterAttributesLimiter, controller.getAttributesForFilter);
 
+// 🆕 GET /api/filter-attributes/color-families - משפחות צבעים בלבד (לממשק ניהול)
+router.get('/color-families', filterAttributesLimiter, controller.getColorFamiliesForAdmin);
+
 /**
  * Routes מוגנים (Admin בלבד)
  */

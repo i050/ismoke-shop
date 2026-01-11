@@ -1,0 +1,133 @@
+/* AddToCartPopover - עיצוב מודרני ונקי */
+
+.popoverContent {
+  /* Override של ברירות המחדל של shadcn/ui */
+  width: 320px;
+  padding: 0;
+  background: var(--color-bg-elevated, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  direction: rtl;
+}
+
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* אזור כותרת */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-light, #f3f4f6);
+  padding-bottom: 12px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary, #1f2937);
+  margin: 0;
+}
+
+.productName {
+  font-size: 13px;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* אזור בחירת כמות */
+.quantitySection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.stockInfo {
+  font-size: 12px;
+  color: var(--color-text-tertiary, #9ca3af);
+  margin: 0;
+  text-align: center;
+}
+
+/* כפתורי פעולה */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light, #f3f4f6);
+}
+
+.addButton {
+  width: 100%;
+  font-weight: 600;
+}
+
+.cancelButton {
+  width: 100%;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.cancelButton:hover {
+  background: var(--color-bg-hover, #f9fafb);
+}
+
+/* רספונסיביות למובייל */
+@media (max-width: 480px) {
+  .popoverContent {
+    width: 280px;
+  }
+
+  .container {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .productName {
+    font-size: 12px;
+  }
+}
+
+/* אנימציות חלקות */
+.popoverContent[data-state="open"] {
+  animation: popoverSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.popoverContent[data-state="closed"] {
+  animation: popoverSlideOut 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popoverSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popoverSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}

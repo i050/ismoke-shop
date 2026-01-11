@@ -29,6 +29,16 @@ const productSchema = Joi.object({
       'any.required': 'שם המוצר הוא שדה חובה',
     }),
 
+  // שם משני אופציונלי - מוצג מתחת לשם הראשי בכרטיסיות ובדף מוצר
+  subtitle: Joi.string()
+    .max(200)
+    .allow('', null)
+    .optional()
+    .trim()
+    .messages({
+      'string.max': 'השם המשני לא יכול להכיל יותר מ-200 תווים',
+    }),
+
   // תיאור המוצר - אופציונלי
   // אם המשתמש מחליט למלא, חייב להכיל עד 2000 תווים (כל אורך מותר)
   // ⚠️ NO TRIM: משמר newlines (\n) במדויק כמו שהם - יש הערה בתצוגה (ProductTabs)
@@ -243,14 +253,26 @@ const skuSchema = Joi.object({
     }),
 
   // שדות אופציונליים (attributes)
+  // 🆕 color הפך לאופציונלי - יווצר אוטומטית מ-colorFamily אם לא סופק
   color: Joi.string()
     .min(2)
     .max(50)
-    .allow('')
+    .optional()
+    .allow('', null)
     .trim()
     .messages({
       'string.min': 'צבע חייב להכיל לפחות 2 תווים',
       'string.max': 'צבע לא יכול להכיל יותר מ-50 תווים',
+    }),
+
+  // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
+  colorHex: Joi.string()
+    .pattern(/^#[0-9A-Fa-f]{6}$/)
+    .optional()
+    .allow('', null)
+    .trim()
+    .messages({
+      'string.pattern.base': 'קוד צבע HEX חייב להיות בפורמט #RRGGBB (למשל #FF0000)',
     }),
 
   // 🆕 משפחת צבע - מאפשר אחסון וסינון לפי שם משפחה

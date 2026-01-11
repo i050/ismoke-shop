@@ -9,10 +9,12 @@ import React, { useState, useCallback } from 'react';
 import type { ColorGroup, ColorSizeEntry } from '../utils/skuGrouping';
 import { updateSizeInColorGroup, removeSizeFromColorGroup, fillAllSizesInColorGroup } from '../utils/skuGrouping';
 import SizeRow from './SizeRow';
+import EditColorHexModal from './EditColorHexModal';
 import ImageGalleryManager, { type ImageObject } from '../../../../../../ui/ImageGalleryManager';
 import { Icon } from '../../../../../../ui/Icon';
 import ConfirmDialog from '../../../../../../ui/ConfirmDialog';
 import type { SecondaryVariantConfig } from './types';
+import { getColorCode } from '../../../../../../../utils/colorUtils';
 import styles from './ColorPanel.module.css';
 
 // ============================================================================
@@ -71,6 +73,8 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
   const [deletingSizeIndex, setDeletingSizeIndex] = useState<number | null>(null);
   const [showFillAllDialog, setShowFillAllDialog] = useState(false);
   const [fillAllQuantity] = useState<number>(10);
+  // 🆕 State למודאל עריכת צבע תצוגה
+  const [showEditColorModal, setShowEditColorModal] = useState(false);
 
   // Handler לעדכון שדה במידה
   const handleUpdateSize = useCallback((sizeIndex: number, field: keyof ColorSizeEntry, value: any) => {
@@ -108,9 +112,23 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
     setShowFillAllDialog(false);
   }, [colorGroup, fillAllQuantity, onUpdate]);
 
-  // צבע להצגה בתג
-  const colorStyle = colorGroup.colorHex 
-    ? { backgroundColor: colorGroup.colorHex } 
+  // 🆕 Handler לעדכון colorHex - לא משנה את colorFamily!
+  const handleUpdateColorHex = useCallback((newColorHex: string) => {
+    onUpdate({
+      ...colorGroup,
+      colorHex: newColorHex,
+      // colorFamily נשאר כמו שהוא - לא משתנה!
+    });
+  }, [colorGroup, onUpdate]);
+
+  // 🎨 חישוב קוד צבע להצגה - תומך גם בשמות צבעים וגם ב-HEX
+  // אם יש colorHex -> השתמש בו ישירות
+  // אחרת נסה להמיר את colorName ל-HEX
+  const displayColorHex = colorGroup.colorHex || getColorCode(colorGroup.colorName);
+  const hasValidColor = displayColorHex && displayColorHex !== colorGroup.colorName;
+  
+  const colorStyle = hasValidColor 
+    ? { backgroundColor: displayColorHex } 
     : undefined;
 
   return (
@@ -125,7 +143,7 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
       >
         {/* אינדיקטור צבע */}
         <div className={styles.colorIndicator}>
-          {colorGroup.colorHex ? (
+          {hasValidColor ? (
             <span className={styles.colorSwatch} style={colorStyle} />
           ) : (
             <span className={styles.colorIcon}>🎨</span>
@@ -156,6 +174,40 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
       {/* תוכן הפאנל */}
       {isExpanded && (
         <div className={styles.content}>
+          {/* 🆕 סקשן עריכת צבע תצוגה */}
+          <div className={styles.colorEditSection}>
+            <div className={styles.colorEditHeader}>
+              <h4 className={styles.sectionTitle}>
+                <Icon name="Palette" size={16} />
+                צבע לתצוגה
+              </h4>
+              <button
+                type="button"
+                className={styles.editColorButton}
+                onClick={() => setShowEditColorModal(true)}
+                disabled={disabled}
+                title="ערוך צבע תצוגה"
+              >
+                <Icon name="Edit" size={14} />
+                ערוך
+              </button>
+            </div>
+            <div className={styles.colorPreviewRow}>
+              <span 
+                className={styles.colorSwatchLarge} 
+                style={{ backgroundColor: displayColorHex || '#808080' }}
+              />
+              <div className={styles.colorDetails}>
+                <span className={styles.colorHexCode}>{displayColorHex || 'לא נבחר'}</span>
+                {colorGroup.colorFamily && (
+                  <span className={styles.colorFamilyBadge}>
+                    משפחה: {colorGroup.colorFamily}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* אזור תמונות */}
           <div className={styles.imagesSection}>
             <h4 className={styles.sectionTitle}>
@@ -321,6 +373,16 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
         variant="info"
         onConfirm={handleFillAll}
         onCancel={() => setShowFillAllDialog(false)}
+      />
+
+      {/* 🆕 מודאל עריכת צבע תצוגה */}
+      <EditColorHexModal
+        isOpen={showEditColorModal}
+        onClose={() => setShowEditColorModal(false)}
+        onSave={handleUpdateColorHex}
+        colorName={colorGroup.colorName}
+        colorFamily={colorGroup.colorFamily}
+        currentColorHex={displayColorHex || '#808080'}
       />
     </div>
   );

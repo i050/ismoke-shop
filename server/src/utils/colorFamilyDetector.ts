@@ -25,7 +25,8 @@ interface ColorVariant {
   hex: string;
 }
 
-interface ColorFamily {
+// 🆕 מיוצא לשימוש ב-filterAttributeService
+export interface ColorFamily {
   family: string;
   displayName: string;
   representativeHex?: string;
@@ -131,8 +132,9 @@ function hexToLab(hex: string): { L: number; a: number; b: number } | null {
 
 /**
  * Load color families from JSON file with caching
+ * מיוצאת לשימוש ב-filterAttributeService לבניית colorFamilies דינמית
  */
-function loadColorFamilies(): ColorFamily[] {
+export function loadColorFamilies(): ColorFamily[] {
   const now = Date.now();
   
   // Return cached data if still valid
@@ -332,4 +334,5 @@ export default {
   detectColorFamily,
   autoAssignColorFamily,
   clearColorFamiliesCache,
+  loadColorFamilies,
 };

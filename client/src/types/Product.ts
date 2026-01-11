@@ -37,6 +37,10 @@ export interface Sku {
   stockQuantity: number;
   // שדה שטוח (Flat Attribute)
   color?: string;
+  // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
+  colorHex?: string;
+  // 🆕 משפחת צבע (לסינון)
+  colorFamily?: string;
   // size עבר להיות מאפיין דינמי ב-attributes
   // תאימות לאחור - attributes מכיל מאפיינים דינמיים
   attributes?: {
@@ -53,6 +57,7 @@ export interface Sku {
 export interface Product {// זה הטייפ של מוצר
   _id: string;
   name: string;
+  subtitle?: string; // שם משני אופציונלי - מוצג מתחת לשם הראשי
   description: string;
   basePrice: number;
   images: IImage[]; // Phase 1.4: שונה מ-string[] ל-IImage[]

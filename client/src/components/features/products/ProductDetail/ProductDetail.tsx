@@ -409,9 +409,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
       {/* Product Header - כותרת וכוכבים */}
       <header className={styles.productHeader}>
+        {/* שם ראשי */}
         <Typography variant="h1" className={styles.productTitle}>
           {product.name}
         </Typography>
+
+        {/* שם משני אופציונלי - מתחת לשם הראשי בצבע בהיר יותר */}
+        {product.subtitle && (
+          <Typography variant="h5" className={styles.productSubtitle}>
+            {product.subtitle}
+          </Typography>
+        )}
 
         <div className={styles.productMeta}>
           <div className={styles.rating}>
