@@ -267,7 +267,7 @@ const CartItem = ({
         {/* שם תת-הוריאנט עם ערכו - מוצג מתחת לשם המוצר בקטן */}
         {item.variant?.secondaryAttribute && item.variant?.secondaryValue && (
           <div className={styles.variantName}>
-            {getSecondaryAttributeLabel(item.variant.secondaryAttribute)}: {item.variant.secondaryValue}
+            {item.variant.secondaryAttributeName || getSecondaryAttributeLabel(item.variant.secondaryAttribute)}: {item.variant.secondaryValue}
           </div>
         )}
 

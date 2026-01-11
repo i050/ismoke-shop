@@ -29,7 +29,8 @@ export interface CartItem {
     color?: string;
     size?: string;
     name?: string;  // שם הווריאנט המלא (לתצוגה)
-    secondaryAttribute?: string; // שם המאפיין המשני (size/htngdvt_slylym/nicotine)
+    secondaryAttribute?: string; // מזהה המאפיין המשני (size/htngdvt_slylym/nicotine) - key טכני
+    secondaryAttributeName?: string; // שם המאפיין בעברית ("התנגדות", "מידה") - לתצוגה
     secondaryValue?: string; // ערך המאפיין המשני
   };
 }

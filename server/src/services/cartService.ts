@@ -2,6 +2,7 @@ import Cart, { ICart, ICartItem } from '../models/Cart';
 import Product from '../models/Product';
 import Sku, { ISku } from '../models/Sku';
 import User from '../models/User';
+import FilterAttribute from '../models/FilterAttribute';
 import mongoose from 'mongoose';
 
 // קבועים לחישובים
@@ -317,11 +318,19 @@ class CartService {
         const secondaryAttr = product.secondaryVariantAttribute;
         const secondaryVal = secondaryAttr && skuDoc.attributes?.[secondaryAttr];
         
+        // שליפת שם המאפיין מ-FilterAttribute (אם קיים)
+        let secondaryAttrName: string | undefined;
+        if (secondaryAttr) {
+          const filterAttr = await FilterAttribute.findOne({ key: secondaryAttr }).lean();
+          secondaryAttrName = filterAttr?.name;
+        }
+        
         existingItem.variant = {
           color: skuDoc.color,
           size: skuDoc.attributes?.size,
           name: skuDoc.name, // שם הווריאנט המלא
           secondaryAttribute: secondaryAttr || undefined,
+          secondaryAttributeName: secondaryAttrName,
           secondaryValue: secondaryVal || undefined,
         };
       }
@@ -348,15 +357,23 @@ class CartService {
         subtotal: Math.round(pricingResult.finalPrice * quantity * 100) / 100,
         sku: skuCode,
         availableStock: skuDoc.stockQuantity,
-        variant: (() => {
+        variant: await (async () => {
           const secondaryAttr = product.secondaryVariantAttribute;
           const secondaryVal = secondaryAttr && skuDoc.attributes?.[secondaryAttr];
+          
+          // שליפת שם המאפיין מ-FilterAttribute (אם קיים)
+          let secondaryAttrName: string | undefined;
+          if (secondaryAttr) {
+            const filterAttr = await FilterAttribute.findOne({ key: secondaryAttr }).lean();
+            secondaryAttrName = filterAttr?.name;
+          }
           
           return (skuDoc.color || skuDoc.attributes?.size || secondaryAttr) ? {
             color: skuDoc.color,
             size: skuDoc.attributes?.size,
             name: skuDoc.name, // שם הווריאנט המלא
             secondaryAttribute: secondaryAttr || undefined,
+            secondaryAttributeName: secondaryAttrName,
             secondaryValue: secondaryVal || undefined,
           } : undefined;
         })(),
