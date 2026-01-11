@@ -360,6 +360,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 onSkuChange={handleSkuChange}
                 compactMode={true}
                 secondaryVariantAttribute={product.secondaryVariantAttribute}
+                hideSecondaryVariants={true}
               />
             </div>
           )}

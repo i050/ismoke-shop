@@ -24,10 +24,13 @@ export interface CartItem {
   availableStock?: number;     // הכמות הזמינה במלאי (מהשרת)
   subtotal: number;            // סכום ביניים (price * quantity)
   isSelected: boolean;         // Phase 4.1: האם הפריט נבחר לרכישה (ברירת מחדל: true)
-  // Phase 3.4: attributes מה-SKU להצגה ב-UI (color, size)
+  // Phase 3.4: attributes מה-SKU להצגה ב-UI (color, size, name, secondary)
   variant?: {
     color?: string;
     size?: string;
+    name?: string;  // שם הווריאנט המלא (לתצוגה)
+    secondaryAttribute?: string; // שם המאפיין המשני (size/htngdvt_slylym/nicotine)
+    secondaryValue?: string; // ערך המאפיין המשני
   };
 }
 

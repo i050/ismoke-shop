@@ -18,6 +18,8 @@ export interface ICartItem {
     color?: string; // צבע אם יש
     size?: string; // מידה אם יש
     name?: string; // שם הווריאנט
+    secondaryAttribute?: string; // שם המאפיין המשני (size/htngdvt_slylym/nicotine וכו')
+    secondaryValue?: string; // הערך של המאפיין המשני (למשל "0.5Ω", "M" וכו')
   };
   subtotal: number; // סכום ביניים (price * quantity)
 }
@@ -89,6 +91,8 @@ const CartItemSchema: Schema = new Schema({
     color: { type: String },
     size: { type: String },
     name: { type: String },
+    secondaryAttribute: { type: String }, // שם המאפיין המשני
+    secondaryValue: { type: String }, // ערך המאפיין המשני
   },
   variantIndex: {
     type: Number,

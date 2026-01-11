@@ -21,6 +21,7 @@ interface VariantSelectorProps {
   compactMode?: boolean;                // מצב קומפקטי - מציג רק עיגול צבע קטן
   secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine)
   secondaryOnly?: boolean;              // 🆕 מצב להצגת רק תת-וריאנט (בלי כפתורי צבע)
+  hideSecondaryVariants?: boolean;      // 🆕 הסתרת תת-וריאנטים (לשימוש בכרטיסייה)
 }
 
 // 🆕 טיפוס לקבוצת צבע עם תת-וריאנטים
@@ -42,7 +43,8 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   showColorPreview = true,
   compactMode = false,
   secondaryVariantAttribute = null,
-  secondaryOnly = false
+  secondaryOnly = false,
+  hideSecondaryVariants = false
 }) => {
   
   // 🆕 State לצבע הנבחר (שלב 1)
@@ -363,7 +365,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       )}
 
       {/* שלב 2: בחירת תת-וריאנט */}
-      {hasSecondaryVariants && (
+      {hasSecondaryVariants && !hideSecondaryVariants && (
         <div className={styles.secondaryVariantSection}>
           {/* 🆕 מצב רגיל - כפתורים */}
           {!compactMode && (

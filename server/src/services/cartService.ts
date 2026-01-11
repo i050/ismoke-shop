@@ -271,10 +271,10 @@ class CartService {
       throw new Error(`במלאי יש רק ${skuDoc.stockQuantity} יחידות`);
     }
 
-    // שליפת מוצר בסיסי (לשם, קטגוריה, basePrice וכו')
+    // שליפת מוצר בסיסי (לשם, קטגוריה, basePrice, secondaryVariantAttribute)
     const product = await Product.findById(productId)
-      .select('name categoryId basePrice')
-      .lean<ProductPricingSnapshot>();
+      .select('name categoryId basePrice secondaryVariantAttribute')
+      .lean<ProductPricingSnapshot & { secondaryVariantAttribute?: string | null }>();
     if (!product) {
       throw new Error('המוצר לא נמצא');
     }
@@ -312,11 +312,17 @@ class CartService {
       existingItem.customerGroupName = pricingResult.customerGroupName;
       existingItem.subtotal = Math.round(pricingResult.finalPrice * newQuantity * 100) / 100;
       existingItem.availableStock = skuDoc.stockQuantity;
-      // עדכון variant משדות שטוחים (color) ו-attributes.size
-      if (skuDoc.color || skuDoc.attributes?.size) {
+      // עדכון variant משדות שטוחים (color) ו-attributes + מאפיין משני
+      if (skuDoc.color || skuDoc.attributes?.size || product.secondaryVariantAttribute) {
+        const secondaryAttr = product.secondaryVariantAttribute;
+        const secondaryVal = secondaryAttr && skuDoc.attributes?.[secondaryAttr];
+        
         existingItem.variant = {
           color: skuDoc.color,
           size: skuDoc.attributes?.size,
+          name: skuDoc.name, // שם הווריאנט המלא
+          secondaryAttribute: secondaryAttr || undefined,
+          secondaryValue: secondaryVal || undefined,
         };
       }
     } else {
@@ -326,7 +332,8 @@ class CartService {
         ? (typeof skuDoc.images[0] === 'string' ? skuDoc.images[0] : skuDoc.images[0].medium)
         : '';
 
-      const itemName = skuDoc.name || product.name || skuDoc.sku;
+      // שם המוצר הראשי - לא שם הווריאנט
+      const itemName = product.name || skuDoc.name || skuDoc.sku;
 
       // Phase 4.0: פריט חדש עם הנחת קבוצה
       const newItem: ICartItem = {
@@ -338,13 +345,21 @@ class CartService {
         customerGroupName: pricingResult.customerGroupName,
         quantity,
         image: itemImage,
-        sku: skuDoc.sku,
         subtotal: Math.round(pricingResult.finalPrice * quantity * 100) / 100,
+        sku: skuCode,
         availableStock: skuDoc.stockQuantity,
-        variant: (skuDoc.color || skuDoc.attributes?.size) ? {
-          color: skuDoc.color,
-          size: skuDoc.attributes?.size,
-        } : undefined,
+        variant: (() => {
+          const secondaryAttr = product.secondaryVariantAttribute;
+          const secondaryVal = secondaryAttr && skuDoc.attributes?.[secondaryAttr];
+          
+          return (skuDoc.color || skuDoc.attributes?.size || secondaryAttr) ? {
+            color: skuDoc.color,
+            size: skuDoc.attributes?.size,
+            name: skuDoc.name, // שם הווריאנט המלא
+            secondaryAttribute: secondaryAttr || undefined,
+            secondaryValue: secondaryVal || undefined,
+          } : undefined;
+        })(),
       };
 
       cart.items.push(newItem as any);

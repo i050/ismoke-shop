@@ -14,6 +14,18 @@ import styles from './CartItem.module.css';
 import { getColorNameHebrew } from '../../../../utils/colorUtils';
 import { isHexColor } from '../../../../utils/colorConstants';
 
+/**
+ * פונקציית עזר למיפוי שמות מאפייני תת-וריאנט לעברית
+ */
+function getSecondaryAttributeLabel(attribute: string): string {
+  const labels: Record<string, string> = {
+    htngdvt_slylym: 'התנגדות',
+    size: 'מידה',
+    nicotine: 'ניקוטין',
+  };
+  return labels[attribute] || attribute;
+}
+
 // ממשק Props של הקומפוננטה
 // הוסר: onToggleSelection, showSelection - לקוח קונה את כל העגלה
 interface CartItemProps {
@@ -249,11 +261,18 @@ const CartItem = ({
 
       {/* פרטי המוצר */}
       <div className={styles.details}>
-        {/* שם המוצר */}
+        {/* שם המוצר הראשי */}
         <h3 className={styles.name}>{item.name}</h3>
 
-        {/* Phase 3.4: הצגת attributes של SKU (צבע/מידה) */}
-        {item.variant && (item.variant.color || item.variant.size) && (
+        {/* שם תת-הוריאנט עם ערכו - מוצג מתחת לשם המוצר בקטן */}
+        {item.variant?.secondaryAttribute && item.variant?.secondaryValue && (
+          <div className={styles.variantName}>
+            {getSecondaryAttributeLabel(item.variant.secondaryAttribute)}: {item.variant.secondaryValue}
+          </div>
+        )}
+
+        {/* Phase 3.4: הצגת attributes של SKU (צבע/מידה) - רק אם אין secondary */}
+        {!item.variant?.secondaryAttribute && item.variant && (item.variant.color || item.variant.size) && (
           <div className={styles.variant}>
             {item.variant.color && (
               (() => {
