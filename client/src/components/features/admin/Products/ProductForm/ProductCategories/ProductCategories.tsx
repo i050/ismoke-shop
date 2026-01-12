@@ -400,7 +400,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
       </div>
 
       {/* טיפים */}
-      <div className={styles.tips}>
+      {/* <div className={styles.tips}>
         <div className={styles.tipsHeader}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -436,7 +436,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
             <strong>דוגמאות:</strong> "חדש", "מבצע", "מומלץ", "פופולרי"
           </li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };

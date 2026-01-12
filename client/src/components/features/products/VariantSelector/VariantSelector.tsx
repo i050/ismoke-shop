@@ -6,7 +6,7 @@ import styles from './VariantSelector.module.css';
 import { Button } from '@ui';
 
 // ייבוא הטיפוס Sku מהקובץ Product.ts
-import type { Sku } from '../../../../types/Product';
+import type { Sku, VariantType } from '../../../../types/Product';
 // Phase 1.4: ייבוא פונקציית עזר לטיפול בתמונות
 import { getImageUrl } from '../../../../utils/imageUtils';
 // ייבוא פונקציות המרת צבעים
@@ -22,6 +22,11 @@ interface VariantSelectorProps {
   secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine)
   secondaryOnly?: boolean;              // 🆕 מצב להצגת רק תת-וריאנט (בלי כפתורי צבע)
   hideSecondaryVariants?: boolean;      // 🆕 הסתרת תת-וריאנטים (לשימוש בכרטיסייה)
+  maxColors?: number;                   // 🆕 מספר מקסימלי של כפתורי צבעים להצגה (שאר יוצגו כ-+X)
+  // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
+  variantType?: VariantType;            // סוג הוריאנט: 'color' | 'custom' | null
+  primaryVariantLabel?: string;         // תווית הוריאנט הראשי (לדוגמה: "טעם")
+  secondaryVariantLabel?: string;       // תווית הוריאנט המשני (לדוגמה: "ניקוטין")
 }
 
 // 🆕 טיפוס לקבוצת צבע עם תת-וריאנטים
@@ -44,11 +49,20 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   compactMode = false,
   secondaryVariantAttribute = null,
   secondaryOnly = false,
-  hideSecondaryVariants = false
+  hideSecondaryVariants = false,
+  maxColors = compactMode ? 2 : undefined, // ברירת מחדל חכמה: 2 ב-compactMode
+  // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
+  variantType = null,
+  primaryVariantLabel = 'וריאנט',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  secondaryVariantLabel = '', // TODO: יהיה בשימוש כשנוסיף תת-וריאנטים ל-custom
 }) => {
   
   // 🆕 State לצבע הנבחר (שלב 1)
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  
+  // 🆕 State להצגת כל הצבעים (אחרי לחיצה על +X)
+  const [showAllColors, setShowAllColors] = useState(false);
   
   // פונקציה להחזרת קוד צבע CSS מטקסט צבע (תומכת בצבעים מורכבים)
   const getColorCode = (colorName: string): string => {
@@ -225,6 +239,80 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     return null;
   }
 
+  // 🔧 אם אין SKUs עם צבעים (colorGroups ריק) ולא מדובר בוריאנטים מותאמים - אל תציג כלום
+  // זה מונע הצגת כפתורי צבע ריקים למוצרים עם SKU דיפולטיבי בלבד
+  if (colorGroups.length === 0 && variantType !== 'custom') {
+    return null;
+  }
+
+  // 🆕 Phase 4: **תצוגת וריאנטים מותאמים אישית (dropdown)**
+  // עבור variantType === 'custom' - מציג dropdown במקום כפתורי צבע
+  if (variantType === 'custom') {
+    // קיבוץ לפי variantName (הוריאנט הראשי)
+    const customVariantGroups = useMemo(() => {
+      const groups: { [key: string]: { variantName: string; skus: Sku[] } } = {};
+      
+      for (const sku of skus) {
+        const variantName = (sku as any).variantName || sku.name || 'ללא שם';
+        
+        if (!groups[variantName]) {
+          groups[variantName] = { variantName, skus: [] };
+        }
+        groups[variantName].skus.push(sku);
+      }
+      
+      return Object.values(groups);
+    }, [skus]);
+
+    return (
+      <div className={styles.variantSection}>
+        {/* Dropdown לבחירת וריאנט ראשי */}
+        <div className={styles.customVariantSelector}>
+          <label className={styles.customVariantLabel}>
+            {primaryVariantLabel || 'בחר'}:
+          </label>
+          <div className={styles.selectWrapper}>
+            <select
+              className={styles.customVariantSelect}
+              value={selectedSku || ''}
+              onChange={(e) => onSkuChange(e.target.value)}
+              title={`בחר ${primaryVariantLabel || 'וריאנט'}`}
+            >
+              {customVariantGroups.length === 1 && customVariantGroups[0].skus.length === 1 ? (
+                // אם יש רק SKU אחד - הצג אותו ישירות
+                <option value={customVariantGroups[0].skus[0].sku}>
+                  {customVariantGroups[0].variantName}
+                </option>
+              ) : (
+                // אם יש מספר וריאנטים
+                customVariantGroups.map(group => (
+                  group.skus.length === 1 ? (
+                    // וריאנט עם SKU בודד
+                    <option key={group.skus[0].sku} value={group.skus[0].sku}>
+                      {group.variantName}
+                    </option>
+                  ) : (
+                    // וריאנט עם תת-וריאנטים (optgroup)
+                    <optgroup key={group.variantName} label={group.variantName}>
+                      {group.skus.map(sku => (
+                        <option key={sku.sku} value={sku.sku}>
+                          {group.variantName} - {(sku as any).subVariantName || sku.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )
+                ))
+              )}
+            </select>
+            <svg className={styles.selectIcon} width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // 🔍 **קביעת מצב התצוגה:**
   // מצב פשוט רק אם:
   // 1. אין secondaryVariantAttribute (מוצר ישן)
@@ -311,7 +399,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
         <>
           {!compactMode && <h3 className={styles.variantTitle}>צבע:</h3>}
           <div className={styles.variantOptions}>
-        {colorGroups.map((group, index) => {
+        {colorGroups.slice(0, showAllColors ? colorGroups.length : (maxColors || colorGroups.length)).map((group, index) => {
           const colorHex = getSkuColor(group.skus[0]); // קוד HEX לתצוגה בכפתור
           const colorName = getSkuColorName(group.skus[0]); // שם הצבע המקורי
           const colorCode = getColorCode(colorHex);
@@ -360,6 +448,19 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
             </Button>
           );
         })}
+        {maxColors && colorGroups.length > maxColors && !showAllColors && (
+          <span 
+            className={styles.moreColorsIndicator} 
+            title={`לחץ להצגת כל ${colorGroups.length} הצבעים`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowAllColors(true);
+            }}
+          >
+            +{colorGroups.length - maxColors}
+          </span>
+        )}
       </div>
         </>
       )}
@@ -401,6 +502,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   className={styles.compactSelect}
                   value={selectedSku || ''}
                   onChange={(e) => onSkuChange(e.target.value)}
+                  title={`בחר ${getSecondaryAttributeLabel()}`}
                 >
                   {selectedColorGroup!.variants.map((variant, index) => (
                     <option key={`opt-${variant.value}-${index}`} value={variant.sku}>

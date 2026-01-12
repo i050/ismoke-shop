@@ -178,9 +178,28 @@ export const isRoleAllowed = (
   return allowedRoles.includes(role);
 };
 
+/**
+ * עדכון הגדרת UI
+ */
+export const toggleShowCartTotalInHeader = async (): Promise<boolean> => {
+  try {
+    const settings = await StoreSettings.getSettings();
+    if (!settings.ui) {
+      settings.ui = { showCartTotalInHeader: false };
+    }
+    settings.ui.showCartTotalInHeader = !settings.ui.showCartTotalInHeader;
+    await settings.save();
+    return settings.ui.showCartTotalInHeader;
+  } catch (error) {
+    console.error('Error toggling showCartTotalInHeader:', error);
+    throw error;
+  }
+};
+
 // ייצוא ברירת מחדל
 export default {
   getMaintenanceStatus,
   updateMaintenanceStatus,
-  isRoleAllowed
+  isRoleAllowed,
+  toggleShowCartTotalInHeader
 };

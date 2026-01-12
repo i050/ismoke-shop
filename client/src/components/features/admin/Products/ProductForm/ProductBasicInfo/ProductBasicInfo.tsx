@@ -85,7 +85,7 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
       <div className={styles.header}>
         <h3 className={styles.title}>מידע בסיסי</h3>
         <p className={styles.subtitle}>
-          הגדר את השם, התיאור והמותג של המוצר
+          הגדר את השם והתיאור של המוצר
         </p>
       </div>
 
@@ -170,7 +170,7 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
         </div>
 
         {/* מותג */}
-        <div className={styles.formGroup}>
+        {/* <div className={styles.formGroup}>
           <Input
             id="product-brand"
             name="brand"
@@ -184,11 +184,11 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
             helperText={errors.brand || 'אופציונלי - השאר ריק אם המוצר ללא מותג'}
             size="medium"
           />
-        </div>
+        </div> */}
       </div>
 
       {/* טיפים */}
-      <div className={styles.tips}>
+      {/* <div className={styles.tips}>
         <div className={styles.tipIcon}>💡</div>
         <div className={styles.tipContent}>
           <strong>טיפים לכתיבת תיאור איכותי:</strong>
@@ -199,7 +199,7 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
             <li>השתמש בשפה ברורה ומקצועית</li>
           </ul>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

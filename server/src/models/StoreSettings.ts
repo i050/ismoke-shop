@@ -97,8 +97,13 @@ export interface IShippingPolicySettings {
   warranty: IShippingPolicySection;
 }
 
-/**
- * ממשק מסמך הגדרות
+/** * הגדרות ממשק משתמש (UI)
+ */
+export interface IUISettings {
+  showCartTotalInHeader: boolean;  // הצגת מחיר כולל ליד אייקון העגלה
+}
+
+/** * ממשק מסמך הגדרות
  */
 export interface IStoreSettings extends Document {
   orders: IOrderSettings;
@@ -109,6 +114,7 @@ export interface IStoreSettings extends Document {
   inventory: IInventorySettings;
   thresholdDiscount: IThresholdDiscountSettings; // הנחת סף
   shippingPolicy: IShippingPolicySettings;       // מדיניות משלוח והחזרות
+  ui: IUISettings;                               // הגדרות ממשק משתמש
   updatedAt: Date;
   updatedBy?: mongoose.Types.ObjectId;
 }
@@ -255,6 +261,13 @@ const storeSettingsSchema = new Schema<IStoreSettings>(
       }
     },
     
+    ui: {
+      showCartTotalInHeader: {
+        type: Boolean,
+        default: false
+      }
+    },
+    
     updatedBy: {
       type: Schema.Types.ObjectId,
       ref: 'User'
@@ -316,6 +329,9 @@ storeSettingsSchema.statics.getSettings = async function(): Promise<IStoreSettin
         shipping: { enabled: true, title: 'משלוח', icon: 'Truck', items: [] },
         returns: { enabled: true, title: 'החזרות', icon: 'Undo', items: [] },
         warranty: { enabled: true, title: 'אחריות', icon: 'Shield', items: [] }
+      },
+      ui: {
+        showCartTotalInHeader: false
       }
     });
   }

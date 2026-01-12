@@ -477,8 +477,8 @@ const cartSlice = createSlice({
         }
         state.cart = cart;
         state.error = null;
-        // פתיחת המיני-קארט אחרי הוספה מוצלחת
-        state.isMiniCartOpen = true;
+        // לא פותחים את המיני-קארט - המשוב יהיה על הכפתור עצמו
+        // state.isMiniCartOpen = true;
       })
       .addCase(addItemToCart.rejected, (state, action) => {
         state.isLoading = false;

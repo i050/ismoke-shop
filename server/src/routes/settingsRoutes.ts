@@ -97,4 +97,15 @@ router.patch(
   settingsController.toggleRequireLoginOTP
 );
 
+/**
+ * PATCH /api/settings/show-cart-total-in-header
+ * הפעלה/ביטול הצגת מחיר כולל ליד אייקון העגלה בהדר
+ */
+router.patch(
+  '/show-cart-total-in-header',
+  authMiddleware,
+  requireAdmin,
+  settingsController.toggleShowCartTotalInHeader
+);
+
 export default router;

@@ -47,6 +47,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   // מצב להצגת הודעת מלאי זמנית (כאשר המשתמש מנסה לעבור את המקסימום)
   const [forceShowStockMessage, setForceShowStockMessage] = useState(false);
   const [lastStockMessage, setLastStockMessage] = useState<string | null>(null);
+  // State לאנימציית הצלחה בהוספה לסל
+  const [addToCartSuccess, setAddToCartSuccess] = useState(false);
   const forceTimerRef = useRef<number | null>(null);
   const clearMessageTimerRef = useRef<number | null>(null);
   const productStockControllerRef = useRef<AbortController | null>(null);
@@ -273,6 +275,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
       quantity,
       sku: selectedSku // שליחת קוד SKU במקום variantIndex
     }));
+
+    // הפעלת אנימציית הצלחה
+    setAddToCartSuccess(true);
+    setTimeout(() => setAddToCartSuccess(false), 2000);
   };
 
   // קנייה ישירה - שליחת פרטי המוצר ישירות ל-Checkout (בלי להוסיף לעגלה)
@@ -466,7 +472,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
             />
           </div>
 
-          {/* בחירת SKU (צבע/גודל) */}
+          {/* בחירת SKU (צבע/גודל או וריאנט מותאם אישית) */}
           {product.skus && product.skus.length > 0 && (
             <div className={styles.colorSelection}>
               <VariantSelector
@@ -475,6 +481,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
                 onSkuChange={handleSkuChange}
                 showColorPreview={true}
                 secondaryVariantAttribute={product.secondaryVariantAttribute}
+                // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
+                variantType={(product as any).variantType}
+                primaryVariantLabel={(product as any).primaryVariantLabel}
+                secondaryVariantLabel={(product as any).secondaryVariantLabel}
               />
             </div>
           )}
@@ -572,10 +582,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
                   size="lg"
                   fullWidth
                   elevated
-                  icon={<Icon name="ShoppingCart" size={20} />}
+                  icon={addToCartSuccess ? <Icon name="Check" size={20} /> : <Icon name="ShoppingCart" size={20} />}
                   onClick={handleAddToCart}
+                  className={addToCartSuccess ? styles.addedToCart : ''}
                 >
-                  הוסף לעגלה
+                  {addToCartSuccess ? 'נוסף לסל בהצלחה!' : 'הוסף לעגלה'}
                 </Button>
 
                 <Button

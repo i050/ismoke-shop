@@ -281,7 +281,7 @@ const ProductInventory: React.FC<ProductInventoryProps> = ({
       )}
 
       {/* טיפים */}
-      <div className={styles.tips}>
+      {/* <div className={styles.tips}>
         <div className={styles.tipsHeader}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -307,7 +307,7 @@ const ProductInventory: React.FC<ProductInventoryProps> = ({
           <li>ניתן לכבות מעקב מלאי למוצרים דיגיטליים או שירותים</li>
           <li>אזהרות מוצגות אוטומטית כשוריאנט מגיע לרף או אוזל</li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };

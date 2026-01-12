@@ -195,6 +195,59 @@ const productSchema = Joi.object({
     .messages({
       'string.max': 'מזהה ציר וריאנט משני לא יכול להכיל יותר מ-50 תווים',
     }),
+
+  // ============================================================================
+  // 🆕 Dual Variant System - מערכת וריאנטים כפולה
+  // ============================================================================
+
+  // סוג מערכת הוריאנטים: 'color' | 'custom' | null
+  variantType: Joi.string()
+    .valid('color', 'custom', null)
+    .allow(null)
+    .optional()
+    .messages({
+      'any.only': 'סוג וריאנט חייב להיות color, custom או ריק',
+    }),
+
+  // תווית הוריאנט הראשי
+  primaryVariantLabel: Joi.string()
+    .max(50)
+    .allow('', null)
+    .optional()
+    .trim()
+    .messages({
+      'string.max': 'תווית וריאנט ראשי לא יכולה להכיל יותר מ-50 תווים',
+    }),
+
+  // תווית הוריאנט המשני
+  secondaryVariantLabel: Joi.string()
+    .max(50)
+    .allow('', null)
+    .optional()
+    .trim()
+    .messages({
+      'string.max': 'תווית וריאנט משני לא יכולה להכיל יותר מ-50 תווים',
+    }),
+
+  // קישור לאטריביוט סינון ראשי
+  primaryFilterAttribute: Joi.string()
+    .max(50)
+    .allow('', null)
+    .optional()
+    .trim()
+    .messages({
+      'string.max': 'מזהה אטריביוט סינון ראשי לא יכול להכיל יותר מ-50 תווים',
+    }),
+
+  // קישור לאטריביוט סינון משני
+  secondaryFilterAttribute: Joi.string()
+    .max(50)
+    .allow('', null)
+    .optional()
+    .trim()
+    .messages({
+      'string.max': 'מזהה אטריביוט סינון משני לא יכול להכיל יותר מ-50 תווים',
+    }),
 });
 
 // ============================================================================
@@ -292,6 +345,30 @@ const skuSchema = Joi.object({
     .optional()
     .messages({
       'any.only': 'מקור משפחת צבע חייב להיות auto, manual או import',
+    }),
+
+  // ============================================================================
+  // 🆕 Custom Variant Fields (variantType: 'custom')
+  // ============================================================================
+
+  // שם הוריאנט הראשי (לוריאנטים מותאמים)
+  variantName: Joi.string()
+    .max(100)
+    .allow('', null)
+    .optional()
+    .trim()
+    .messages({
+      'string.max': 'שם וריאנט לא יכול להכיל יותר מ-100 תווים',
+    }),
+
+  // שם הוריאנט המשני (אופציונלי)
+  subVariantName: Joi.string()
+    .max(100)
+    .allow('', null)
+    .optional()
+    .trim()
+    .messages({
+      'string.max': 'שם תת-וריאנט לא יכול להכיל יותר מ-100 תווים',
     }),
 
   // size הוסר - עבר להיות מאפיין דינמי ב-attributes

@@ -91,6 +91,9 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
   const [deletingColorIndex, setDeletingColorIndex] = useState<number | null>(null);
   const [addingSizeToColorIndex, setAddingSizeToColorIndex] = useState<number | null>(null);
   const [newSizeValue, setNewSizeValue] = useState('');
+  
+  // 🆕 State לאישור מחיקת כל הצבעים
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   // 🆕 טעינת מאפייני סינון (חד-פעמית)
   useEffect(() => {
@@ -249,14 +252,38 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     }
   }, [deletingColorIndex, colorGroups, onChange]);
 
+  // 🆕 מחיקת כל הצבעים - מחזיר למצב ללא וריאנטים
+  const handleDeleteAllColors = useCallback(() => {
+    setShowDeleteAllConfirm(true);
+  }, []);
+
+  // 🆕 אישור מחיקת כל הצבעים
+  const confirmDeleteAllColors = useCallback(() => {
+    // מחיקת כל ה-SKUs - המערכת תיצור SKU דיפולטיבי אוטומטית
+    onChange([]);
+    setShowDeleteAllConfirm(false);
+    setExpandedColors(new Set());
+  }, [onChange]);
+
   // Add new color
   const handleAddColor = useCallback((data: NewColorData) => {
+    // 🔧 בדיקה: אם יש SKU דיפולטיבי אחד בלבד, נמחק אותו אוטומטית
+    // כדי לאפשר יצירת וריאנטים לפי צבע
+    const shouldClearDefaultSku = 
+      value.length === 1 && // יש SKU אחד בלבד
+      !value[0].variantName && // אין לו variantName (= לא custom variant)
+      !value[0].color; // אין לו צבע (= לא color variant)
+    
+    if (shouldClearDefaultSku) {
+      console.log('🗑️ [ColorVariants] מוחק SKU דיפולטיבי לפני יצירת וריאנטים לפי צבע');
+    }
 
     // יצירת prefix עבור SKU מהשם (עם תמיכה בעברית)
     const skuPrefix = generateSkuFromName(productName);
     
     // איסוף כל ה-SKUs הקיימים לחישוב מספר שוטף
-    const existingSkus = flattenColorGroups(colorGroups);
+    // 🔧 אם מחקנו את הדיפולטיבי, נתחיל מרשימה ריקה
+    const existingSkus = shouldClearDefaultSku ? [] : flattenColorGroups(colorGroups);
     
     const newGroup = createNewColorGroup(
       data.colorName || '', // 🆕 אם אין שם - העברת מחרוזת ריקה (הפונקציה תיצור אוטומטית)
@@ -272,14 +299,15 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
       }
     );
 
-    const newGroups = [...colorGroups, newGroup];
+    // 🔧 אם צריך למחוק את הדיפולטיבי, נתחיל מהקבוצה החדשה בלבד
+    const newGroups = shouldClearDefaultSku ? [newGroup] : [...colorGroups, newGroup];
     const flatSkus = flattenColorGroups(newGroups);
     onChange(flatSkus);
 
     // Expand the new color panel - השתמש ב-colorName של הקבוצה שנוצרה
     setExpandedColors(prev => new Set([...prev, newGroup.colorName]));
     setShowAddColorModal(false);
-  }, [colorGroups, productName, onChange]);
+  }, [colorGroups, productName, onChange, value]);
 
   // Start adding size to color
   const handleStartAddSize = useCallback((colorIndex: number) => {
@@ -445,6 +473,17 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
               >
                 <Icon name="ChevronsUp" size={16} />
               </button>
+              {/* 🆕 כפתור מחיקת כל הצבעים */}
+              <button
+                type="button"
+                className={styles.deleteAllButton}
+                onClick={handleDeleteAllColors}
+                disabled={disabled}
+                title="מחק את כל הצבעים"
+              >
+                <Icon name="Trash2" size={16} />
+                מחק הכל
+              </button>
             </>
           )}
           <button
@@ -517,6 +556,20 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
         variant="danger"
         onConfirm={confirmDeleteColor}
         onCancel={() => setDeletingColorIndex(null)}
+      />
+
+      {/* 🆕 אישור מחיקת כל הצבעים */}
+      <ConfirmDialog
+        isOpen={showDeleteAllConfirm}
+        title="מחיקת כל הצבעים"
+        message={`⚠️ האם אתה בטוח שברצונך למחוק את כל ${colorGroups.length} הצבעים וכל ה-${value.length} SKUs?
+        
+פעולה זו תחזיר את המוצר למצב ללא וריאנטים.`}
+        confirmText="כן, מחק הכל"
+        cancelText="ביטול"
+        variant="danger"
+        onConfirm={confirmDeleteAllColors}
+        onCancel={() => setShowDeleteAllConfirm(false)}
       />
 
       {/* Add Size Dialog - רק אם יש ציר משני */}

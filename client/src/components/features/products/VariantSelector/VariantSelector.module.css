@@ -132,6 +132,27 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
+/* אינדיקטור "+X" לצבעים נוספים */
+.moreColorsIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer; /* ✨ שינוי ל-clickable */
+  padding: 0 4px;
+  line-height: 16px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.moreColorsIndicator:hover {
+  color: var(--brand-primary);
+  transform: scale(1.1);
+}
+
 /* מידע על הצבע הנבחר */
 .selectedVariantInfo {
   display: flex;
@@ -343,4 +364,65 @@
   .variantColorName {
     font-size: 11px;
   }
+}
+
+/* ============================================================================
+   🆕 Phase 4: Custom Variant Selector (Dropdown)
+   עיצוב עבור וריאנטים מותאמים אישית (לא צבעים)
+   ============================================================================ */
+
+.customVariantSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3, 12px);
+  padding: var(--spacing-2, 8px) 0;
+}
+
+.customVariantLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.customVariantSelect {
+  width: 100%;
+  max-width: 280px;
+  padding: 10px 36px 10px 14px;
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.customVariantSelect:hover {
+  border-color: var(--brand-primary);
+  background: var(--color-bg-hover);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.customVariantSelect:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring), 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.customVariantSelect optgroup {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+.customVariantSelect option {
+  font-weight: 400;
+  padding: 8px 12px;
 }

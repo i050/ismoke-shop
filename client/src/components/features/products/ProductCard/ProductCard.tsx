@@ -108,6 +108,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [updatedProduct, setUpdatedProduct] = useState(product);
   // State מקומי לדגל אנימציית רענון קלה בעת הגעה של אירוע socket
   const [isRealtimeRefreshing, setIsRealtimeRefreshing] = useState(false);
+  // State לאנימציית הצלחה בהוספה לסל
+  const [addToCartSuccess, setAddToCartSuccess] = useState(false);
 
   // חישוב דינמי של ה-SKU הנבחר (לשימוש בתמונות ומחיר)
   const selectedSkuData = React.useMemo(() => {
@@ -351,8 +353,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div> */}
 
-          {/* בחירת SKU - תמיד אם יש SKUs */}
-          {product.skus && product.skus.length > 0 && (
+          {/* בחירת SKU - רק אם יש SKUs ומדובר בוריאנטים של צבעים (לא וריאנטים מותאמים אישית)
+              🆕 Phase 4: וריאנטים מותאמים אישית מוצגים רק בדף המוצר, לא בכרטיס */}
+          {product.skus && product.skus.length > 0 && product.variantType !== 'custom' && (
             <div className={styles.variantSelector} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
               <VariantSelector
                 skus={product.skus}
@@ -361,6 +364,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 compactMode={true}
                 secondaryVariantAttribute={product.secondaryVariantAttribute}
                 hideSecondaryVariants={true}
+                maxColors={2}
               />
             </div>
           )}
@@ -388,6 +392,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                       // מעביר את הכמות וה-SKU שנבחרו בפופאובר
                       if (onAddToCart) {
                         onAddToCart(product, sku || selectedSku || undefined, quantity);
+                        // הפעלת אנימציית הצלחה
+                        setAddToCartSuccess(true);
+                        // כיבוי אחרי 2 שניות
+                        setTimeout(() => setAddToCartSuccess(false), 2000);
                       }
                     }}
                     productName={updatedProduct.name}
@@ -395,13 +403,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     selectedSku={selectedSku}
                     onSkuChange={handleSkuChange}
                     secondaryVariantAttribute={product.secondaryVariantAttribute}
+                    // 🆕 Phase 4: העברת props לוריאנטים מותאמים אישית
+                    variantType={product.variantType}
+                    primaryVariantLabel={(product as any).primaryVariantLabel}
+                    secondaryVariantLabel={(product as any).secondaryVariantLabel}
                   >
                     <Button 
                       variant="primary" 
                       size="sm" 
                       mobileFull
+                      className={addToCartSuccess ? styles.addedToCart : ''}
                     >
-                      הוסף לסל
+                      {addToCartSuccess ? (
+                        <>
+                          <Icon name="Check" size={16} />
+                          <span>נוסף לסל!</span>
+                        </>
+                      ) : (
+                        'הוסף לסל'
+                      )}
                     </Button>
                   </AddToCartPopover>
                 ) : (

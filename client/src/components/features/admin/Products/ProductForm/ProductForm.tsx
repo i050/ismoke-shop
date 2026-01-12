@@ -149,7 +149,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 price: sku.price || null,
                 stockQuantity: sku.stockQuantity || 0,
                 // שדה שטוח - color ישירות
-                color: sku.color || (sku.attributes as any)?.color || '',
+                // 🔧 אם אין צבע, השאר undefined (לא string ריק) כדי שהלוגיקה של hasExistingVariants תעבוד
+                color: sku.color || (sku.attributes as any)?.color || undefined,
                 // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
                 colorHex: (sku as any).colorHex || undefined,
                 // 🆕 משפחת צבע ומקור - חשוב לשמור כדי לא לדרוס בחירה ידנית!
@@ -171,6 +172,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           specifications: (initialData as any).specifications || [],
           // 🆕 ציר וריאנט משני - size/resistance/nicotine וכו'
           secondaryVariantAttribute: (initialData as any).secondaryVariantAttribute || null,
+          // 🆕 Phase 2: Dual Variant System Fields
+          variantType: (initialData as any).variantType || null,
+          primaryVariantLabel: (initialData as any).primaryVariantLabel || '',
+          secondaryVariantLabel: (initialData as any).secondaryVariantLabel || '',
+          primaryFilterAttribute: (initialData as any).primaryFilterAttribute || '',
+          secondaryFilterAttribute: (initialData as any).secondaryFilterAttribute || '',
         };
       }
 
@@ -182,11 +189,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         // שילוב ערכי ברירת מחדל להגנה מפני ואלידציה מידית
         // שימו לב: price נשאר null כדי להצביע על "לא הוזן" - תוצג כ'מחיר בסיס'
         // וכאשר המשתמש ישמור את המוצר, נחליף null במחיר הבסיס בפונקציית ה-submit.
+        // 🔧 אין שדה color - SKU דיפולטיבי הוא מוצר פשוט, לא וריאנט צבע
         sku: initialSkuCode,
         name: 'וריאנט ראשוני',
         price: null,
         stockQuantity: defaultProductValues.stockQuantity ?? 0,
-        color: '',
         attributes: {},
         images: [],
         isActive: true,
@@ -874,6 +881,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 }}
                 secondaryVariantAttribute={formValues.secondaryVariantAttribute}
                 onSecondaryVariantAttributeChange={(attr) => setValueWithDirty('secondaryVariantAttribute', attr)}
+                // 🆕 Phase 2: Dual Variant System Props
+                variantType={formValues.variantType}
+                onVariantTypeChange={(type) => setValueWithDirty('variantType', type)}
+                primaryVariantLabel={formValues.primaryVariantLabel || undefined}
+                onPrimaryVariantLabelChange={(label) => setValueWithDirty('primaryVariantLabel', label)}
+                secondaryVariantLabel={formValues.secondaryVariantLabel || undefined}
+                onSecondaryVariantLabelChange={(label) => setValueWithDirty('secondaryVariantLabel', label)}
               />
             </div>
           )}

@@ -7,6 +7,7 @@ import {
   toggleDisablePayment,
   toggleRequireRegistrationApproval,
   toggleRequireLoginOTP,
+  toggleShowCartTotalInHeader,
   updateInventorySettings,
   updateThresholdDiscountSettings,
   updateShippingPolicy,
@@ -40,6 +41,10 @@ const AdminSettingsPage: React.FC = () => {
   const [requireRegistrationApproval, setRequireRegistrationApproval] = useState<boolean>(false);
   const [requireLoginOTP, setRequireLoginOTP] = useState<boolean>(false);
   const [usersSettingsLoading, setUsersSettingsLoading] = useState<boolean>(false);
+  
+  // הגדרות UI
+  const [showCartTotalInHeader, setShowCartTotalInHeader] = useState<boolean>(false);
+  const [uiSettingsLoading, setUISettingsLoading] = useState<boolean>(false);
   
   // הגדרות מלאי
   const [defaultLowStockThreshold, setDefaultLowStockThreshold] = useState<number>(5);
@@ -103,6 +108,8 @@ const AdminSettingsPage: React.FC = () => {
         setRequireRegistrationApproval(allSettingsResponse.data.users?.requireRegistrationApproval ?? false);
         setRequireLoginOTP(allSettingsResponse.data.users?.requireLoginOTP ?? false);
         setDefaultLowStockThreshold(allSettingsResponse.data.inventory?.defaultLowStockThreshold ?? 5);
+        // הגדרות UI
+        setShowCartTotalInHeader(allSettingsResponse.data.ui?.showCartTotalInHeader ?? false);
         // הנחת סף
         setThresholdDiscountEnabled(allSettingsResponse.data.thresholdDiscount?.enabled ?? false);
         setThresholdMinimumAmount(allSettingsResponse.data.thresholdDiscount?.minimumAmount ?? 500);
@@ -297,6 +304,29 @@ const AdminSettingsPage: React.FC = () => {
       showToast('error', 'שגיאה בשמירת ההגדרה');
     } finally {
       setUsersSettingsLoading(false);
+    }
+  };
+
+  // טיפול בשינוי הגדרת הצגת מחיר עגלה בהדר
+  const handleToggleShowCartTotal = async () => {
+    const newValue = !showCartTotalInHeader;
+    
+    try {
+      setUISettingsLoading(true);
+      const response = await toggleShowCartTotalInHeader(newValue);
+      
+      if (response.success) {
+        setShowCartTotalInHeader(response.data.showCartTotalInHeader);
+        const msg = newValue 
+          ? 'הצגת מחיר העגלה בהדר הופעלה' 
+          : 'הצגת מחיר העגלה בהדר בוטלה';
+        showToast('success', msg);
+      }
+    } catch (err) {
+      console.error('Error toggling show cart total setting:', err);
+      showToast('error', 'שגיאה בשמירת ההגדרה');
+    } finally {
+      setUISettingsLoading(false);
     }
   };
 
@@ -799,6 +829,49 @@ const AdminSettingsPage: React.FC = () => {
               <div className={styles.infoBanner}>
                 <Icon name="Mail" size={16} />
                 <span>מופעל - משתמשים יקבלו קוד אימות במייל בכל התחברות</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* כרטיס הגדרות ממשק משתמש (UI) */}
+        <div className={styles.settingsCard}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitleWrapper}>
+              <Icon name="Eye" size={24} className={styles.cardIcon} />
+              <div>
+                <h3 className={styles.cardTitle}>הגדרות ממשק משתמש</h3>
+                <p className={styles.cardDescription}>
+                  התאמת תצוגת הממשק ללקוחות
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className={styles.cardContent}>
+            <div className={styles.settingRow}>
+              <div className={styles.settingInfo}>
+                <span className={styles.settingLabel}>הצגת מחיר עגלה בהדר</span>
+                <span className={styles.settingHint}>
+                  הצגת המחיר הכולל (אחרי הנחות) ליד אייקון העגלה בהדר
+                </span>
+              </div>
+              
+              <label className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={showCartTotalInHeader}
+                  onChange={handleToggleShowCartTotal}
+                  disabled={uiSettingsLoading}
+                />
+                <span className={styles.slider}></span>
+              </label>
+            </div>
+            
+            {showCartTotalInHeader && (
+              <div className={styles.infoBanner}>
+                <Icon name="DollarSign" size={16} />
+                <span>מופעל - לקוחות יראו את סכום העגלה בהדר</span>
               </div>
             )}
           </div>

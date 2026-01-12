@@ -389,6 +389,33 @@
   pointer-events: none; /* badge is decorative */
 }
 
+/* עטיפה לעגלה עם מחיר */
+.cartWrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.cartTotal {
+  position: absolute;
+  bottom: -4px;
+  left: -35px;
+  
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  
+  background: var(--color-bg-elevated);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  
+  pointer-events: none;
+  z-index: 10;
+}
+
 @media (max-width: 480px) {
   .cartCount {
     top: 0;

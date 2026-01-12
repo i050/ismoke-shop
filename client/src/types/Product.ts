@@ -25,6 +25,18 @@ export interface ISpecification {
   value: string;
 }
 
+// ============================================================================
+// Variant Type - סוג מערכת הוריאנטים
+// ============================================================================
+
+/**
+ * סוגי וריאנטים אפשריים למוצר:
+ * - 'color': וריאנטים מבוססי צבע (כפתורי צבע בכרטיסיות)
+ * - 'custom': וריאנטים מותאמים אישית (דרופדאונים בדף מוצר בלבד)
+ * - null: מוצר פשוט ללא וריאנטים (SKU בסיס בלבד)
+ */
+export type VariantType = 'color' | 'custom' | null;
+
 // Phase 3.4: ממשק ל-SKU (מודל חדש)
 // Base Price Override Pattern: price אופציונלי - אם null, משתמשים ב-Product.basePrice
 // Flat Attributes: color כשדה שטוח, size עבר ל-attributes
@@ -35,12 +47,33 @@ export interface Sku {
   name: string;
   price?: number | null; // אופציונלי - Base Price Override Pattern
   stockQuantity: number;
-  // שדה שטוח (Flat Attribute)
-  color?: string;
-  // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
-  colorHex?: string;
-  // 🆕 משפחת צבע (לסינון)
-  colorFamily?: string;
+
+  // ============================================================================
+  // Color Variant Fields (variantType: 'color')
+  // ============================================================================
+  color?: string; // שדה שטוח (Flat Attribute)
+  colorHex?: string; // 🆕 קוד HEX של הצבע (לתצוגה בכפתורי הצבע)
+  colorFamily?: string; // 🆕 משפחת צבע (לסינון)
+
+  // ============================================================================
+  // 🆕 Custom Variant Fields (variantType: 'custom')
+  // ============================================================================
+  
+  /**
+   * שם הוריאנט הראשי (לוריאנטים מותאמים)
+   * לדוגמה: "תפוח", "ענבים", "מנטה"
+   */
+  variantName?: string;
+
+  /**
+   * שם הוריאנט המשני (אופציונלי)
+   * לדוגמה: "3mg", "6mg", "50ml"
+   */
+  subVariantName?: string;
+
+  // ============================================================================
+  // Dynamic Attributes
+  // ============================================================================
   // size עבר להיות מאפיין דינמי ב-attributes
   // תאימות לאחור - attributes מכיל מאפיינים דינמיים
   attributes?: {
@@ -84,7 +117,46 @@ export interface Product {// זה הטייפ של מוצר
     };
   }>;
   skus?: Sku[]; // Phase 3.4: SKUs מה-SKU Collection (חדש)
+
+  // ============================================================================
+  // 🆕 Dual Variant System - מערכת וריאנטים כפולה
+  // ============================================================================
+
+  /**
+   * סוג מערכת הוריאנטים:
+   * - 'color': וריאנטים מבוססי צבע עם כפתורי צבע בכרטיסיות
+   * - 'custom': וריאנטים מותאמים אישית עם דרופדאונים בדף מוצר בלבד
+   * - null: מוצר פשוט ללא וריאנטים
+   */
+  variantType?: VariantType;
+
+  /**
+   * תווית הוריאנט הראשי
+   * - לוריאנטי צבע: "צבע" (ברירת מחדל)
+   * - לוריאנטים מותאמים: "טעם", "סוג" וכו'
+   */
+  primaryVariantLabel?: string;
+
+  /**
+   * תווית הוריאנט המשני (אם יש)
+   * - לוריאנטי צבע: "מידה", "התנגדות" וכו'
+   * - לוריאנטים מותאמים: "ניקוטין", "כמות" וכו'
+   */
+  secondaryVariantLabel?: string;
+
+  /**
+   * קישור לאטריביוט סינון ראשי (אופציונלי)
+   */
+  primaryFilterAttribute?: string;
+
+  /**
+   * קישור לאטריביוט סינון משני (אופציונלי)
+   */
+  secondaryFilterAttribute?: string;
+
+  // Legacy Field (תאימות לאחור)
   secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine וכו') - null = רק צבעים
+
   pricing?: PricingData; // נתוני מחיר מותאמים אישית (מהשרת החדש)
   createdAt: Date;
   updatedAt: Date;

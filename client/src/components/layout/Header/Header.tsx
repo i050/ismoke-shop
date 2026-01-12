@@ -12,7 +12,9 @@ import { useAppSelector, useAppDispatch } from '../../../hooks/reduxHooks';
 // ייבוא logout מה-authSlice
 import { logout } from '../../../store/slices/authSlice';
 // ייבוא מה-cartSlice
-import { toggleMiniCart, selectCartItemsCount } from '../../../store/slices/cartSlice';
+import { toggleMiniCart, selectCartItemsCount, selectCartTotal } from '../../../store/slices/cartSlice';
+// ייבוא settings
+import { getPublicSettings } from '../../../services/settingsService';
 // ייבוא הקומפוננטה SecondaryHeader
 import SecondaryHeader from './SecondaryHeader';
 // ייבוא תפריט המבורגר למובייל
@@ -64,6 +66,26 @@ const Header: React.FC<HeaderProps> = () => {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const user = useAppSelector(state => state.auth.user);
   const cartItemsCount = useAppSelector(selectCartItemsCount);
+  const cartTotal = useAppSelector(selectCartTotal);
+  
+  // הגדרות מהשרת
+  const [showCartTotalInHeader, setShowCartTotalInHeader] = useState(false);
+  
+  // טעינת הגדרות ציבוריות
+  useEffect(() => {
+    const loadPublicSettings = async () => {
+      try {
+        const response = await getPublicSettings();
+        if (response.success) {
+          setShowCartTotalInHeader(response.data.ui?.showCartTotalInHeader || false);
+        }
+      } catch (error) {
+        console.error('Error loading public settings:', error);
+      }
+    };
+    loadPublicSettings();
+  }, []);
+  
   // dispatch מוקלד מ‑AppDispatch — מאפשר לשלוח גם thunks בלי שגיאות טיפוס
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -479,20 +501,25 @@ const Header: React.FC<HeaderProps> = () => {
           )}
 
           {/* עגלת קניות עם ספירה */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={styles.iconButton}
-            onClick={() => dispatch(toggleMiniCart())}
-            aria-label="עגלת קניות"
-          >
-            <span className={styles.icon}><Icon name="ShoppingCart" size={20} /></span>
-            {cartItemsCount > 0 && (
-              <span className={styles.cartCount} role="status" aria-label={`${cartItemsCount} פריטים בעגלה`}>
-                {cartItemsCount}
-              </span>
+          <div className={styles.cartWrapper}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={styles.iconButton}
+              onClick={() => dispatch(toggleMiniCart())}
+              aria-label="עגלת קניות"
+            >
+              <span className={styles.icon}><Icon name="ShoppingCart" size={20} /></span>
+              {cartItemsCount > 0 && (
+                <span className={styles.cartCount} role="status" aria-label={`${cartItemsCount} פריטים בעגלה`}>
+                  {cartItemsCount}
+                </span>
+              )}
+            </Button>
+            {showCartTotalInHeader && cartTotal > 0 && (
+              <span className={styles.cartTotal}>₪{cartTotal.toFixed(2)}</span>
             )}
-          </Button>
+          </div>
         </div>
 
       </div>

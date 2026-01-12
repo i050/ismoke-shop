@@ -251,6 +251,21 @@ export const toggleRequireLoginOTP = async (
 };
 
 /**
+ * הפעלה/ביטול הצגת מחיר כולל ליד אייקון העגלה (Admin)
+ */
+export const toggleShowCartTotalInHeader = async (
+  show: boolean
+): Promise<{ success: boolean; data: { showCartTotalInHeader: boolean }; message: string }> => {
+  const response = await fetch(`${API_BASE_URL}/api/settings/show-cart-total-in-header`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ show })
+  });
+  
+  return handleResponse(response);
+};
+
+/**
  * עדכון הגדרות מלאי (Admin)
  */
 export const updateInventorySettings = async (

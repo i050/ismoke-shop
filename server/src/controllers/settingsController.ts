@@ -66,6 +66,10 @@ export const getPublicSettings = async (req: AuthenticatedRequest, res: Response
           shipping: { enabled: true, title: 'משלוח', icon: 'Truck', items: [] },
           returns: { enabled: true, title: 'החזרות', icon: 'Undo', items: [] },
           warranty: { enabled: true, title: 'אחריות', icon: 'Shield', items: [] }
+        },
+        // הגדרות UI - נגיש לכל הלקוחות
+        ui: {
+          showCartTotalInHeader: settings.ui?.showCartTotalInHeader || false
         }
       }
     });
@@ -347,6 +351,62 @@ export const toggleRequireLoginOTP = async (req: AuthenticatedRequest, res: Resp
   }
 };
 
+/**
+ * הפעלה/ביטול הצגת מחיר כולל ליד אייקון העגלה
+ * PATCH /api/settings/show-cart-total-in-header
+ * 
+ * @example
+ * PATCH /api/settings/show-cart-total-in-header
+ * { "show": true }
+ */
+export const toggleShowCartTotalInHeader = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { show } = req.body;
+    const adminId = req.user?.userId;
+    
+    if (typeof show !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'ערך לא תקין - נדרש boolean'
+      });
+    }
+    
+    const currentSettings = await StoreSettings.getSettings();
+    
+    if (!currentSettings.ui) {
+      (currentSettings as any).ui = { showCartTotalInHeader: false };
+    }
+    
+    currentSettings.ui.showCartTotalInHeader = show;
+    if (adminId) {
+      currentSettings.updatedBy = new mongoose.Types.ObjectId(adminId);
+    }
+    await currentSettings.save();
+    
+    logger.info('SETTINGS_SHOW_CART_TOTAL_TOGGLED', { 
+      adminId,
+      showCartTotalInHeader: show
+    });
+    
+    res.json({
+      success: true,
+      message: show 
+        ? 'הצגת מחיר העגלה בהדר הופעלה' 
+        : 'הצגת מחיר העגלה בהדר בוטלה',
+      data: {
+        showCartTotalInHeader: currentSettings.ui.showCartTotalInHeader
+      }
+    });
+    
+  } catch (error: any) {
+    logger.error('SETTINGS_TOGGLE_CART_TOTAL_ERROR', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'שגיאה בעדכון ההגדרה'
+    });
+  }
+};
+
 export default {
   getPublicSettings,
   getAllSettings,
@@ -354,7 +414,8 @@ export default {
   toggleAllowUnpaidOrders,
   toggleDisablePayment,
   toggleRequireRegistrationApproval,
-  toggleRequireLoginOTP
+  toggleRequireLoginOTP,
+  toggleShowCartTotalInHeader
 };
 
 // ============================================================================

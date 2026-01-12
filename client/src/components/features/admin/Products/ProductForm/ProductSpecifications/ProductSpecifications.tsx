@@ -204,7 +204,7 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
       </div>
 
       {/* טיפים */}
-      <div className={styles.tips}>
+      {/* <div className={styles.tips}>
         <div className={styles.tipIcon}>💡</div>
         <div className={styles.tipContent}>
           <strong>טיפים למפרט טכני איכותי:</strong>
@@ -215,7 +215,7 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
             <li>הימנע מכפילויות עם התיאור הכללי</li>
           </ul>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

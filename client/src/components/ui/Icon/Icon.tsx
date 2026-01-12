@@ -28,7 +28,7 @@ export type IconName =
   | 'Image' | 'File' | 'FileText' | 'FileCode' | 'FileSpreadsheet' | 'Folder' | 'FolderOpen' | 'FolderPlus' | 'FolderTree' | 'Calendar' | 'Mail' | 'MessageCircle'
   // Tech
   | 'Database' | 'Key' | 'Palette' | 'Truck' | 'Archive' | 'Target' | 'Flame' | 'Gem' | 'Construction'
-  | 'Wallet' | 'Tag' | 'Code'
+  | 'Wallet' | 'Tag' | 'Code' | 'Layers'
   // Charts
   | 'PieChart' | 'LineChart' | 'User'
   // Auth & Users

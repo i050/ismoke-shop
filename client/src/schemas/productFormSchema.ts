@@ -99,6 +99,24 @@ export const skuSchema = yup.object({
     .default('auto')
     .nullable(),
 
+  // ============================================================================
+  // 🆕 Custom Variant Fields (variantType: 'custom')
+  // ============================================================================
+
+  // שם הוריאנט הראשי (לוריאנטים מותאמים)
+  variantName: yup
+    .string()
+    .optional()
+    .max(100, 'שם וריאנט לא יכול להכיל יותר מ-100 תווים')
+    .nullable(),
+
+  // שם הוריאנט המשני (אופציונלי)
+  subVariantName: yup
+    .string()
+    .optional()
+    .max(100, 'שם תת-וריאנט לא יכול להכיל יותר מ-100 תווים')
+    .nullable(),
+
   // תאימות לאחור - attributes עדיין מקובל (אך לא נשלח לשרת)
   attributes: yup
     .object()
@@ -302,6 +320,46 @@ export const productSchema = yup.object({
     .optional()
     .nullable()
     .default(null),
+
+  // ============================================================================
+  // 🆕 Dual Variant System - מערכת וריאנטים כפולה
+  // ============================================================================
+
+  // סוג מערכת הוריאנטים: 'color' | 'custom' | null
+  variantType: yup
+    .mixed<'color' | 'custom' | null>()
+    .oneOf(['color', 'custom', null], 'סוג וריאנט חייב להיות color, custom או ריק')
+    .optional()
+    .nullable()
+    .default(null),
+
+  // תווית הוריאנט הראשי
+  primaryVariantLabel: yup
+    .string()
+    .optional()
+    .max(50, 'תווית וריאנט ראשי לא יכולה להכיל יותר מ-50 תווים')
+    .nullable(),
+
+  // תווית הוריאנט המשני
+  secondaryVariantLabel: yup
+    .string()
+    .optional()
+    .max(50, 'תווית וריאנט משני לא יכולה להכיל יותר מ-50 תווים')
+    .nullable(),
+
+  // קישור לאטריביוט סינון ראשי
+  primaryFilterAttribute: yup
+    .string()
+    .optional()
+    .max(50, 'מזהה אטריביוט סינון ראשי לא יכול להכיל יותר מ-50 תווים')
+    .nullable(),
+
+  // קישור לאטריביוט סינון משני
+  secondaryFilterAttribute: yup
+    .string()
+    .optional()
+    .max(50, 'מזהה אטריביוט סינון משני לא יכול להכיל יותר מ-50 תווים')
+    .nullable(),
 
   lowStockThreshold: yup
     .number()

@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@ui';
 import QuantitySelector from '../QuantitySelector/QuantitySelector';
 import VariantSelector from '../../features/products/VariantSelector';
-import type { Sku } from '../../../types/Product';
+import type { Sku, VariantType } from '../../../types/Product';
 import styles from './AddToCartPopover.module.css';
 
 interface AddToCartPopoverProps {
@@ -26,6 +26,13 @@ interface AddToCartPopoverProps {
   onSkuChange?: (sku: string) => void;
   /** 🆕 שם המאפיין המשני (size/resistance וכו') */
   secondaryVariantAttribute?: string | null;
+  // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
+  /** סוג הוריאנט: 'color' | 'custom' | null */
+  variantType?: VariantType;
+  /** תווית הוריאנט הראשי (לדוגמה: "טעם") */
+  primaryVariantLabel?: string;
+  /** תווית הוריאנט המשני (לדוגמה: "ניקוטין") */
+  secondaryVariantLabel?: string;
 }
 
 /**
@@ -49,7 +56,11 @@ const AddToCartPopover = ({
   skus,
   selectedSku,
   onSkuChange,
-  secondaryVariantAttribute
+  secondaryVariantAttribute,
+  // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
+  variantType,
+  primaryVariantLabel,
+  secondaryVariantLabel,
 }: AddToCartPopoverProps) => {
   // state לניהול הכמות שנבחרה
   const [quantity, setQuantity] = useState(1);
@@ -142,6 +153,10 @@ const AddToCartPopover = ({
                   secondaryVariantAttribute={secondaryVariantAttribute}
                   showColorPreview={false}
                   secondaryOnly={!!secondaryVariantAttribute}
+                  // 🆕 Phase 4: העברת props לוריאנטים מותאמים אישית
+                  variantType={variantType}
+                  primaryVariantLabel={primaryVariantLabel}
+                  secondaryVariantLabel={secondaryVariantLabel}
                 />
               </div>
             )}

@@ -1,14 +1,17 @@
 // Product SKUs Component
 // מטרת הקומפוננטה: ניהול SKUs (וריאנטים) של המוצר
 // 🆕 תמיכה בתצוגה מקובצת לפי צבע
+// 🆕 Phase 2: תמיכה בשני סוגי וריאנטים (צבעים / מותאמים אישית)
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { SKUFormData } from '../../../../../../schemas/productFormSchema';
+import type { VariantType } from '../../../../../../types/Product';
 import { Icon } from '../../../../../ui/Icon';
 import SKURow from './SKURow';
 import AddSKUModal from './AddSKUModal';
 import ConfirmDialog from '../../../../../ui/ConfirmDialog';
 import ColorGroupedView from './ColorGroupedView';
+import CustomVariantsView from './CustomVariantsView'; // 🆕 Phase 3: וריאנטים מותאמים אישית
 import styles from './ProductSKUs.module.css';
 
 /** סוג תצוגת SKUs */
@@ -117,6 +120,23 @@ interface ProductSKUsProps {
   secondaryVariantAttribute?: string | null;
   /** 🆕 callback לשינוי ציר משני */
   onSecondaryVariantAttributeChange?: (attr: string | null) => void;
+
+  // ============================================================================
+  // 🆕 Phase 2: Dual Variant System Props
+  // ============================================================================
+
+  /** 🆕 סוג מערכת הוריאנטים: 'color' | 'custom' | null */
+  variantType?: VariantType;
+  /** 🆕 callback לשינוי סוג וריאנט */
+  onVariantTypeChange?: (type: VariantType) => void;
+  /** 🆕 תווית הוריאנט הראשי */
+  primaryVariantLabel?: string;
+  /** 🆕 callback לשינוי תווית ראשית */
+  onPrimaryVariantLabelChange?: (label: string) => void;
+  /** 🆕 תווית הוריאנט המשני */
+  secondaryVariantLabel?: string;
+  /** 🆕 callback לשינוי תווית משנית */
+  onSecondaryVariantLabelChange?: (label: string) => void;
 }
 
 /**
@@ -134,6 +154,14 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   productFormData, // 🆕 נתונים מהטופס הראשי
   secondaryVariantAttribute, // 🆕 ציר משני
   onSecondaryVariantAttributeChange, // 🆕 callback לשינוי
+  // 🆕 Phase 2: Dual Variant System Props
+  variantType = null,
+  onVariantTypeChange,
+  // 🆕 Phase 3: props לוריאנטים מותאמים אישית
+  primaryVariantLabel,
+  onPrimaryVariantLabelChange,
+  secondaryVariantLabel,
+  onSecondaryVariantLabelChange,
 }) => {
   // State לעריכה
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -146,7 +174,12 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
   // 🆕 State לתצוגה מקובצת/שטוחה
-  const [viewMode, setViewMode] = useState<ViewMode>('flat');
+  // 🔒 ברירת מחדל: 'grouped' - המנהל יראה רק תצוגה מקובצת (כפתורי ה-toggle מוסתרים)
+  const [viewMode, setViewMode] = useState<ViewMode>('grouped');
+  
+  // 🆕 State לאזהרת יצירת וריאנטים
+  const [showVariantTypeWarning, setShowVariantTypeWarning] = useState(false);
+  const [pendingVariantType, setPendingVariantType] = useState<VariantType | null>(null);
   
   // Ref למעקב אחרי פתיחה אוטומטית - כדי למנוע פתיחה חוזרת
   const didAutoOpenRef = useRef<boolean>(false);
@@ -173,7 +206,6 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         price: basePrice || null,
         stockQuantity: stockQuantity || 0,
         images: imagesCopy,
-        color: '',
         attributes: {},
         isActive: true,
       };
@@ -186,7 +218,6 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       price: null,
       stockQuantity: 0,
       images: [], // מערך חדש ריק - לא reference!
-      color: '',
       attributes: {},
       isActive: true,
     };
@@ -318,6 +349,50 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     [value, onCheckAvailability]
   );
 
+  /**
+   * 🆕 טיפול בשינוי סוג וריאנט עם אזהרה
+   * אם יש SKU דיפולטיבי אחד - מציג אזהרה
+   */
+  const handleVariantTypeChange = useCallback((newType: VariantType) => {
+    // בדיקה: האם יש SKU דיפולטיבי אחד שיימחק
+    const hasDefaultSku = 
+      value.length === 1 && 
+      !value[0].variantName && 
+      !value[0].color;
+
+    if (hasDefaultSku && (newType === 'color' || newType === 'custom')) {
+      // יש SKU דיפולטיבי - הצג אזהרה
+      setPendingVariantType(newType);
+      setShowVariantTypeWarning(true);
+    } else {
+      // אין SKU או שכבר יש וריאנטים - שנה ישירות
+      onVariantTypeChange?.(newType);
+    }
+  }, [value, onVariantTypeChange]);
+
+  /**
+   * 🆕 אישור שינוי סוג וריאנט (אחרי אזהרה)
+   */
+  const handleConfirmVariantTypeChange = useCallback(() => {
+    if (pendingVariantType) {
+      onVariantTypeChange?.(pendingVariantType);
+      // 🔧 אם עוברים לוריאנטים של צבע, עבור אוטומטית לתצוגה מקובצת
+      if (pendingVariantType === 'color') {
+        setViewMode('grouped');
+      }
+      setShowVariantTypeWarning(false);
+      setPendingVariantType(null);
+    }
+  }, [pendingVariantType, onVariantTypeChange]);
+
+  /**
+   * 🆕 ביטול שינוי סוג וריאנט
+   */
+  const handleCancelVariantTypeChange = useCallback(() => {
+    setShowVariantTypeWarning(false);
+    setPendingVariantType(null);
+  }, []);
+
   // אם זה מצב SKU בודד - הסתר את כל האופציות למרובה
   if (!isSkuMode) {
     return (
@@ -354,8 +429,119 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     );
   }
 
+  // 🔒 זיהוי סוג הוריאנטים הקיימים (למניעת שילוב color + custom)
+  const hasColorVariants = value.some(sku => sku.color);
+  const hasCustomVariants = value.some(sku => (sku as any).variantName);
+  
+  // 🚫 קביעת מתי להשבית כפתורים (לא ניתן לשלב שני סוגי וריאנטים)
+  const disableColorType = hasCustomVariants; // אם יש custom → לא ניתן לעבור ל-color
+  const disableCustomType = hasColorVariants; // אם יש color → לא ניתן לעבור ל-custom
+
   return (
     <div className={styles.container}>
+      {/* ============================================================================
+          🆕 Phase 2: בחירת סוג וריאנט - צבעים או מותאם אישית
+          ============================================================================ */}
+      {onVariantTypeChange && (
+        <section className={styles.variantTypeSection}>
+          <h4 className={styles.variantTypeTitle}>
+            <Icon name="Settings" size={20} />
+            בחר סוג וריאנטים
+          </h4>
+          <p className={styles.variantTypeSubtitle}>
+            בחר את סוג הוריאנטים שמתאים למוצר זה
+          </p>
+
+          <div className={styles.variantTypeOptions}>
+            {/* אפשרות 1: וריאנטים של צבעים */}
+            <label 
+              className={`${styles.variantTypeCard} ${variantType === 'color' ? styles.selected : ''} ${disableColorType ? styles.disabled : ''}`}
+              title={disableColorType ? '⚠️ לא ניתן לעבור לוריאנטי צבעים - קיימים וריאנטים מותאמים אישית. למחיקת כל הוריאנטים והתחלה מחדש, מחק את כל ה-SKUs.' : ''}
+            >
+              <div className={styles.variantTypeCardHeader}>
+                <input
+                  type="radio"
+                  name="variantType"
+                  value="color"
+                  checked={variantType === 'color'}
+                  onChange={() => handleVariantTypeChange('color')}
+                  className={styles.variantTypeRadio}
+                  disabled={disableColorType}
+                />
+                <div className={styles.variantTypeIcon}>
+                  <Icon name="Palette" size={20} />
+                </div>
+              </div>
+              <div className={styles.variantTypeCardContent}>
+                <h5 className={styles.variantTypeCardTitle}>וריאנטים של צבעים</h5>
+                <p className={styles.variantTypeCardDescription}>
+                  מוצרים עם צבעים שונים (חולצות, נעליים, תיקים)
+                </p>
+              </div>
+              <div className={styles.variantTypeCardFeatures}>
+                <span className={styles.variantTypeFeature}>
+                  <Icon name="Check" size={12} />
+                  כפתורי צבע בכרטיסיות
+                </span>
+                <span className={styles.variantTypeFeature}>
+                  <Icon name="Check" size={12} />
+                  סינון אוטומטי
+                </span>
+              </div>
+              {disableColorType && (
+                <div className={styles.variantTypeCardLock}>
+                  <Icon name="Lock" size={16} />
+                  <span>נעול - קיימים וריאנטים מותאמים</span>
+                </div>
+              )}
+            </label>
+
+            {/* אפשרות 2: וריאנטים מותאמים אישית */}
+            <label 
+              className={`${styles.variantTypeCard} ${variantType === 'custom' ? styles.selected : ''} ${disableCustomType ? styles.disabled : ''}`}
+              title={disableCustomType ? '⚠️ לא ניתן לעבור לוריאנטים מותאמים - קיימים וריאנטי צבעים. למחיקת כל הוריאנטים והתחלה מחדש, מחק את כל ה-SKUs.' : ''}
+            >
+              <div className={styles.variantTypeCardHeader}>
+                <input
+                  type="radio"
+                  name="variantType"
+                  value="custom"
+                  checked={variantType === 'custom'}
+                  onChange={() => handleVariantTypeChange('custom')}
+                  className={styles.variantTypeRadio}
+                  disabled={disableCustomType}
+                />
+                <div className={styles.variantTypeIcon}>
+                  <Icon name="Layers" size={20} />
+                </div>
+              </div>
+              <div className={styles.variantTypeCardContent}>
+                <h5 className={styles.variantTypeCardTitle}>וריאנטים מותאמים אישית</h5>
+                <p className={styles.variantTypeCardDescription}>
+                  מוצרים עם וריאנטים שאינם צבעים (טעמים, גדלים, סוגים)
+                </p>
+              </div>
+              <div className={styles.variantTypeCardFeatures}>
+                <span className={styles.variantTypeFeature}>
+                  <Icon name="Check" size={12} />
+                  תוויות מותאמות
+                </span>
+                <span className={styles.variantTypeFeature}>
+                  <Icon name="Check" size={12} />
+                  קישור לסינון אופציונלי
+                </span>
+              </div>
+              {disableCustomType && (
+                <div className={styles.variantTypeCardLock}>
+                  <Icon name="Lock" size={16} />
+                  <span>נעול - קיימים וריאנטי צבעים</span>
+                </div>
+              )}
+            </label>
+          </div>
+        </section>
+      )}
+
       {/* 🆕 הודעת מוצר פשוט/מורכב - רק במצב create */}
       {mode === 'create' && value.length === 0 && (
         <div className={styles.infoBox}>
@@ -380,47 +566,72 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
           <p className={styles.subtitle}>
             {mode === 'create' && value.length === 0 
               ? 'הוסף את הוריאנט הראשון של המוצר - השדות מולאו מראש מנתוני המוצר'
-              : 'נהל את הוריאנטים השונים של המוצר (צבעים, מידות וכו׳)'
+              : variantType === 'custom'
+                ? 'נהל את הוריאנטים המותאמים אישית של המוצר'
+                : 'נהל את הוריאנטים השונים של המוצר (צבעים, מידות וכו׳)'
             }
           </p>
         </div>
 
-        {/* 🆕 Toggle בין תצוגה שטוחה למקובצת */}
-        <div className={styles.headerActions}>
-          <div className={styles.viewToggle}>
-            <button
-              type="button"
-              className={`${styles.toggleButton} ${viewMode === 'flat' ? styles.active : ''}`}
-              onClick={() => setViewMode('flat')}
-              title="תצוגת רשימה"
-            >
-              <Icon name="List" size={18} />
-            </button>
-            <button
-              type="button"
-              className={`${styles.toggleButton} ${viewMode === 'grouped' ? styles.active : ''}`}
-              onClick={() => setViewMode('grouped')}
-              title="תצוגה לפי צבעים"
-            >
-              <Icon name="Palette" size={18} />
-            </button>
-          </div>
+        {/* 🆕 Toggle בין תצוגה שטוחה למקובצת - רק לוריאנטים של צבעים */}
+        {/* 🔒 HIDDEN: כפתורי ה-toggle מוסתרים - המנהל יראה רק תצוגה מקובצת */}
+        {/* הקוד נשמר למקרה שנרצה להחזיר את האפשרות בעתיד */}
+        {false && (variantType === 'color' || variantType === null) && (
+          <div className={styles.headerActions}>
+            <div className={styles.viewToggle}>
+              <button
+                type="button"
+                className={`${styles.toggleButton} ${viewMode === 'flat' ? styles.active : ''}`}
+                onClick={() => setViewMode('flat')}
+                title="תצוגת רשימה"
+              >
+                <Icon name="List" size={18} />
+              </button>
+              <button
+                type="button"
+                className={`${styles.toggleButton} ${viewMode === 'grouped' ? styles.active : ''}`}
+                onClick={() => setViewMode('grouped')}
+                title="תצוגה לפי צבעים"
+              >
+                <Icon name="Palette" size={18} />
+              </button>
+            </div>
 
-          {viewMode === 'flat' && (
-            <button
-              type="button"
-              className={styles.addButton}
-              onClick={() => setShowAddModal(true)}
-            >
-              <Icon name="Plus" size={20} />
-              <span>הוסף SKU</span>
-            </button>
-          )}
-        </div>
+            {viewMode === 'flat' && (
+              <button
+                type="button"
+                className={styles.addButton}
+                onClick={() => setShowAddModal(true)}
+              >
+                <Icon name="Plus" size={20} />
+                <span>הוסף SKU</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* 🆕 תצוגה מקובצת לפי צבע */}
-      {viewMode === 'grouped' ? (
+      {/* ============================================================================
+          תצוגת וריאנטים - מותנית לפי סוג
+          ============================================================================ */}
+      
+      {/* 🆕 Phase 3: וריאנטים מותאמים אישית */}
+      {variantType === 'custom' && (
+        <CustomVariantsView
+          value={value}
+          onChange={onChange}
+          basePrice={productFormData?.basePrice || 0}
+          productName={productFormData?.name || ''}
+          primaryVariantLabel={primaryVariantLabel}
+          onPrimaryVariantLabelChange={onPrimaryVariantLabelChange}
+          secondaryVariantLabel={secondaryVariantLabel}
+          onSecondaryVariantLabelChange={onSecondaryVariantLabelChange}
+          onUploadImages={onUploadImages}
+        />
+      )}
+
+      {/* תצוגת וריאנטים של צבעים (ברירת מחדל) */}
+      {(variantType === 'color' || variantType === null) && viewMode === 'grouped' && (
         <ColorGroupedView
           value={value}
           onChange={onChange}
@@ -430,8 +641,10 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
           secondaryAttribute={secondaryVariantAttribute}
           onSecondaryAttributeChange={onSecondaryVariantAttributeChange}
         />
-      ) : (
-        /* Grid של כרטיסי SKUs - תצוגה שטוחה */
+      )}
+
+      {/* Grid של כרטיסי SKUs - תצוגה שטוחה */}
+      {(variantType === 'color' || variantType === null) && viewMode === 'flat' && (
         value.length > 0 ? (
           <div className={styles.skuGrid}>
             {value.map((sku, index) => (
@@ -477,7 +690,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       )}
 
       {/* טיפים */}
-      <div className={styles.tips}>
+      {/* <div className={styles.tips}>
         <div className={styles.tipsHeader}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -516,7 +729,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             <strong>SKU בודד:</strong> לפחות SKU אחד נדרש למוצר
           </li>
         </ul>
-      </div>
+      </div> */}
 
       {/* מודאל הוספה */}
       {/**
@@ -549,6 +762,34 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         variant="danger"
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeletingIndex(null)}
+      />
+
+      {/* 🆕 דיאלוג אזהרה לפני יצירת וריאנטים */}
+      <ConfirmDialog
+        isOpen={showVariantTypeWarning}
+        title={pendingVariantType === 'color' ? 'יצירת וריאנטים לפי צבע' : 'יצירת וריאנטים מותאמים אישית'}
+        message={
+          <>
+            {/* <p style={{ marginBottom: '12px' }}>
+              <strong>שים לב:</strong> בחירה באפשרות זו תמחק את ה-SKU הקיים ותאפשר לך ליצור וריאנטים חדשים.
+            </p> */}
+            <p style={{ marginBottom: '12px' }}>
+              <strong>האם למוצר הזה יש {pendingVariantType === 'color' ? 'צבעים שונים' : 'וריאנטים (טעמים, גדלים, סוגים וכו\')'}?</strong>
+            </p>
+            <ul style={{ marginRight: '20px', marginBottom: '12px' }}>
+              <li><strong>כן</strong> - לחץ "המשך" כדי ליצור וריאנטים</li>
+              <li><strong>לא</strong> - לחץ "ביטול" ושמור את המוצר כפי שהוא (SKU יחיד)</li>
+            </ul>
+            {/* <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+              💡 מוצר עם SKU יחיד מתאים למוצרים ללא וריאנטים (לדוגמה: מוצר במחיר אחד וללא אפשרויות בחירה)
+            </p> */}
+          </>
+        }
+        confirmText="המשך"
+        cancelText="ביטול"
+        variant="warning"
+        onConfirm={handleConfirmVariantTypeChange}
+        onCancel={handleCancelVariantTypeChange}
       />
     </div>
   );

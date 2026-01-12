@@ -1,0 +1,809 @@
+/**
+ * AddVariantModal Styles
+ * ======================
+ * עיצוב המודאל להוספת וריאנט מותאם אישית
+ * 
+ * 🆕 Phase 7: Custom Variants - Full Implementation
+ */
+
+/* ============================================================================
+   Modal Container
+   ============================================================================ */
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-6, 24px);
+  border-bottom: 1px solid var(--border-light);
+  background: linear-gradient(to bottom, var(--color-bg-elevated), var(--color-bg-secondary));
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3, 12px);
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+/* ============================================================================
+   Body
+   ============================================================================ */
+
+.body {
+  flex: 1;
+  padding: var(--spacing-6, 24px);
+  overflow-y: auto;
+}
+
+/* ============================================================================
+   Input Mode Selection
+   ============================================================================ */
+
+.inputModeSection {
+  margin-bottom: var(--spacing-6, 24px);
+  padding-bottom: var(--spacing-6, 24px);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  margin: 0 0 var(--spacing-4, 16px);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.inputModeButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4, 16px);
+}
+
+.modeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  padding: var(--spacing-5, 20px);
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+}
+
+.modeButton:hover {
+  border-color: var(--brand-primary);
+  background: var(--color-bg-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.modeButton.modeButtonActive {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary-lighter);
+  color: var(--brand-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.modeButton span {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.modeDesc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.modeButton.modeButtonActive .modeDesc {
+  color: var(--brand-primary-dark);
+}
+
+/* ============================================================================
+   Form Groups
+   ============================================================================ */
+
+.freeMode,
+.linkedMode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5, 20px);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 8px);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4, 16px);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.required {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.optional {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.input:hover,
+.select:hover {
+  border-color: var(--brand-primary);
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.input[disabled],
+.select[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.inputError {
+  border-color: var(--color-danger);
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.errorText {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1, 4px);
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.select {
+  cursor: pointer;
+}
+
+/* ============================================================================
+   Values Selection
+   ============================================================================ */
+
+.valuesSection {
+  padding: var(--spacing-4, 16px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.valuesSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-3, 12px);
+}
+
+.selectedCount {
+  margin-right: var(--spacing-2, 8px);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--brand-primary);
+}
+
+.valuesActions {
+  display: flex;
+  gap: var(--spacing-2, 8px);
+}
+
+.linkButton {
+  padding: 4px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--brand-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.linkButton:hover {
+  background: var(--brand-primary-lighter);
+  color: var(--brand-primary-dark);
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--spacing-2, 8px);
+}
+
+.valueCheckbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  padding: var(--spacing-2, 8px) var(--spacing-3, 12px);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.valueCheckbox:hover {
+  border-color: var(--brand-primary);
+  background: var(--color-bg-hover);
+}
+
+.valueCheckbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.valueCheckbox span {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+/* ============================================================================
+   Secondary Variant Section
+   ============================================================================ */
+
+.secondarySection {
+  padding: var(--spacing-4, 16px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  margin-bottom: var(--spacing-4, 16px);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   Preview
+   ============================================================================ */
+
+.preview {
+  padding: var(--spacing-4, 16px);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  background: var(--brand-primary-lighter);
+}
+
+.previewTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  margin: 0 0 var(--spacing-2, 8px);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand-primary-dark);
+}
+
+.previewText {
+  margin: 0 0 var(--spacing-3, 12px);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.previewList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2, 8px);
+}
+
+.previewItem {
+  padding: var(--spacing-1, 4px) var(--spacing-3, 12px);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.previewMore {
+  padding: var(--spacing-1, 4px) var(--spacing-3, 12px);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-hover);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   Loading State
+   ============================================================================ */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3, 12px);
+  padding: var(--spacing-8, 32px);
+  color: var(--color-text-secondary);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   Empty Values State
+   ============================================================================ */
+
+.emptyValues {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3, 12px);
+  padding: var(--spacing-8, 32px);
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-medium);
+}
+
+.emptyValues p {
+  margin: 0;
+}
+
+.emptyValuesHint {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3, 12px);
+  padding: var(--spacing-6, 24px);
+  border-top: 1px solid var(--border-light);
+  background: var(--color-bg-secondary);
+}
+
+.cancelButton,
+.submitButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  padding: var(--spacing-2, 8px) var(--spacing-5, 20px);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.cancelButton:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.submitButton {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--brand-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   🆕 Free Mode - Add Input Group & Variants List
+   ============================================================================ */
+
+.addInputGroup {
+  display: flex;
+  gap: var(--spacing-2, 8px);
+}
+
+.addInputGroup .input {
+  flex: 1;
+}
+
+.addInputGroup .addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1, 4px);
+  padding: 0 var(--spacing-4, 16px);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--brand-primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addInputGroup .addButton:hover:not(:disabled) {
+  background: var(--brand-primary-dark);
+}
+
+.addInputGroup .addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.variantsList {
+  margin-top: var(--spacing-4, 16px);
+  padding: var(--spacing-4, 16px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.variantsListHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  margin-bottom: var(--spacing-3, 12px);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.variantsItems {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 8px);
+}
+
+.variantItemGrid {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  padding: var(--spacing-2, 8px) var(--spacing-3, 12px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: white;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.variantItemGrid:hover {
+  border-color: var(--brand-primary);
+  background: var(--color-bg-brand-subtle);
+}
+
+.variantInput {
+  width: 40px;
+  padding: 2px 4px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  text-align: center;
+  height: 24px;
+}
+
+.variantInput::-webkit-outer-spin-button,
+.variantInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.variantInput[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.variantInput:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}
+
+.variantItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  padding: var(--spacing-2, 8px) var(--spacing-3, 12px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  background: white;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.variantItem:hover {
+  border-color: var(--brand-primary);
+  background: var(--color-bg-brand-subtle);
+}
+
+.variantItemText {
+  color: var(--color-text-primary);
+}
+
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.removeButton:hover:not(:disabled) {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.defaultValuesRow {
+  padding: var(--spacing-3, 12px);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-2, 8px);
+}
+
+.defaultValuesRow label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-2, 8px);
+}
+
+.defaultInputs {
+  display: flex;
+  gap: var(--spacing-3, 12px);
+}
+
+.defaultInputs input {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  text-align: center;
+  height: 28px;
+}
+
+.defaultInputs input::-webkit-outer-spin-button,
+.defaultInputs input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.defaultInputs input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.defaultValuesSection {
+  padding: var(--spacing-3, 12px);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-3, 12px);
+}
+
+.defaultLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-2, 8px);
+}
+
+.defaultInputGroup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.defaultInputGroup label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.defaultInputGroup input {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  text-align: center;
+  height: 28px;
+}
+
+.defaultInputGroup input::-webkit-outer-spin-button,
+.defaultInputGroup input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.defaultInputGroup input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.valueCheckbox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2, 8px);
+}
+
+.valueInputs {
+  display: flex;
+  gap: var(--spacing-2, 8px);
+  margin-right: 24px;
+}
+
+.valueInputsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1, 4px);
+  margin-right: 24px;
+}
+
+.inputWithLabel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.inputWithLabel label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.removeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .inputModeButtons {
+    grid-template-columns: 1fr;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .valuesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .body {
+    padding: var(--spacing-4, 16px);
+  }
+
+  .header,
+  .footer {
+    padding: var(--spacing-4, 16px);
+  }
+}
