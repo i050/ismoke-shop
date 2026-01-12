@@ -105,6 +105,59 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     setActiveSection(initialActiveTab);
   }, [initialActiveTab]);
 
+  // 🎯 Scroll Spy - עדכון הטאב הפעיל לפי מיקום הגלילה
+  useEffect(() => {
+    const sections = [
+      { id: 'basic-section', name: 'basic' as const },
+      { id: 'pricing-section', name: 'pricing' as const },
+      { id: 'inventory-section', name: 'inventory' as const },
+      { id: 'images-section', name: 'images' as const },
+      { id: 'categories-section', name: 'categories' as const },
+      { id: 'attributes-section', name: 'attributes' as const },
+      { id: 'specifications-section', name: 'specifications' as const },
+      { id: 'skus-section', name: 'skus' as const },
+    ];
+
+    // יצירת Intersection Observer לעקוב אחרי הקטעים
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // מציאת הקטע הנמצא ביותר בתצוגה
+        const visibleEntries = entries.filter(entry => entry.isIntersecting);
+        
+        if (visibleEntries.length > 0) {
+          // מיון לפי כמה מהקטע נמצא בתצוגה (intersectionRatio)
+          const mostVisible = visibleEntries.reduce((prev, current) => 
+            current.intersectionRatio > prev.intersectionRatio ? current : prev
+          );
+          
+          // עדכון הטאב הפעיל לפי הקטע הנראה ביותר
+          const section = sections.find(s => s.id === mostVisible.target.id);
+          if (section) {
+            setActiveSection(section.name);
+          }
+        }
+      },
+      {
+        // הגדרות Observer
+        threshold: [0.1, 0.3, 0.5, 0.7, 0.9], // מספר נקודות בדיקה
+        rootMargin: '-80px 0px -50% 0px', // מתחשבים בגובה הניווט הצמוד
+      }
+    );
+
+    // התחברות לכל הקטעים
+    sections.forEach(section => {
+      const element = document.getElementById(section.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    // ניקוי בעת unmount
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   const methods = useForm<ProductFormData>({
     // TODO [TECH-DEBT]: Fix type mismatch between yup.InferType and react-hook-form
     // Issue: yup returns required fields, RHF expects optional fields
@@ -512,30 +565,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
-  /**
-   * מעבר לקטע הבא
-   */
-  const goToNextSection = () => {
-    const sections: typeof activeSection[] = ['basic', 'pricing', 'inventory', 'images', 'categories', 'attributes', 'specifications', 'skus'];
-    const currentIndex = sections.indexOf(activeSection);
-    if (currentIndex < sections.length - 1) {
-      setActiveSection(sections[currentIndex + 1]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  /**
-   * מעבר לקטע הקודם
-   */
-  const goToPreviousSection = () => {
-    const sections: typeof activeSection[] = ['basic', 'pricing', 'inventory', 'images', 'categories', 'attributes', 'specifications', 'skus'];
-    const currentIndex = sections.indexOf(activeSection);
-    if (currentIndex > 0) {
-      setActiveSection(sections[currentIndex - 1]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
   // ==========================================
   // Progress Calculation
   // ==========================================
@@ -696,224 +725,211 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </div>
         </div>
 
-        {/* Section Navigation Tabs */}
+        {/* Section Navigation Tabs - ניווט עם גלילה חלקה */}
         <div className={styles.sectionNav}>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'basic' ? styles.active : ''}`}
-            onClick={() => setActiveSection('basic')}
+            onClick={() => {
+              document.getElementById('basic-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('basic');
+            }}
           >
             מידע בסיסי
           </button>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'pricing' ? styles.active : ''}`}
-            onClick={() => setActiveSection('pricing')}
+            onClick={() => {
+              document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('pricing');
+            }}
           >
             מחירים
           </button>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'inventory' ? styles.active : ''}`}
-            onClick={() => setActiveSection('inventory')}
+            onClick={() => {
+              document.getElementById('inventory-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('inventory');
+            }}
           >
             מלאי
           </button>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'images' ? styles.active : ''}`}
-            onClick={() => setActiveSection('images')}
+            onClick={() => {
+              document.getElementById('images-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('images');
+            }}
           >
             תמונות
           </button>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'categories' ? styles.active : ''}`}
-            onClick={() => setActiveSection('categories')}
+            onClick={() => {
+              document.getElementById('categories-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('categories');
+            }}
           >
             קטגוריות
           </button>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'attributes' ? styles.active : ''}`}
-            onClick={() => setActiveSection('attributes')}
+            onClick={() => {
+              document.getElementById('attributes-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('attributes');
+            }}
           >
             מאפייני סינון
           </button>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'specifications' ? styles.active : ''}`}
-            onClick={() => setActiveSection('specifications')}
+            onClick={() => {
+              document.getElementById('specifications-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('specifications');
+            }}
           >
             מפרט טכני
           </button>
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'skus' ? styles.active : ''}`}
-            onClick={() => setActiveSection('skus')}
+            onClick={() => {
+              document.getElementById('skus-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('skus');
+            }}
           >
             וריאנטים (SKUs)
           </button>
         </div>
 
-        {/* Form Sections */}
+        {/* Form Sections - כל הקטעים מוצגים בגלילה רציפה */}
         <div className={styles.formContent}>
           {/* Basic Info Section */}
-          {activeSection === 'basic' && (
-            <div className={styles.section}>
-              <ProductBasicInfo
-                values={{
-                  name: formValues.name || '',
-                  subtitle: formValues.subtitle || '', // שם משני אופציונלי
-                  description: formValues.description || '',
-                  brand: formValues.brand || null,
-                }}
-                // TODO [TECH-DEBT]: Type assertion due to FieldError vs string mismatch
-                // RHF returns FieldError objects, components expect string errors
-                // Fix in Phase 7 refactoring
-                errors={errors as any}
-                onChange={(field, value) => setValueWithDirty(field, value)}
-                disabled={isSubmitting}
-              />
-            </div>
-          )}
+          <div id="basic-section" className={styles.section}>
+            <ProductBasicInfo
+              values={{
+                name: formValues.name || '',
+                subtitle: formValues.subtitle || '', // שם משני אופציונלי
+                description: formValues.description || '',
+                brand: formValues.brand || null,
+              }}
+              // TODO [TECH-DEBT]: Type assertion due to FieldError vs string mismatch
+              // RHF returns FieldError objects, components expect string errors
+              // Fix in Phase 7 refactoring
+              errors={errors as any}
+              onChange={(field, value) => setValueWithDirty(field, value)}
+              disabled={isSubmitting}
+            />
+          </div>
 
           {/* Pricing Section */}
-          {activeSection === 'pricing' && (
-            <div className={styles.section}>
-              <ProductPricing
-                values={{
-                  basePrice: formValues.basePrice || 0,
-                  compareAtPrice: formValues.compareAtPrice || null,
-                }}
-                errors={errors as any}
-                onChange={(field, value) => setValueWithDirty(field, value)}
-                disabled={isSubmitting}
-              />
-            </div>
-          )}
+          <div id="pricing-section" className={styles.section}>
+            <ProductPricing
+              values={{
+                basePrice: formValues.basePrice || 0,
+                compareAtPrice: formValues.compareAtPrice || null,
+              }}
+              errors={errors as any}
+              onChange={(field, value) => setValueWithDirty(field, value)}
+              disabled={isSubmitting}
+            />
+          </div>
 
           {/* Inventory Section */}
-          {activeSection === 'inventory' && (
-            <div className={styles.section}>
-              <ProductInventory
-                values={{
-                  trackInventory: formValues.trackInventory ?? true,
-                  lowStockThreshold: formValues.lowStockThreshold,
-                }}
-                globalLowStockThreshold={globalLowStockThreshold}
-                skus={formValues.skus || []}
-                errors={errors as any}
-                onChange={(field, value) => setValueWithDirty(field as any, value)}
-                onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
-                productId={initialData?._id || null}
-                disabled={isSubmitting}
-              />
-            </div>
-          )}
+          <div id="inventory-section" className={styles.section}>
+            <ProductInventory
+              values={{
+                trackInventory: formValues.trackInventory ?? true,
+                lowStockThreshold: formValues.lowStockThreshold,
+              }}
+              globalLowStockThreshold={globalLowStockThreshold}
+              skus={formValues.skus || []}
+              errors={errors as any}
+              onChange={(field, value) => setValueWithDirty(field as any, value)}
+              onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
+              productId={initialData?._id || null}
+              disabled={isSubmitting}
+            />
+          </div>
 
           {/* Images Section */}
-          {activeSection === 'images' && (
-            <div className={styles.section}>
-              <ProductImages
-                images={formValues.images || []}
-                errors={errors as any}
-                onChange={(images) => setValueWithDirty('images', images)}
-                onUpload={handleProductImagesUpload}
-                // ניווט מקצועי לטאב הוריאנטים (SKUs)
-                onNavigateToVariants={() => setActiveSection('skus')}
-              />
-            </div>
-          )}
+          <div id="images-section" className={styles.section}>
+            <ProductImages
+              images={formValues.images || []}
+              errors={errors as any}
+              onChange={(images) => setValueWithDirty('images', images)}
+              onUpload={handleProductImagesUpload}
+              // ניווט מקצועי לטאב הוריאנטים (SKUs) - גלילה חלקה
+              onNavigateToVariants={() => {
+                document.getElementById('skus-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setActiveSection('skus');
+              }}
+            />
+          </div>
 
           {/* Categories Section */}
-          {activeSection === 'categories' && (
-            <div className={styles.section}>
-              <ProductCategories
-                values={{
-                  categoryId: formValues.categoryId || null,
-                  tags: (formValues.tags || []).filter((tag): tag is string => tag !== undefined),
-                }}
-                errors={errors as any}
-                onChange={(field, value) => setValueWithDirty(field, value)}
-              />
-            </div>
-          )}
+          <div id="categories-section" className={styles.section}>
+            <ProductCategories
+              values={{
+                categoryId: formValues.categoryId || null,
+                tags: (formValues.tags || []).filter((tag): tag is string => tag !== undefined),
+              }}
+              errors={errors as any}
+              onChange={(field, value) => setValueWithDirty(field, value)}
+            />
+          </div>
 
           {/* Filter Attributes Section - מאפייני סינון */}
-          {activeSection === 'attributes' && (
-            <div className={styles.section}>
-              <ProductFilterAttributes
-                skus={formValues.skus || []}
-                onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
-                disabled={isSubmitting}
-              />
-            </div>
-          )}
+          <div id="attributes-section" className={styles.section}>
+            <ProductFilterAttributes
+              skus={formValues.skus || []}
+              onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
+              disabled={isSubmitting}
+            />
+          </div>
 
           {/* Technical Specifications Section - מפרט טכני */}
-          {activeSection === 'specifications' && (
-            <div className={styles.section}>
-              <ProductSpecifications
-                specifications={formValues.specifications || []}
-                onChange={(specs) => setValueWithDirty('specifications', specs)}
-                disabled={isSubmitting}
-                errors={errors as any}
-              />
-            </div>
-          )}
+          <div id="specifications-section" className={styles.section}>
+            <ProductSpecifications
+              specifications={formValues.specifications || []}
+              onChange={(specs) => setValueWithDirty('specifications', specs)}
+              disabled={isSubmitting}
+              errors={errors as any}
+            />
+          </div>
 
           {/* SKUs Section */}
-          {activeSection === 'skus' && (
-            <div className={styles.section}>
-              <ProductSKUs
-                value={formValues.skus || []}
-                onChange={(skus) => setValueWithDirty('skus', skus)}
-                errors={errors as any}
-                isSkuMode={true}
-                mode={mode}
-                onUploadImages={handleSKUImagesUpload}
-                productFormData={{
-                  name: formValues.name,
-                  basePrice: formValues.basePrice,
-                  stockQuantity: formValues.stockQuantity ?? 0,
-                  images: formValues.images,
-                }}
-                secondaryVariantAttribute={formValues.secondaryVariantAttribute}
-                onSecondaryVariantAttributeChange={(attr) => setValueWithDirty('secondaryVariantAttribute', attr)}
-                // 🆕 Phase 2: Dual Variant System Props
-                variantType={formValues.variantType}
-                onVariantTypeChange={(type) => setValueWithDirty('variantType', type)}
-                primaryVariantLabel={formValues.primaryVariantLabel || undefined}
-                onPrimaryVariantLabelChange={(label) => setValueWithDirty('primaryVariantLabel', label)}
-                secondaryVariantLabel={formValues.secondaryVariantLabel || undefined}
-                onSecondaryVariantLabelChange={(label) => setValueWithDirty('secondaryVariantLabel', label)}
-              />
-            </div>
-          )}
-
-          {/* Section Navigation Buttons */}
-          <div className={styles.sectionNavButtons}>
-            {activeSection !== 'basic' && (
-              <button
-                type="button"
-                className={styles.navButton}
-                onClick={goToPreviousSection}
-                disabled={isSubmitting}
-              >
-                ← הקטע הקודם
-              </button>
-            )}
-            {activeSection !== 'skus' && (
-              <button
-                type="button"
-                className={styles.navButton}
-                onClick={goToNextSection}
-                disabled={isSubmitting}
-              >
-                הקטע הבא →
-              </button>
-            )}
+          <div id="skus-section" className={styles.section}>
+            <ProductSKUs
+              value={formValues.skus || []}
+              onChange={(skus) => setValueWithDirty('skus', skus)}
+              errors={errors as any}
+              isSkuMode={true}
+              mode={mode}
+              onUploadImages={handleSKUImagesUpload}
+              productFormData={{
+                name: formValues.name,
+                basePrice: formValues.basePrice,
+                stockQuantity: formValues.stockQuantity ?? 0,
+                images: formValues.images,
+              }}
+              secondaryVariantAttribute={formValues.secondaryVariantAttribute}
+              onSecondaryVariantAttributeChange={(attr) => setValueWithDirty('secondaryVariantAttribute', attr)}
+              // 🆕 Phase 2: Dual Variant System Props
+              variantType={formValues.variantType}
+              onVariantTypeChange={(type) => setValueWithDirty('variantType', type)}
+              primaryVariantLabel={formValues.primaryVariantLabel || undefined}
+              onPrimaryVariantLabelChange={(label) => setValueWithDirty('primaryVariantLabel', label)}
+              secondaryVariantLabel={formValues.secondaryVariantLabel || undefined}
+              onSecondaryVariantLabelChange={(label) => setValueWithDirty('secondaryVariantLabel', label)}
+            />
           </div>
         </div>
 

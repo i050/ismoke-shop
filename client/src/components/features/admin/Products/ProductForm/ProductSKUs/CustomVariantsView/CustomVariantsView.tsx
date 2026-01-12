@@ -693,15 +693,7 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
                   <div className={styles.variantContent}>
                     {group.skus.length === 1 && !group.skus[0].subVariantName ? (
                       // SKU בודד - תצוגה פשוטה
-                      <div className={styles.infoBox}>
-                        <div className={styles.infoBoxIcon}>
-                          <Icon name="Info" size={18} />
-                        </div>
-                        <div className={styles.infoBoxContent}>
-                          <p className={styles.infoBoxText}>
-                            וריאנט זה כולל SKU בודד. לחץ על "הוסף תת-וריאנט" כדי להוסיף אפשרויות נוספות.
-                          </p>
-                        </div>
+                      <div className={styles.infoBox}> 
                       </div>
                     ) : null}
 

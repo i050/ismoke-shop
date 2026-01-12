@@ -152,6 +152,11 @@
    ================================================ */
 
 .sectionNav {
+  /* 🎯 Sticky positioning - הניווט נצמד לראש המסך בגלילה */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
@@ -160,6 +165,9 @@
   border: 1px solid var(--color-border, #e5e7eb);
   overflow-x: auto;
   scrollbar-width: thin;
+  
+  /* 🎯 צל עדין כשהניווט "צף" */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .navTab {
@@ -199,6 +207,9 @@
 }
 
 .section {
+  /* 🎯 Scroll offset - מרווח עליון כדי שהניווט הצמוד לא יכסה את התוכן */
+  scroll-margin-top: 80px;
+  
   background: var(--color-background, #fff);
   border-radius: var(--border-radius-lg, 12px);
   border: 1px solid var(--color-border, #e5e7eb);
