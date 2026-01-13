@@ -227,17 +227,18 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
    * useEffect - פתיחה אוטומטית של מצב עריכה לוריאנט הראשוני במצב create
    * נפתח אוטומטית פעם אחת כאשר:
    * 1. mode === 'create'
-   * 2. יש SKU ראשוני אחד שנוצר אוטומטית (שם 'וריאנט ראשוני')
+   * 2. יש SKU ראשוני אחד שנוצר אוטומטית (שם ריק)
    * 3. טרם נפתח אוטומטית (didAutoOpenRef)
    * 
    * זה מאפשר למשתמש לערוך מיד את שם הוריאנט, להוסיף תמונות, וכו'
    */
   useEffect(() => {
     // תנאי לפתיחת עריכה אוטומטית לוריאנט הראשוני
+    // 🆕 בודקים שם ריק במקום "וריאנט ראשוני"
     const isInitialVariant = 
       mode === 'create' &&                          // רק במצב יצירה
       value.length === 1 &&                         // יש בדיוק SKU אחד
-      value[0]?.name === 'וריאנט ראשוני' &&         // זה הוריאנט הראשוני שנוצר אוטומטית
+      (value[0]?.name === '' || !value[0]?.name) && // SKU ראשוני עם שם ריק
       !didAutoOpenRef.current;                      // טרם נפתח אוטומטית
     
     if (isInitialVariant) {
@@ -547,7 +548,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         <div className={styles.infoBox}>
           <div className={styles.infoIcon}><Icon name="AlertCircle" size={24} /></div>
           <div className={styles.infoContent}>
-            <h4 className={styles.infoTitle}>הגדרת וריאנט ראשוני</h4>
+            <h4 className={styles.infoTitle}>הגדרת וריאנט</h4>
             <p className={styles.infoText}>
               טופס הוריאנט נפתח אוטומטית עם הערכים שהזנת במוצר.
               <br />
@@ -630,8 +631,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         />
       )}
 
-      {/* תצוגת וריאנטים של צבעים (ברירת מחדל) */}
-      {(variantType === 'color' || variantType === null) && viewMode === 'grouped' && (
+      {/* תצוגת וריאנטים של צבעים - רק כש-variantType === 'color' */}
+      {variantType === 'color' && viewMode === 'grouped' && (
         <ColorGroupedView
           value={value}
           onChange={onChange}
@@ -643,8 +644,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         />
       )}
 
-      {/* Grid של כרטיסי SKUs - תצוגה שטוחה */}
-      {(variantType === 'color' || variantType === null) && viewMode === 'flat' && (
+      {/* Grid של כרטיסי SKUs - תצוגה שטוחה (כולל כש-variantType === null) */}
+      {/* {(variantType === 'color' || variantType === null) && (variantType === null || viewMode === 'flat') && (
         value.length > 0 ? (
           <div className={styles.skuGrid}>
             {value.map((sku, index) => (
@@ -678,7 +679,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             </p>
           </div>
         )
-      )}
+      )} */}
 
       {/* שגיאה כללית */}
       {errors?.skus && (
@@ -770,17 +771,17 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         title={pendingVariantType === 'color' ? 'יצירת וריאנטים לפי צבע' : 'יצירת וריאנטים מותאמים אישית'}
         message={
           <>
-            {/* <p style={{ marginBottom: '12px' }}>
+            {/* <p className={styles.variantWarningParagraph}>
               <strong>שים לב:</strong> בחירה באפשרות זו תמחק את ה-SKU הקיים ותאפשר לך ליצור וריאנטים חדשים.
             </p> */}
-            <p style={{ marginBottom: '12px' }}>
+            <p className={styles.variantWarningParagraph}>
               <strong>האם למוצר הזה יש {pendingVariantType === 'color' ? 'צבעים שונים' : 'וריאנטים (טעמים, גדלים, סוגים וכו\')'}?</strong>
             </p>
-            <ul style={{ marginRight: '20px', marginBottom: '12px' }}>
+            <ul className={styles.variantWarningList}>
               <li><strong>כן</strong> - לחץ "המשך" כדי ליצור וריאנטים</li>
               <li><strong>לא</strong> - לחץ "ביטול" ושמור את המוצר כפי שהוא (SKU יחיד)</li>
             </ul>
-            {/* <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+            {/* <p className={styles.variantWarningHint}>
               💡 מוצר עם SKU יחיד מתאים למוצרים ללא וריאנטים (לדוגמה: מוצר במחיר אחד וללא אפשרויות בחירה)
             </p> */}
           </>

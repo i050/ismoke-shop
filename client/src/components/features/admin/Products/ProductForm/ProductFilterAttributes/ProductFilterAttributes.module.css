@@ -391,6 +391,26 @@
   gap: 0.5rem;
 }
 
+/* 🆕 בחירת משפחת צבע עם אינדיקטור */
+.colorFamilySelect {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.colorFamilySelect select {
+  flex: 1;
+}
+
+.colorIndicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
 .colorSelect {
   width: 100%;
 }

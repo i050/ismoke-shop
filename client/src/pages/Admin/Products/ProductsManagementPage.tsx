@@ -24,6 +24,7 @@ import ProductsTableFilters from '../../../components/features/admin/Products/Pr
 import ProductsTableToolbar from '../../../components/features/admin/Products/ProductsTable/ProductsTableToolbar';
 import ProductsTable from '../../../components/features/admin/Products/ProductsTable/ProductsTable';
 import { ProductForm } from '../../../components/features/admin/Products/ProductForm';
+import { ProductTypeDialog, type ProductType } from '../../../components/features/admin/Products/ProductTypeDialog';
 import type { ProductFormData } from '../../../schemas/productFormSchema';
 import { ProductService } from '../../../services/productService'; // 🔧 FIX: הוספת import לטעינת מוצר עם SKUs
 import productManagementService from '../../../services/productManagementService'; // Phase 7.2: עבור מחיקה לצמיתות
@@ -50,6 +51,10 @@ const ProductsManagementPage: React.FC = () => {
   const [initialActiveTab, setInitialActiveTab] = useState<'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'skus'>('basic');
   const [deepLinkProductId, setDeepLinkProductId] = useState<string | null>(null);
   const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState<number>(5);
+  
+  // 🆕 State לדיאלוג בחירת סוג מוצר ולסוג שנבחר
+  const [showProductTypeDialog, setShowProductTypeDialog] = useState(false);
+  const [selectedProductType, setSelectedProductType] = useState<ProductType | null>(null);
   
   // טעינת סף מלאי נמוך גלובלי מהגדרות החנות
   useEffect(() => {
@@ -161,9 +166,21 @@ const ProductsManagementPage: React.FC = () => {
     }
   }, [mode]);
 
-  // פונקציה זמנית להוספת מוצר (Phase 5)
+  // פונקציה להוספת מוצר - פותחת דיאלוג בחירת סוג
   const handleAddProduct = () => {
+    setShowProductTypeDialog(true);
+  };
+
+  // 🆕 בחירת סוג מוצר מהדיאלוג
+  const handleProductTypeSelect = (type: ProductType) => {
+    setSelectedProductType(type);
+    setShowProductTypeDialog(false);
     dispatch(setModeCreate());
+  };
+
+  // 🆕 סגירת דיאלוג בחירת סוג
+  const handleProductTypeDialogClose = () => {
+    setShowProductTypeDialog(false);
   };
 
   // Phase 6.2: טיפול בשמירת מוצר (create or update)
@@ -186,6 +203,7 @@ const ProductsManagementPage: React.FC = () => {
 
   // Phase 6: ביטול טופס
   const handleProductCancel = () => {
+    setSelectedProductType(null); // 🆕 איפוס סוג מוצר
     dispatch(setModeList());
   };
 
@@ -545,6 +563,7 @@ const ProductsManagementPage: React.FC = () => {
       {mode === 'create' && (
         <ProductForm
           mode="create"
+          hasVariants={selectedProductType === 'variants'}
           onSubmit={handleProductSubmit}
           onCancel={handleProductCancel}
         />
@@ -554,6 +573,7 @@ const ProductsManagementPage: React.FC = () => {
       {mode === 'edit' && editingProduct && (
         <ProductForm
           mode="edit"
+          hasVariants={editingProduct.hasVariants ?? false}
           initialData={editingProduct}
           onSubmit={handleProductSubmit}
           onCancel={handleProductCancel}
@@ -563,6 +583,13 @@ const ProductsManagementPage: React.FC = () => {
           key={`${editingProduct._id}-${initialActiveTab}`} // Force re-render when tab changes
         />
       )}
+
+      {/* 🆕 דיאלוג בחירת סוג מוצר */}
+      <ProductTypeDialog
+        isOpen={showProductTypeDialog}
+        onSelect={handleProductTypeSelect}
+        onClose={handleProductTypeDialogClose}
+      />
     </div>
   );
 };

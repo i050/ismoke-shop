@@ -140,7 +140,7 @@ const ProductImages: React.FC<ProductImagesProps> = ({
       )}
 
       {/* טיפים */}
-      <div className={styles.tips}>
+      {/* <div className={styles.tips}>
         <div className={styles.tipsHeader}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -182,7 +182,7 @@ const ProductImages: React.FC<ProductImagesProps> = ({
             <strong>רקע:</strong> השתמש ברקע לבן או שקוף לתוצאות מקצועיות
           </li>
         </ul>
-      </div>
+      </div> */}
 
       {/* אזהרה - אם אין תמונות */}
       {images.length === 0 && !errors?.images && (

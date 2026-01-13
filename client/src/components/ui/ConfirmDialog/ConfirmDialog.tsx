@@ -12,8 +12,8 @@ export interface ConfirmDialogProps {
   isOpen: boolean;
   /** כותרת הדיאלוג */
   title: string;
-  /** הודעת התוכן */
-  message: string;
+  /** הודעת התוכן - יכול להיות טקסט או JSX */
+  message: React.ReactNode;
   /** טקסט כפתור אישור */
   confirmText?: string;
   /** טקסט כפתור ביטול */

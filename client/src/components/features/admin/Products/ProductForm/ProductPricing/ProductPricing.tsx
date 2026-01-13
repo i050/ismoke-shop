@@ -228,7 +228,7 @@ const ProductPricing: React.FC<ProductPricingProps> = ({
       )}
 
       {/* טיפים */}
-      <div className={styles.tips}>
+      {/* <div className={styles.tips}>
         <div className={styles.tipsHeader}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -253,7 +253,7 @@ const ProductPricing: React.FC<ProductPricingProps> = ({
           <li>מחיר להשוואה חייב להיות גבוה ממחיר הבסיס כדי להציג חיסכון</li>
           <li>השאר את מחיר ההשוואה ריק אם אין הנחה</li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };

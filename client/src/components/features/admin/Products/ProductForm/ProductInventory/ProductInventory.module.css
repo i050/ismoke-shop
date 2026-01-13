@@ -498,3 +498,24 @@
   font-family: monospace;
   letter-spacing: 0.05em;
 }
+
+/* 🆕 מוצר פשוט - שדה מלאי ישיר */
+.simpleStockInput {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.simpleStockInput input {
+  max-width: 120px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0.75rem;
+}
+
+.simpleStockUnit {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}

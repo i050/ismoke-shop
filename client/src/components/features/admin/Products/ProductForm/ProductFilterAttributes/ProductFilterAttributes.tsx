@@ -8,7 +8,6 @@ import { ColorSelect } from '../../../../../ui/ColorSelect';
 import { FilterAttributeService } from '../../../../../../services/filterAttributeService';
 import type { FilterAttribute } from '../../../../../../services/filterAttributeService';
 import type { SKUFormData } from '../../../../../../schemas/productFormSchema';
-import { getColorNameHebrew } from '../../../../../../utils/colorUtils';
 import styles from './ProductFilterAttributes.module.css';
 
 /**
@@ -21,6 +20,8 @@ interface ProductFilterAttributesProps {
   onSkusChange: (skus: SKUFormData[]) => void;
   /** האם הטופס מושבת */
   disabled?: boolean;
+  /** 🆕 האם זה מוצר פשוט (ללא וריאנטים) - משנה את ממשק המשתמש */
+  isSimpleProduct?: boolean;
 }
 
 /**
@@ -37,14 +38,38 @@ interface AttributeStats {
  * קומפוננטת ProductFilterAttributes
  * מציגה רשימת וריאנטים עם אפשרות עריכת מאפייני סינון inline
  */
+// 🔄 Fallback - רשימת משפחות צבעים בסיסית במקרה שהשרת לא זמין
+const FALLBACK_COLOR_FAMILIES = [
+  { family: 'black', displayName: 'שחור', representativeHex: '#000000' },
+  { family: 'white', displayName: 'לבן', representativeHex: '#FFFFFF' },
+  { family: 'red', displayName: 'אדום', representativeHex: '#EF4444' },
+  { family: 'blue', displayName: 'כחול', representativeHex: '#3B82F6' },
+  { family: 'green', displayName: 'ירוק', representativeHex: '#22C55E' },
+  { family: 'yellow', displayName: 'צהוב', representativeHex: '#EAB308' },
+  { family: 'orange', displayName: 'כתום', representativeHex: '#F97316' },
+  { family: 'purple', displayName: 'סגול', representativeHex: '#A855F7' },
+  { family: 'pink', displayName: 'ורוד', representativeHex: '#EC4899' },
+  { family: 'gray', displayName: 'אפור', representativeHex: '#6B7280' },
+  { family: 'brown', displayName: 'חום', representativeHex: '#78350F' },
+];
+
 const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
   skus = [],
   onSkusChange,
   disabled = false,
+  isSimpleProduct = false,
 }) => {
   // State למאפייני סינון מהשרת
   const [filterAttributes, setFilterAttributes] = useState<FilterAttribute[]>([]);
   const [loadingAttributes, setLoadingAttributes] = useState(false);
+  
+  // 🆕 State למשפחות צבע (לבחירת צבע לסינון)
+  const [colorFamilies, setColorFamilies] = useState<Array<{
+    family: string;
+    displayName: string;
+    representativeHex: string;
+  }>>([]);
+  const [loadingColorFamilies, setLoadingColorFamilies] = useState(false);
 
   /**
    * טעינת מאפייני הסינון מהשרת
@@ -69,6 +94,29 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
   }, [filterAttributes.length, loadingAttributes]);
 
   /**
+   * 🆕 טעינת משפחות צבע מהשרת
+   */
+  useEffect(() => {
+    const loadColorFamilies = async () => {
+      if (colorFamilies.length > 0 || loadingColorFamilies) return;
+      
+      try {
+        setLoadingColorFamilies(true);
+        const families = await FilterAttributeService.getColorFamiliesForAdmin();
+        setColorFamilies(families);
+        console.log('✅ [ProductFilterAttributes] נטענו משפחות צבע:', families.length);
+      } catch (error) {
+        console.error('⚠️ [ProductFilterAttributes] כשל בטעינת משפחות צבע, משתמש ב-fallback:', error);
+        setColorFamilies(FALLBACK_COLOR_FAMILIES);
+      } finally {
+        setLoadingColorFamilies(false);
+      }
+    };
+
+    void loadColorFamilies();
+  }, [colorFamilies.length, loadingColorFamilies]);
+
+  /**
    * עדכון סטיילים דינמיים (progress bars וצבעים)
    * משתמש ב-data attributes כדי להימנע מ-inline styles
    */
@@ -88,7 +136,15 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
         (el as HTMLElement).style.backgroundColor = color;
       }
     });
-  }, [skus, filterAttributes]);
+
+    // 🆕 עדכון צבעי רקע של color indicators
+    document.querySelectorAll(`.${styles.colorIndicator}[data-color]`).forEach((el) => {
+      const color = el.getAttribute('data-color');
+      if (color) {
+        (el as HTMLElement).style.backgroundColor = color;
+      }
+    });
+  }, [skus, filterAttributes, colorFamilies]);
 
   /**
    * חישוב סטטיסטיקות לכל מאפיין
@@ -200,6 +256,19 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
   );
 
   /**
+   * 🆕 המרת משפחות צבע ל-presets עבור ColorSelect
+   */
+  const colorPresets = useMemo(() => {
+    const families = colorFamilies.length > 0 ? colorFamilies : FALLBACK_COLOR_FAMILIES;
+    return families.map(fam => ({
+      hex: fam.representativeHex,
+      name: fam.displayName,
+      // שמירת family בתור ערך נוסף (נשתמש בזה בהמשך)
+      family: fam.family
+    }));
+  }, [colorFamilies]);
+
+  /**
    * חישוב סיכום אזהרות
    */
   const warningsSummary = useMemo(() => {
@@ -236,15 +305,23 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
         <div className={styles.header}>
           <h3 className={styles.title}>מאפייני סינון</h3>
           <p className={styles.subtitle}>
-            ניהול מאפייני סינון עבור וריאנטים - צבע, מידה ומאפיינים נוספים
+            {isSimpleProduct 
+              ? 'הגדרת מאפייני סינון למוצר - צבע, מידה ומאפיינים נוספים'
+              : 'ניהול מאפייני סינון עבור וריאנטים - צבע, מידה ומאפיינים נוספים'
+            }
           </p>
         </div>
 
         <div className={styles.emptyState}>
           <Icon name="Filter" size={48} />
-          <p className={styles.emptyText}>אין וריאנטים להצגה</p>
+          <p className={styles.emptyText}>
+            {isSimpleProduct ? 'אין מאפיינים' : 'אין וריאנטים להצגה'}
+          </p>
           <p className={styles.emptySubtext}>
-            הוסף וריאנטים בטאב "וריאנטים" כדי לערוך מאפיינים
+            {isSimpleProduct 
+              ? 'שמור את המוצר כדי להוסיף מאפייני סינון'
+              : 'הוסף וריאנטים בטאב "וריאנטים" כדי לערוך מאפיינים'
+            }
           </p>
         </div>
       </div>
@@ -257,13 +334,15 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
       <div className={styles.header}>
         <h3 className={styles.title}>מאפייני סינון</h3>
         <p className={styles.subtitle}>
-          ערוך מאפייני סינון (צבע, מידה וכו') עבור כל הוריאנטים במקום אחד.
-          מאפיינים אלו מאפשרים ללקוחות לסנן ולמצוא את המוצר בקלות.
+          {isSimpleProduct
+            ? 'הגדר מאפייני סינון (צבע, מידה וכו\') למוצר. מאפיינים אלו מאפשרים ללקוחות לסנן ולמצוא את המוצר בקלות.'
+            : 'ערוך מאפייני סינון (צבע, מידה וכו\') עבור כל הוריאנטים במקום אחד. מאפיינים אלו מאפשרים ללקוחות לסנן ולמצוא את המוצר בקלות.'
+          }
         </p>
       </div>
 
-      {/* אזהרה כללית על מאפיינים חסרים */}
-      {skusWithMissingAttributes > 0 && (
+      {/* אזהרה כללית על מאפיינים חסרים - רק למוצרים עם וריאנטים */}
+      {!isSimpleProduct && skusWithMissingAttributes > 0 && (
         <div className={styles.warningBanner}>
           <div className={styles.warningIcon}>
             <Icon name="AlertTriangle" size={20} />
@@ -277,8 +356,8 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
         </div>
       )}
 
-      {/* סטטיסטיקות מאפיינים */}
-      {filterAttributes.length > 0 && (
+      {/* סטטיסטיקות מאפיינים - רק למוצרים עם וריאנטים */}
+      {!isSimpleProduct && filterAttributes.length > 0 && (
         <div className={styles.statsSection}>
           <h4 className={styles.statsTitle}>
             <Icon name="BarChart3" size={18} />
@@ -388,31 +467,26 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
                             )}
                           </label>
 
-                          {/* צבע - ColorSelect מיוחד */}
+                          {/* צבע - בחירת משפחת צבע לסינון (רק מרשימה מוגדרת מראש) */}
                           {attr.valueType === 'color' || attr.key === 'color' ? (
                             <div className={styles.colorFieldWrapper}>
+                              {/* 🆕 ColorSelect עם presets מוגדרים של משפחות צבע בלבד */}
                               <ColorSelect
-                                value={value}
-                                onChange={(color) =>
-                                  handleAttributeChange(index, attr.key, color)
-                                }
-                                placeholder="בחר צבע"
-                                showCustomPicker
-                                allowCustomHex
-                                disabled={disabled}
+                                value={(() => {
+                                  // המרה מ-family ל-hex לתצוגה
+                                  const fam = (colorFamilies.length > 0 ? colorFamilies : FALLBACK_COLOR_FAMILIES).find(f => f.family === value);
+                                  return fam?.representativeHex || '';
+                                })()}
+                                onChange={(hex) => {
+                                  // המרה מ-hex חזרה ל-family לשמירה
+                                  const fam = (colorFamilies.length > 0 ? colorFamilies : FALLBACK_COLOR_FAMILIES).find(f => f.representativeHex === hex);
+                                  handleAttributeChange(index, attr.key, fam?.family || '');
+                                }}
+                                presets={colorPresets}
+                                placeholder="בחר צבע לסינון"
+                                disabled={disabled || loadingColorFamilies}
                                 className={styles.colorSelect}
                               />
-                              {value && (
-                                <div className={styles.colorPreview}>
-                                  <div
-                                    className={styles.colorSwatch}
-                                    data-color={value}
-                                  />
-                                  <span className={styles.colorName}>
-                                    {getColorNameHebrew(value)}
-                                  </span>
-                                </div>
-                              )}
                             </div>
                           ) : attr.values && attr.values.length > 0 ? (
                             /* Select עם ערכים מוגדרים */
@@ -486,9 +560,9 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
         </div>
         <ul className={styles.tipsList}>
           <li>מאפיינים מאפשרים ללקוחות לסנן מוצרים לפי צבע, מידה ועוד</li>
-          <li>ודא שכל הוריאנטים מכילים את אותם מאפיינים לעקביות</li>
+          {/* <li>ודא שכל הוריאנטים מכילים את אותם מאפיינים לעקביות</li>
           <li>צבע לסינון משפיע על הסינון בקטלוג - בחר צבע מדויק</li>
-          <li>מאפיינים חסרים מסומנים באזהרה - מומלץ למלא אותם</li>
+          <li>מאפיינים חסרים מסומנים באזהרה - מומלץ למלא אותם</li> */}
           <li>ניתן להוסיף מאפיינים חדשים בדף "מאפייני סינון" בניהול</li>
         </ul>
       </div>

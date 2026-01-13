@@ -45,6 +45,8 @@ interface ProductInventoryProps {
   disabled?: boolean;
   /** מזהה מוצר קיים - אם לא קיים (create mode) לא תתאפשר שמירת SKUs לשרת */
   productId?: string | null;
+  /** 🆕 מוצר פשוט - ללא וריאנטים. משנה את התצוגה למלאי פשוט יותר */
+  isSimpleProduct?: boolean;
 }
 
 /**
@@ -61,6 +63,7 @@ const ProductInventory: React.FC<ProductInventoryProps> = ({
   onSkusChange,
   disabled = false,
   productId = null,
+  isSimpleProduct = false,
 }) => {
   const { showToast } = useToast();
 
@@ -153,7 +156,10 @@ const ProductInventory: React.FC<ProductInventoryProps> = ({
       <div className={styles.header}>
         <h3 className={styles.title}>ניהול מלאי</h3>
         <p className={styles.subtitle}>
-          תצוגה והגדרות מלאי כלליות. עריכת מלאי בפועל מתבצעת בטאב וריאנטים
+          {isSimpleProduct 
+            ? 'הגדרת כמות המלאי של המוצר ורף אזהרה למלאי נמוך'
+            : 'תצוגה והגדרות מלאי כלליות. עריכת מלאי בפועל מתבצעת בטאב וריאנטים'
+          }
         </p>
       </div>
 
@@ -175,16 +181,47 @@ const ProductInventory: React.FC<ProductInventoryProps> = ({
           <div className={styles.totalStockCard}>
             <div className={styles.totalStockHeader}>
               <span className={styles.totalStockIcon}><Icon name="BarChart3" size={20} /></span>
-              <h4 className={styles.totalStockTitle}>סה"כ מלאי</h4>
+              <h4 className={styles.totalStockTitle}>
+                {isSimpleProduct ? 'כמות במלאי' : 'סה"כ מלאי'}
+              </h4>
             </div>
-            <div className={styles.totalStockValue}>{totalStock} יחידות</div>
-            <div className={styles.totalStockSubtitle}>
-              (סכום כל הוריאנטים)
-            </div>
+            {/* 🆕 עבור מוצר פשוט - עריכה ישירה של המלאי */}
+            {isSimpleProduct && skus.length === 1 && typeof onSkusChange === 'function' ? (
+              <div className={styles.simpleStockInput}>
+                <Input
+                  type="number"
+                  value={String(skus[0]?.stockQuantity ?? 0)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const raw = e.target.value;
+                    const num = raw === '' ? 0 : parseInt(raw, 10) || 0;
+                    const newValue = Math.max(0, num);
+                    
+                    // עדכון ה-SKU
+                    const updatedSkus = [{ ...skus[0], stockQuantity: newValue }];
+                    onSkusChange(updatedSkus);
+                    
+                    // עדכון גם את סך המלאי בטופס
+                    onChange('stockQuantity', newValue);
+                  }}
+                  aria-label="כמות במלאי"
+                  disabled={disabled}
+                />
+                <span className={styles.simpleStockUnit}>יחידות</span>
+              </div>
+            ) : (
+              <>
+                <div className={styles.totalStockValue}>{totalStock} יחידות</div>
+                {!isSimpleProduct && (
+                  <div className={styles.totalStockSubtitle}>
+                    (סכום כל הוריאנטים)
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
-          {/* פירוט לפי וריאנטים */}
-          {skus.length > 0 && (
+          {/* פירוט לפי וריאנטים - רק עבור מוצר עם וריאנטים */}
+          {!isSimpleProduct && skus.length > 0 && (
             <div className={styles.skusBreakdown}>
               <h4 className={styles.breakdownTitle}><Icon name="Package" size={18} /> פירוט לפי וריאנטים:</h4>
               <div className={styles.skusList}>
@@ -254,8 +291,8 @@ const ProductInventory: React.FC<ProductInventoryProps> = ({
             />
           </div>
 
-          {/* סיכום מצב מלאי */}
-          {skus.length > 0 && (inventorySummary.lowStock > 0 || inventorySummary.outOfStock > 0) && (
+          {/* סיכום מצב מלאי - רק למוצרים עם וריאנטים */}
+          {!isSimpleProduct && skus.length > 0 && (inventorySummary.lowStock > 0 || inventorySummary.outOfStock > 0) && (
             <div className={styles.inventorySummary}>
               <div className={styles.summaryHeader}>
                 <span className={styles.summaryIcon}><Icon name="AlertTriangle" size={18} /></span>

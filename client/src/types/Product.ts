@@ -154,6 +154,12 @@ export interface Product {// זה הטייפ של מוצר
    */
   secondaryFilterAttribute?: string;
 
+  /**
+   * 🆕 האם המוצר מכיל וריאנטים (צבעים/מידות) או שהוא מוצר פשוט
+   * משפיע על הממשק בטופס הניהול ועל יצירת SKU אוטומטית
+   */
+  hasVariants?: boolean;
+
   // Legacy Field (תאימות לאחור)
   secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine וכו') - null = רק צבעים
 

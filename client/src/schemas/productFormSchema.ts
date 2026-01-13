@@ -28,8 +28,13 @@ export const skuSchema = yup.object({
   // שם תצוגה
   name: yup
     .string()
-    .required('שם הוריאנט הוא שדה חובה')
-    .min(3, 'שם הוריאנט חייב להכיל לפחות 3 תווים')
+    .when('$isInitialSku', {
+      is: true,
+      then: (schema) => schema.optional().nullable(), // SKU ראשוני יכול להיות ריק
+      otherwise: (schema) => schema
+        .required('שם הוריאנט הוא שדה חובה')
+        .min(3, 'שם הוריאנט חייב להכיל לפחות 3 תווים')
+    })
     .max(200, 'שם הוריאנט לא יכול להכיל יותר מ-200 תווים')
     .trim(),
 
@@ -361,6 +366,13 @@ export const productSchema = yup.object({
     .max(50, 'מזהה אטריביוט סינון משני לא יכול להכיל יותר מ-50 תווים')
     .nullable(),
 
+  // 🆕 האם המוצר הוא מוצר עם וריאנטים (צבעים/מידות) או מוצר פשוט
+  // משפיע על הממשק בטופס ועל יצירת SKU אוטומטית
+  hasVariants: yup
+    .boolean()
+    .optional()
+    .default(false),
+
   lowStockThreshold: yup
     .number()
     .optional()
@@ -374,7 +386,25 @@ export const productSchema = yup.object({
     .array()
     .of(skuSchema) // מוגדר למעלה
     .optional()
-    .default([]),
+    .default([])
+    .test(
+      'has-valid-variants',
+      'מוצר עם וריאנטים חייב להכיל לפחות וריאנט אחד מלא (לא רק וריאנט ראשוני)',
+      function (value) {
+        const { hasVariants } = this.parent;
+        
+        // אם זה לא מוצר עם וריאנטים - לא צריך בדיקה
+        if (!hasVariants) return true;
+        
+        // אם זה מוצר עם וריאנטים - צריך לפחות SKU אחד שלא ריק
+        const validSkus = (value || []).filter(sku => {
+          // SKU תקף = יש לו שם שאינו ריק
+          return sku.name && sku.name.trim() !== '';
+        });
+        
+        return validSkus.length > 0;
+      }
+    ),
 
   // Technical Specifications (מפרט טכני)
   // מאפשר למנהל להזין מפרט key-value דינמי - לא חובה
@@ -511,6 +541,7 @@ export const defaultProductValues: Partial<ProductFormData> = {
   skus: [],
   specifications: [], // מפרט טכני - ברירת מחדל ריקה
   secondaryVariantAttribute: null, // 🆕 ציר וריאנט משני - ברירת מחדל null
+  hasVariants: false, // 🆕 ברירת מחדל: מוצר פשוט
 };
 
 /**

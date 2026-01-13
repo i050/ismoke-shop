@@ -499,3 +499,15 @@
     padding-right: 0;
   }
 }
+
+/* ===================================
+   Variant Type Warning Dialog Styles
+   =================================== */
+.variantWarningParagraph {
+  margin-bottom: 12px;
+}
+
+.variantWarningList {
+  margin-right: 20px;
+  margin-bottom: 12px;
+}

@@ -71,7 +71,7 @@
   
   /* ==================== טיפוגרפיה (Typography) ==================== */
   /* משפחת פונטים */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family: 'Rubik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   
   /* גדלי פונט */
   --font-size-xs: 0.75rem;      /* 12px */
