@@ -289,16 +289,160 @@
 }
 
 /* ============================================================================
-   Attribute Selector
+   Attribute Selector (Legacy - keeping for backwards compatibility)
    ============================================================================ */
 
 .attributeSelector {
+  display: none; /* 🆕 מוסתר - משתמשים בבורר החדש */
+}
+
+/* ============================================================================
+   🆕 Variant Type Section - בורר תת-וריאנט גדול ובולט
+   ============================================================================ */
+
+.variantTypeSection {
+  background: linear-gradient(135deg, var(--color-bg-secondary, #f9fafb) 0%, white 100%);
+  border: 2px solid var(--color-border-light, #e5e7eb);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 8px;
+}
+
+.variantTypeHeader {
   display: flex;
   align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.variantTypeHeader svg {
+  color: var(--color-primary, #4f46e5);
+}
+
+.variantTypeTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.variantTypeHint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #9ca3af);
+  margin-right: auto;
+}
+
+.variantTypeOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.variantTypeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 16px 12px;
+  background: white;
+  border: 2px solid var(--color-border-light, #e5e7eb);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  text-align: center;
+}
+
+.variantTypeCard:hover:not(:disabled) {
+  border-color: var(--color-primary-light, #a5b4fc);
+  background: var(--color-primary-bg, #f0f5ff);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+}
+
+.variantTypeCard:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.variantTypeCardActive {
+  border-color: var(--color-primary, #4f46e5);
+  background: var(--color-primary-bg, #eef2ff);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.variantTypeCardActive:hover:not(:disabled) {
+  transform: none;
+}
+
+.variantTypeCardIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--color-bg-secondary, #f3f4f6);
-  border-radius: 8px;
+  border-radius: 10px;
+  color: var(--color-text-secondary, #6b7280);
+  transition: all 0.2s ease;
+}
+
+.variantTypeCardActive .variantTypeCardIcon {
+  background: var(--color-primary, #4f46e5);
+  color: white;
+}
+
+.emojiIcon {
+  font-size: 1.5rem;
+}
+
+.variantTypeCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.variantTypeCardTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.variantTypeCardDesc {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variantTypeCardCheck {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary, #4f46e5);
+  color: white;
+  border-radius: 50%;
+  animation: checkPop 0.2s ease;
+}
+
+@keyframes checkPop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .attributeLabel {
@@ -331,9 +475,11 @@
 }
 
 .loadingText {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--color-text-muted, #9ca3af);
   font-style: italic;
+  padding: 12px;
+  text-align: center;
 }
 
 /* ============================================================================
@@ -362,5 +508,41 @@
 
   .emptyState {
     padding: 40px 16px;
+  }
+
+  /* 🆕 Variant Type Section - responsive */
+  .variantTypeSection {
+    padding: 16px;
+  }
+
+  .variantTypeHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 6px;
+  }
+
+  .variantTypeHint {
+    margin-right: 0;
+  }
+
+  .variantTypeOptions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .variantTypeCard {
+    padding: 12px 8px;
+  }
+
+  .variantTypeCardIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .variantTypeCardTitle {
+    font-size: 0.85rem;
+  }
+
+  .variantTypeCardDesc {
+    font-size: 0.7rem;
   }
 }
