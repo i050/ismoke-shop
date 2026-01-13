@@ -26,15 +26,21 @@ export const skuSchema = yup.object({
     .trim(),
 
   // שם תצוגה
+  // 🔧 שם יכול להיות ריק ל-SKU ראשוני של מוצר פשוט
+  // הולידציה האמיתית נעשית ברמת המוצר (hasVariants + test על skus)
   name: yup
     .string()
-    .when('$isInitialSku', {
-      is: true,
-      then: (schema) => schema.optional().nullable(), // SKU ראשוני יכול להיות ריק
-      otherwise: (schema) => schema
-        .required('שם הוריאנט הוא שדה חובה')
-        .min(3, 'שם הוריאנט חייב להכיל לפחות 3 תווים')
-    })
+    .optional()
+    .test(
+      'name-length-if-provided',
+      'שם הוריאנט חייב להכיל לפחות 3 תווים',
+      function (value) {
+        // אם השם ריק או null - תקין (SKU ראשוני למוצר פשוט)
+        if (!value || value.trim() === '') return true;
+        // אם יש שם - חייב להכיל לפחות 3 תווים
+        return value.trim().length >= 3;
+      }
+    )
     .max(200, 'שם הוריאנט לא יכול להכיל יותר מ-200 תווים')
     .trim(),
 
