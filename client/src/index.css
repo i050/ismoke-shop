@@ -1,9 +1,16 @@
+/* ============================================================================
+   🎨 Fonts - Rubik via @fontsource
+   ============================================================================
+   Fonts loaded via npm package @fontsource/rubik - optimized delivery
+   All font weights are bundled automatically
+*/
+
 /* הסרה של ייבוא Tailwind וה־plugins - מחליפים בהתאמות CSS רגילות */
 
 /* הערות בעברית: עיצוב מבוסס משתני CSS מקומיים לאחר ביטול השדרוג */
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Rubik', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 

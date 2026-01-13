@@ -14,6 +14,18 @@ import { SiteStatusProvider } from './contexts/SiteStatusContext'
 import { ConfirmProvider } from './hooks/useConfirm'
 
 // ========================================
+// ייבוא פונטים - עלי להיות לפני CSS
+// ========================================
+
+// Rubik fonts - all weights bundled via npm
+import '@fontsource/rubik/300.css'
+import '@fontsource/rubik/400.css'
+import '@fontsource/rubik/500.css'
+import '@fontsource/rubik/600.css'
+import '@fontsource/rubik/700.css'
+import '@fontsource/rubik/800.css'
+
+// ========================================
 // ייבוא CSS - סדר חשוב!
 // ========================================
 

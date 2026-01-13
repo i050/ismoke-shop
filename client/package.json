@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@fontsource/heebo": "^5.2.8",
+    "@fontsource/rubik": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@pdfme/generator": "^5.5.7",
     "@radix-ui/react-popover": "^1.1.15",
