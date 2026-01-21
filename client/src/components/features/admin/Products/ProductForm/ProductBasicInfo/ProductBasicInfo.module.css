@@ -176,6 +176,55 @@
 }
 
 /* ==========================================
+   Field Footer - שורת תחתית לשדות
+   ========================================== */
+
+.fieldFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* מונה תווים חדש - עם צבעים */
+.counterEmpty {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--text-muted, #9ca3af);
+  background: var(--bg-tertiary, #f3f4f6);
+}
+
+.counterGood {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--color-success, #22c55e);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.counterWarning {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--color-warning, #eab308);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.counterDanger {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--color-error, #ef4444);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* ==========================================
    Tips - טיפים והמלצות
    ========================================== */
 

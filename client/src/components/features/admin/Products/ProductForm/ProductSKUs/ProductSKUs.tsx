@@ -1,21 +1,22 @@
 // Product SKUs Component
 // מטרת הקומפוננטה: ניהול SKUs (וריאנטים) של המוצר
-// 🆕 תמיכה בתצוגה מקובצת לפי צבע
-// 🆕 Phase 2: תמיכה בשני סוגי וריאנטים (צבעים / מותאמים אישית)
+// 🆕 גרסה חדשה: זרימה בדף אחד (ללא קפיצות) - בחירת מאפיינים → רשת → AutoFill Accordion
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { SKUFormData } from '../../../../../../schemas/productFormSchema';
 import type { VariantType } from '../../../../../../types/Product';
 import { Icon } from '../../../../../ui/Icon';
 import SKURow from './SKURow';
 import AddSKUModal from './AddSKUModal';
 import ConfirmDialog from '../../../../../ui/ConfirmDialog';
-import ColorGroupedView from './ColorGroupedView';
-import CustomVariantsView from './CustomVariantsView'; // 🆕 Phase 3: וריאנטים מותאמים אישית
+import { VariantAttributesInline, type SelectedAttribute } from './VariantAttributesInline';
+import CombinationsGrid, { type Combination, type AxisValue } from './CombinationsGrid';
+import { AutoFillPanel } from './AutoFillPanel';
+import { FilterAttributeService } from '../../../../../../services/filterAttributeService';
 import styles from './ProductSKUs.module.css';
 
-/** סוג תצוגת SKUs */
-type ViewMode = 'flat' | 'grouped';
+/** 🆕 מצבי זרימה מפושטים - יצירה או ניהול */
+type VariantFlowStep = 'create' | 'manage';
 
 /**
  * פונקציה ליצירת קוד SKU בסיסי מתוך שם המוצר
@@ -114,7 +115,7 @@ interface ProductSKUsProps {
     name?: string;
     basePrice?: number;
     stockQuantity?: number;
-    images?: Array<{ url: string; public_id: string; format?: string; width?: number; height?: number; }>;
+    images?: SKUFormData['images'];
   };
   /** 🆕 ציר וריאנט משני - null = ללא תת-וריאנט (רק צבעים) */
   secondaryVariantAttribute?: string | null;
@@ -137,6 +138,9 @@ interface ProductSKUsProps {
   secondaryVariantLabel?: string;
   /** 🆕 callback לשינוי תווית משנית */
   onSecondaryVariantLabelChange?: (label: string) => void;
+
+  /** 🆕 חשיפת צבעים שנבחרו בזרימת הוריאנטים (לפני יצירת SKUs) */
+  onDraftColorsChange?: (colors: Array<{ color: string; colorHex?: string; colorFamily?: string }>) => void;
 }
 
 /**
@@ -152,16 +156,13 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   mode = 'create', // 🆕 ברירת מחדל: create
   onUploadImages,
   productFormData, // 🆕 נתונים מהטופס הראשי
-  secondaryVariantAttribute, // 🆕 ציר משני
-  onSecondaryVariantAttributeChange, // 🆕 callback לשינוי
-  // 🆕 Phase 2: Dual Variant System Props
-  variantType = null,
-  onVariantTypeChange,
-  // 🆕 Phase 3: props לוריאנטים מותאמים אישית
-  primaryVariantLabel,
+  onDraftColorsChange,
+  // 🆕 הוספת callbacks לשמירת שמות הצירים
+  primaryVariantLabel, // ✅ הוספת ערך ציר ראשי
   onPrimaryVariantLabelChange,
-  secondaryVariantLabel,
+  secondaryVariantLabel, // ✅ הוספת ערך ציר משני
   onSecondaryVariantLabelChange,
+  onVariantTypeChange,
 }) => {
   // State לעריכה
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -173,13 +174,70 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   // State למחיקה
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
-  // 🆕 State לתצוגה מקובצת/שטוחה
-  // 🔒 ברירת מחדל: 'grouped' - המנהל יראה רק תצוגה מקובצת (כפתורי ה-toggle מוסתרים)
-  const [viewMode, setViewMode] = useState<ViewMode>('grouped');
+  // ============================================================================
+  // 🆕 Inline Variant Flow - State חדש
+  // ============================================================================
   
-  // 🆕 State לאזהרת יצירת וריאנטים
-  const [showVariantTypeWarning, setShowVariantTypeWarning] = useState(false);
-  const [pendingVariantType, setPendingVariantType] = useState<VariantType | null>(null);
+  /** מצב זרימה: create (יצירת וריאנטים) או manage (ניהול קיימים) */
+  const [variantFlowStep, setVariantFlowStep] = useState<VariantFlowStep>(
+    // אם כבר יש SKUs, נתחיל בשלב ניהול; אחרת נתחיל בשלב יצירה
+    () => value.length > 0 ? 'manage' : 'create'
+  );
+  
+  /** מאפיינים נבחרים (עד 2) */
+  const [selectedVariantAttributes, setSelectedVariantAttributes] = useState<SelectedAttribute[]>([]);
+  
+  /** שילובים נבחרים (A×B) */
+  const [selectedCombinations, setSelectedCombinations] = useState<Combination[]>([]);
+  
+  /** 🆕 מצב Accordion של AutoFill (פתוח/סגור) */
+  const [isAutoFillOpen, setIsAutoFillOpen] = useState(false);
+
+  // ============================================================================
+  // 🆕 Bulk Edit - עריכה מרובה
+  // ============================================================================
+  
+  /** האם במצב עריכה מרובה */
+  const [isBulkEditMode, setIsBulkEditMode] = useState(false);
+  
+  /** קומבינציות נבחרות לעריכה מרובה */
+  const [bulkEditCombinations, setBulkEditCombinations] = useState<Combination[]>([]);
+  
+  /** האם פאנל Bulk Edit פתוח */
+  const [isBulkEditPanelOpen, setIsBulkEditPanelOpen] = useState(false);
+
+  // ============================================================================
+  // 🆕 הסרת ערך וריאנט קיים - Dialog אישור
+  // ============================================================================
+  
+  /** ערך נעול שהמשתמש מבקש להסיר */
+  const [valueToRemove, setValueToRemove] = useState<{
+    value: import('./FilterAttributeValueSelector').SelectedValue;
+    attributeKey: string;
+  } | null>(null);
+  
+  /** כמות SKUs שייפגעו מהמחיקה */
+  const [affectedSkusCount, setAffectedSkusCount] = useState(0);
+
+  // ============================================================================
+  // 🆕 עדכון מצב זרימה כשנטענים SKUs (חשוב לעריכת מוצר!)
+  // ============================================================================
+  // 🔧 FIX: השתמש ב-ref כדי לזהות האם זה mount ראשוני (טעינה מהשרת)
+  // או שהמשתמש לחץ על "הוסף וריאנטים" - במקרה השני לא נדרוס את ה-state
+  const initialLoadRef = React.useRef(true);
+  
+  useEffect(() => {
+    // רק בטעינה הראשונית - אם נטענו SKUs, עבור לmanage
+    if (initialLoadRef.current && value.length > 0 && variantFlowStep === 'create') {
+      setVariantFlowStep('manage');
+    }
+    // אחרי הטעינה הראשונית, לא נתערב יותר
+    initialLoadRef.current = false;
+  }, [value.length]);
+
+  // ============================================================================
+  // State ישן (לתאימות אחורה - חלק ממנו עדיין בשימוש)
+  // ============================================================================
   
   // Ref למעקב אחרי פתיחה אוטומטית - כדי למנוע פתיחה חוזרת
   const didAutoOpenRef = useRef<boolean>(false);
@@ -289,12 +347,68 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
 
   /**
    * שינוי ערך בשדה
+   * 🆕 תמיכה בתמונות לפי ציר ראשי:
+   * - אם יש צבע (sku.color) - עדכן את כל ה-SKUs עם אותו צבע
+   * - אם יש שם וריאנט (sku.variantName) - עדכן את כל ה-SKUs עם אותו שם וריאנט
+   * זה מאפשר "תמונה אחת לכל צבע" או "תמונה אחת לכל טעם/סוג"
+   * 🔧 FIX: מוסיף variantName/subVariantName אם חסרים (חילוץ מ-name)
    */
   const handleChange = useCallback(
     (index: number, field: keyof SKUFormData, fieldValue: any) => {
+      const currentSku = value[index];
+      
+      // 🔧 פונקציה לחילוץ variantName/subVariantName מ-name אם חסרים
+      const ensureVariantFields = (sku: SKUFormData): SKUFormData => {
+        const skuWithVariants = { ...sku };
+        
+        // אם חסר variantName או subVariantName - נחלץ מ-name
+        if (sku.name && sku.name.includes(' - ')) {
+          const [variant, subVariant] = sku.name.split(' - ');
+          if (!(sku as any).variantName) {
+            (skuWithVariants as any).variantName = variant.trim();
+          }
+          if (!(sku as any).subVariantName && subVariant) {
+            (skuWithVariants as any).subVariantName = subVariant.trim();
+          }
+        }
+        
+        return skuWithVariants;
+      };
+      
+      // 🆕 אם זה שינוי תמונות - עדכן את כל ה-SKUs עם אותו ציר ראשי
+      if (field === 'images') {
+        // זיהוי ציר ראשי: color או variantName (עם fallback לחילוץ מ-name)
+        const skuWithVariants = ensureVariantFields(currentSku);
+        const primaryAxisValue = skuWithVariants?.color || (skuWithVariants as any)?.variantName;
+        const primaryAxisField = skuWithVariants?.color ? 'color' : 'variantName';
+        
+        if (primaryAxisValue) {
+          const updated = value.map((sku) => {
+            // וידוא ש-SKU כולל את השדות לפני בדיקה
+            const skuChecked = ensureVariantFields(sku);
+            
+            // אם ל-SKU יש אותו ערך בציר הראשי - עדכן גם אותו
+            const skuAxisValue = primaryAxisField === 'color' ? skuChecked.color : (skuChecked as any).variantName;
+            if (skuAxisValue === primaryAxisValue) {
+              return { ...skuChecked, images: fieldValue };
+            }
+            return skuChecked; // 🔧 FIX: החזר SKU עם השדות המלאים
+          });
+          const affectedCount = updated.filter(s => {
+            const sv = primaryAxisField === 'color' ? s.color : (s as any).variantName;
+            return sv === primaryAxisValue;
+          }).length;
+          console.log(`🎨 עדכון תמונות לכל ה-SKUs עם ${primaryAxisField}="${primaryAxisValue}" (${affectedCount} SKUs)`);
+          onChange(updated);
+          return;
+        }
+      }
+      
+      // עדכון רגיל - רק ה-SKU הספציפי
       const updated = [...value];
+      const skuToUpdate = ensureVariantFields(updated[index]); // 🔧 FIX: וידוא שדות לפני עדכון
       updated[index] = {
-        ...updated[index],
+        ...skuToUpdate,
         [field]: fieldValue,
       };
       onChange(updated);
@@ -327,6 +441,107 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     }
   }, [deletingIndex, value, onChange]);
 
+  // ============================================================================
+  // 🆕 הסרת ערך וריאנט נעול - פונקציות
+  // ============================================================================
+
+  /**
+   * ספירת SKUs שיושפעו מהסרת ערך וריאנט
+   * בודק גם בציר הראשי (variantName/color) וגם בציר המשני (subVariantName)
+   */
+  const countAffectedSkus = useCallback((valueToCheck: string): number => {
+    return value.filter(sku => {
+      // בדיקה בציר ראשי
+      const matchesPrimary = 
+        sku.variantName === valueToCheck ||
+        sku.color === valueToCheck;
+      
+      // בדיקה בציר משני
+      const matchesSecondary = sku.subVariantName === valueToCheck;
+      
+      return matchesPrimary || matchesSecondary;
+    }).length;
+  }, [value]);
+
+  /**
+   * טיפול בבקשה להסרת ערך נעול
+   * נקרא מ-FilterAttributeValueSelector דרך VariantAttributesInline
+   */
+  const handleDisabledValueRemoveRequest = useCallback((
+    disabledValue: import('./FilterAttributeValueSelector').SelectedValue,
+    attributeKey: string
+  ) => {
+    // ספור כמה SKUs יושפעו
+    const count = countAffectedSkus(disabledValue.displayName);
+    setAffectedSkusCount(count);
+    setValueToRemove({ value: disabledValue, attributeKey });
+  }, [countAffectedSkus]);
+
+  /**
+   * אישור הסרת ערך נעול
+   * מסיר את הערך מהמאפיינים הנבחרים ומסמן את ה-SKUs הרלוונטיים כלא זמינים
+   */
+  const handleConfirmValueRemoval = useCallback(() => {
+    if (!valueToRemove) return;
+
+    const { value: disabledValue, attributeKey } = valueToRemove;
+    const valueDisplayName = disabledValue.displayName;
+    
+    // 1. עדכון ה-SKUs - איפוס מלאי ל-0 (מסמן כלא זמין)
+    const updatedSkus = value.map(sku => {
+      const matchesPrimary = 
+        sku.variantName === valueDisplayName ||
+        sku.color === valueDisplayName;
+      const matchesSecondary = sku.subVariantName === valueDisplayName;
+      
+      if (matchesPrimary || matchesSecondary) {
+        return {
+          ...sku,
+          stockQuantity: 0, // איפוס המלאי ל-0 - סימון כלא זמין
+        };
+      }
+      return sku;
+    });
+    
+    // ספירת SKUs שהושפעו
+    const affectedCount = updatedSkus.filter(sku => {
+      const matchesPrimary = 
+        sku.variantName === valueDisplayName ||
+        sku.color === valueDisplayName;
+      const matchesSecondary = sku.subVariantName === valueDisplayName;
+      return matchesPrimary || matchesSecondary;
+    }).length;
+    
+    // 2. עדכון המאפיינים הנבחרים - הסרת הערך
+    const updatedAttributes = selectedVariantAttributes.map(sa => {
+      if (sa.attribute.key === attributeKey) {
+        return {
+          ...sa,
+          selectedValues: sa.selectedValues.filter(sv => sv.value !== disabledValue.value),
+        };
+      }
+      return sa;
+    });
+    
+    // 3. עדכון ה-state
+    onChange(updatedSkus);
+    setSelectedVariantAttributes(updatedAttributes);
+    
+    // 4. סגירת הדיאלוג
+    setValueToRemove(null);
+    setAffectedSkusCount(0);
+    
+    console.log(`✅ ערך "${valueDisplayName}" הוסר. ${affectedCount} SKUs סומנו כלא זמינים`);
+  }, [valueToRemove, value, selectedVariantAttributes, onChange]);
+
+  /**
+   * ביטול הסרת ערך נעול
+   */
+  const handleCancelValueRemoval = useCallback(() => {
+    setValueToRemove(null);
+    setAffectedSkusCount(0);
+  }, []);
+
   /**
    * בדיקת זמינות SKU (wrapper)
    */
@@ -350,49 +565,782 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     [value, onCheckAvailability]
   );
 
-  /**
-   * 🆕 טיפול בשינוי סוג וריאנט עם אזהרה
-   * אם יש SKU דיפולטיבי אחד - מציג אזהרה
-   */
-  const handleVariantTypeChange = useCallback((newType: VariantType) => {
-    // בדיקה: האם יש SKU דיפולטיבי אחד שיימחק
-    const hasDefaultSku = 
-      value.length === 1 && 
-      !value[0].variantName && 
-      !value[0].color;
-
-    if (hasDefaultSku && (newType === 'color' || newType === 'custom')) {
-      // יש SKU דיפולטיבי - הצג אזהרה
-      setPendingVariantType(newType);
-      setShowVariantTypeWarning(true);
-    } else {
-      // אין SKU או שכבר יש וריאנטים - שנה ישירות
-      onVariantTypeChange?.(newType);
-    }
-  }, [value, onVariantTypeChange]);
+  // ============================================================================
+  // 🆕 Inline Variant Flow - Functions
+  // ============================================================================
 
   /**
-   * 🆕 אישור שינוי סוג וריאנט (אחרי אזהרה)
+   * המרת מאפיינים נבחרים לערכי AxixValue עבור CombinationsGrid
    */
-  const handleConfirmVariantTypeChange = useCallback(() => {
-    if (pendingVariantType) {
-      onVariantTypeChange?.(pendingVariantType);
-      // 🔧 אם עוברים לוריאנטים של צבע, עבור אוטומטית לתצוגה מקובצת
-      if (pendingVariantType === 'color') {
-        setViewMode('grouped');
+  const primaryAxisValues = useMemo((): AxisValue[] => {
+    const firstAttr = selectedVariantAttributes[0];
+    if (!firstAttr) return [];
+    
+    return firstAttr.selectedValues.map(sv => ({
+      value: sv.value,
+      displayName: sv.displayName,
+      hex: sv.hex,
+    }));
+  }, [selectedVariantAttributes]);
+
+  const secondaryAxisValues = useMemo((): AxisValue[] => {
+    const secondAttr = selectedVariantAttributes[1];
+    if (!secondAttr) return [];
+    
+    return secondAttr.selectedValues.map(sv => ({
+      value: sv.value,
+      displayName: sv.displayName,
+    }));
+  }, [selectedVariantAttributes]);
+
+  /** תוויות הצירים */
+  const primaryAxisLabel = selectedVariantAttributes[0]?.attribute.name || 'מאפיין 1';
+  const secondaryAxisLabel = selectedVariantAttributes[1]?.attribute.name || 'מאפיין 2';
+
+  /**
+   * 🆕 עדכון selectedCombinations כאשר המאפיינים משתנים
+   * זה מאפשר לרשת להתעדכן בזמן אמת
+   */
+  const handleAttributesChange = useCallback((newAttrs: SelectedAttribute[]) => {
+    setSelectedVariantAttributes(newAttrs);
+    
+    // יצירת שילובים אוטומטית כשיש ערכים נבחרים
+    if (newAttrs.length >= 1 && newAttrs.every(sa => sa.selectedValues.length > 0)) {
+      const allCombinations: Combination[] = [];
+      
+      if (newAttrs.length === 1 || newAttrs[1]?.selectedValues.length === 0) {
+        // מצב 1D - רק ציר ראשי
+        newAttrs[0].selectedValues.forEach(pv => {
+          allCombinations.push({ primary: pv.value, secondary: '' });
+        });
+      } else {
+        // מצב 2D - שני צירים
+        newAttrs[0].selectedValues.forEach(pv => {
+          newAttrs[1].selectedValues.forEach(sv => {
+            allCombinations.push({ primary: pv.value, secondary: sv.value });
+          });
+        });
       }
-      setShowVariantTypeWarning(false);
-      setPendingVariantType(null);
+      
+      setSelectedCombinations(allCombinations);
+    } else {
+      setSelectedCombinations([]);
     }
-  }, [pendingVariantType, onVariantTypeChange]);
+  }, []);
 
   /**
-   * 🆕 ביטול שינוי סוג וריאנט
+   * 🆕 פתיחה אוטומטית של AutoFill כשיש וריאנטים נבחרים
    */
-  const handleCancelVariantTypeChange = useCallback(() => {
-    setShowVariantTypeWarning(false);
-    setPendingVariantType(null);
+  useEffect(() => {
+    if (selectedCombinations.length > 0 && !isAutoFillOpen) {
+      setIsAutoFillOpen(true);
+    }
+  }, [selectedCombinations.length, isAutoFillOpen]);
+
+  /** Toggle של Accordion */
+  const handleToggleAutoFill = useCallback(() => {
+    setIsAutoFillOpen(prev => !prev);
   }, []);
+
+  /**
+   * סיום AutoFill - יצירת/עדכון SKUs
+   * 🔧 במצב יצירה: יוצר SKUs חדשים
+   * 🔧 במצב עריכה: מבצע merge חכם - משאיר קיימים, מוסיף חדשים, מוחק שנמחקו
+   */
+  const handleAutoFillGenerate = useCallback((skus: SKUFormData[]) => {
+    // 🎯 זיהוי האם זה מצב עריכה או יצירה
+    const isEditMode = value.length > 0;
+    
+    if (isEditMode) {
+      // 🔧 מצב עריכה - merge חכם
+      
+      const isColorFlow = selectedVariantAttributes[0]?.attribute.valueType === 'color';
+      
+      // 🔧 פונקציה לחילוץ variantName/subVariantName מה-name
+      const extractVariantsFromName = (sku: SKUFormData) => {
+        if (sku.name && sku.name.includes(' - ')) {
+          const [variant, subVariant] = sku.name.split(' - ');
+          return { variantName: variant.trim(), subVariantName: subVariant.trim() };
+        }
+        return { variantName: null, subVariantName: null };
+      };
+      
+      // יצירת מפת SKUs קיימים לפי מזהה ייחודי
+      const existingSkusMap = new Map<string, SKUFormData>();
+      value.forEach(sku => {
+        let key: string;
+        if (isColorFlow) {
+          const color = sku.color || sku.colorHex;
+          // 🔧 FIX: נסה לקחת subVariantName גם מהשדה הישיר וגם מ-name
+          const sub = (sku as any).subVariantName || sku.attributes?.size || extractVariantsFromName(sku).subVariantName || '';
+          key = `${color}_${sub}`;
+        } else {
+          // 🔧 חילוץ מ-name אם אין variantName ישיר
+          const vn = (sku as any).variantName || extractVariantsFromName(sku).variantName;
+          const svn = (sku as any).subVariantName || extractVariantsFromName(sku).subVariantName;
+          key = `${vn}_${svn || ''}`;
+        }
+        existingSkusMap.set(key, sku);
+      });
+      
+      // יצירת מפת SKUs חדשים
+      const newSkusMap = new Map<string, SKUFormData>();
+      skus.forEach(sku => {
+        const key = isColorFlow 
+          ? `${sku.color || sku.colorHex}_${sku.subVariantName || sku.attributes?.size || ''}`
+          : `${sku.variantName}_${sku.subVariantName || ''}`;
+        newSkusMap.set(key, sku);
+      });
+      
+      // 🎯 בניית רשימת SKUs סופית
+      const finalSkus: SKUFormData[] = [];
+      
+      // 1️⃣ שמירת SKUs קיימים שעדיין נבחרו (עדכון מחירים ומלאים אם צריך)
+      existingSkusMap.forEach((existingSku, key) => {
+        if (newSkusMap.has(key)) {
+          // 🔧 FIX: אם ה-SKU הקיים לא כולל variantName/subVariantName - נחלץ אותם מ-name
+          if (!isColorFlow && (!(existingSku as any).variantName || !(existingSku as any).subVariantName)) {
+            const extracted = extractVariantsFromName(existingSku);
+            if (extracted.variantName) {
+              (existingSku as any).variantName = extracted.variantName;
+            }
+            if (extracted.subVariantName) {
+              (existingSku as any).subVariantName = extracted.subVariantName;
+            }
+          }
+          // 🔧 FIX: גם בזרימת צבעים - אם יש ציר משני (subVariantName) שלא נשמר
+          if (isColorFlow && !(existingSku as any).subVariantName) {
+            const extracted = extractVariantsFromName(existingSku);
+            if (extracted.subVariantName) {
+              (existingSku as any).subVariantName = extracted.subVariantName;
+            }
+          }
+          // SKU קיים ונבחר - שומרים אותו עם הנתונים הקיימים
+          finalSkus.push(existingSku);
+          newSkusMap.delete(key); // מסירים מרשימת החדשים
+        }
+        // אם לא נבחר - לא מוסיפים (מחיקה)
+      });
+      
+      // 2️⃣ הוספת SKUs חדשים (שלא היו קיימים)
+      newSkusMap.forEach(newSku => {
+        finalSkus.push(newSku);
+      });
+      
+      onChange(finalSkus);
+    } else {
+      // 🆕 מצב יצירה - פשוט מוסיפים
+      onChange([...value, ...skus]);
+    }
+    
+    // 🆕 שמירת שמות הצירים ל-Product
+    const isColorFlow = selectedVariantAttributes[0]?.attribute.valueType === 'color';
+    
+    // שמירת סוג הוריאנט
+    if (onVariantTypeChange) {
+      onVariantTypeChange(isColorFlow ? 'color' : 'custom');
+    }
+    
+    // שמירת שם הציר הראשי (למשל: "צבע", "התנגדות סלילים", "טעם")
+    if (onPrimaryVariantLabelChange && selectedVariantAttributes[0]) {
+      onPrimaryVariantLabelChange(selectedVariantAttributes[0].attribute.name);
+    }
+    
+    // שמירת שם הציר המשני (אם יש)
+    if (onSecondaryVariantLabelChange && selectedVariantAttributes[1]) {
+      onSecondaryVariantLabelChange(selectedVariantAttributes[1].attribute.name);
+    }
+    
+    setVariantFlowStep('manage');
+    // איפוס ה-flow למקרה הבא
+    setSelectedVariantAttributes([]);
+    setSelectedCombinations([]);
+    setIsAutoFillOpen(false);
+  }, [value, onChange, selectedVariantAttributes, onVariantTypeChange, onPrimaryVariantLabelChange, onSecondaryVariantLabelChange]);
+
+  // ============================================================================
+  // 🆕 Bulk Edit - עריכה מרובה של וריאנטים קיימים
+  // ============================================================================
+
+  /**
+   * חישוב ערכי ציר ראשי מ-SKUs קיימים
+   */
+  const existingPrimaryAxisValues = useMemo((): AxisValue[] => {
+    if (value.length === 0) return [];
+    
+    const uniqueValues = new Map<string, AxisValue>();
+    
+    value.forEach(sku => {
+      // זיהוי ערך ראשי לפי סוג
+      const primaryValue = sku.colorHex ? sku.color || sku.colorHex : sku.variantName;
+      if (!primaryValue) return;
+      
+      if (!uniqueValues.has(primaryValue)) {
+        uniqueValues.set(primaryValue, {
+          value: primaryValue,
+          displayName: primaryValue,
+          hex: (sku.colorHex ?? undefined) as string | undefined,
+        });
+      }
+    });
+    
+    return Array.from(uniqueValues.values());
+  }, [value]);
+
+  /**
+   * חישוב ערכי ציר משני מ-SKUs קיימים
+   */
+  const existingSecondaryAxisValues = useMemo((): AxisValue[] => {
+    if (value.length === 0) return [];
+    
+    const uniqueValues = new Map<string, AxisValue>();
+    
+    value.forEach(sku => {
+      // זיהוי ערך משני - מ-attributes.size או subVariantName
+      const secondaryValue = sku.attributes?.size || sku.subVariantName;
+      if (!secondaryValue) return;
+      
+      if (!uniqueValues.has(secondaryValue)) {
+        uniqueValues.set(secondaryValue, {
+          value: secondaryValue,
+          displayName: secondaryValue,
+        });
+      }
+    });
+    
+    return Array.from(uniqueValues.values());
+  }, [value]);
+
+  /**
+   * תוויות צירים לעריכה מרובה
+   */
+  const bulkEditPrimaryLabel = useMemo(() => {
+    // בדיקה אם ה-SKUs הם מסוג צבע או וריאנט מותאם
+    if (value.some(sku => sku.colorHex)) return 'צבע';
+    if (value.some(sku => sku.variantName)) return 'וריאנט';
+    return 'ציר ראשי';
+  }, [value]);
+
+  const bulkEditSecondaryLabel = useMemo(() => {
+    if (value.some(sku => sku.attributes?.size)) return 'מידה';
+    if (value.some(sku => sku.subVariantName)) return 'תת-וריאנט';
+    return 'ציר משני';
+  }, [value]);
+
+  /**
+   * מפות ערכים לעריכה מרובה
+   */
+  const bulkEditPrimaryValuesMap = useMemo(() => {
+    const map = new Map<string, { displayName: string; hex?: string; family?: string }>();
+    value.forEach(sku => {
+      const primaryValue = sku.colorHex ? sku.color || sku.colorHex : sku.variantName;
+      if (primaryValue && !map.has(primaryValue)) {
+        map.set(primaryValue, {
+          displayName: primaryValue,
+          hex: (sku.colorHex ?? undefined) as string | undefined,
+          family: (sku.colorFamily ?? undefined) as string | undefined,
+        });
+      }
+    });
+    return map;
+  }, [value]);
+
+  /**
+   * מעבר למצב עריכה מרובה
+   */
+  const handleEnterBulkEditMode = useCallback(() => {
+    setIsBulkEditMode(true);
+    setBulkEditCombinations([]);
+    setIsBulkEditPanelOpen(false);
+  }, []);
+
+  /**
+   * יציאה ממצב עריכה מרובה
+   */
+  const handleExitBulkEditMode = useCallback(() => {
+    setIsBulkEditMode(false);
+    setBulkEditCombinations([]);
+    setIsBulkEditPanelOpen(false);
+  }, []);
+
+  /**
+   * טיפול בשינוי בחירת קומבינציות בעריכה מרובה
+   */
+  const handleBulkEditCombinationsChange = useCallback((newCombinations: Combination[]) => {
+    setBulkEditCombinations(newCombinations);
+    // פתיחה אוטומטית של הפאנל כשיש בחירה
+    if (newCombinations.length > 0 && !isBulkEditPanelOpen) {
+      setIsBulkEditPanelOpen(true);
+    }
+  }, [isBulkEditPanelOpen]);
+
+  /**
+   * Toggle של פאנל Bulk Edit
+   */
+  const handleToggleBulkEditPanel = useCallback(() => {
+    setIsBulkEditPanelOpen(prev => !prev);
+  }, []);
+
+  /**
+   * החלת שינויים על SKUs קיימים (Bulk Edit)
+   */
+  const handleBulkEditApply = useCallback((updatedSkus: SKUFormData[]) => {
+    console.log('🆕 Bulk Edit applied:', updatedSkus);
+    onChange(updatedSkus);
+    // יציאה ממצב עריכה מרובה
+    handleExitBulkEditMode();
+  }, [onChange, handleExitBulkEditMode]);
+
+  /**
+   * 🎯 מעבר לשלב הוספת וריאנטים נוספים - גרסה חכמה
+   * 
+   * אם כבר יש SKUs קיימים:
+   * - מזהה את המבנה הקיים (variantType, labels, attributes)
+   * - טוען את המאפיינים האמיתיים מה-FilterAttributeService
+   * - עובר ישירות לשלב בחירת ערכים חדשים
+   * - שומר על עקביות המבנה
+   * 
+   * אם אין SKUs:
+   * - מתחיל מאפס (בחירת סוג וריאנט)
+   */
+  const handleAddMoreVariants = useCallback(async () => {
+    // 🆕 אם יש SKUs קיימים - נזהה את המבנה ונמלא מראש
+    if (value.length > 0) {
+      // 🔍 ניתוח המבנה הקיים מה-SKUs
+      const firstSku = value[0];
+      
+      console.log('🔍 handleAddMoreVariants - firstSku:', firstSku);
+      
+      // 🔧 WORKAROUND: השרת לא מחזיר variantName/subVariantName בצורה ישירה
+      // נחלץ אותם מה-name שמכיל "variantName - subVariantName"
+      const extractVariantsFromName = (sku: SKUFormData) => {
+        if (sku.name && sku.name.includes(' - ')) {
+          const [variant, subVariant] = sku.name.split(' - ');
+          return { variantName: variant.trim(), subVariantName: subVariant.trim() };
+        }
+        return { variantName: null, subVariantName: null };
+      };
+      
+      const { variantName: extractedVariant, subVariantName: extractedSubVariant } = extractVariantsFromName(firstSku);
+      
+      console.log('🔍 Extracted:', { 
+        extractedVariant, 
+        extractedSubVariant,
+        hasVariantName: !!(firstSku as any).variantName,
+        hasColor: !!(firstSku as any).color,
+        hasColorFamily: !!(firstSku as any).colorFamily
+      });
+      
+      // טעינת כל המאפיינים מהשרת
+      const allAttributes = await FilterAttributeService.getAllAttributes();
+      
+      // זיהוי המאפיינים הקיימים
+      const existingAttributes: SelectedAttribute[] = [];
+      
+      // 🎯 הבדיקה המרכזית: האם יש colorHex? זה סימן ודאי שצבע מעורב!
+      const hasColorHex = value.some(sku => !!(sku as any).colorHex);
+      
+      // 🔍 זיהוי מיקום הצבע (ראשי או משני) לפי ה-SKU עצמו
+      // 🎯 הפתרון הנכון והוודאי:
+      // - כשהצבע משני → ב-AutoFillPanel נוסף attributes['צבע']
+      // - כשהצבע ראשי → אין attributes['צבע']
+      const hasColorInAttributes = !!(firstSku.attributes?.['צבע']);
+      
+      // הציר הראשי הוא לא-צבע אם:
+      // 1. יש צבע ב-attributes (= צבע משני)
+      // 2. או יש variantName ואין צבע בכלל (custom variants)
+      // 3. או יש extracted variant מ-name (מצב legacy ללא colorHex)
+      const hasPrimaryNonColor = !!(
+        hasColorInAttributes ||
+        ((firstSku as any).variantName && !hasColorHex) ||
+        (extractedVariant && !hasColorHex)
+      );
+      
+      console.log('🔍 Branch decision:', { 
+        hasColorHex, 
+        hasPrimaryNonColor,
+        hasColorInAttributes,
+        attributesColor: firstSku.attributes?.['צבע'],
+        variantName: (firstSku as any).variantName,
+        color: (firstSku as any).color,
+        subVariantName: (firstSku as any).subVariantName,
+        primaryVariantLabel,
+        secondaryVariantLabel
+      });
+      
+      // ============================================================
+      // 🎯 תרחיש 1: יש colorHex וגם ציר ראשי שאינו צבע
+      // לדוגמה: טעם + צבע, מידה + צבע
+      // ============================================================
+      if (hasColorHex && hasPrimaryNonColor) {
+        console.log('🎯 Branch 1: Mixed (Primary non-color + Secondary color)');
+        
+        // ===== ציר ראשי: variantName (טעם, מידה וכו') =====
+        const uniqueVariantNames = new Set(
+          value
+            .map(sku => {
+              if ((sku as any).variantName) return (sku as any).variantName;
+              return extractVariantsFromName(sku).variantName;
+            })
+            .filter(Boolean)
+        );
+        
+        // חיפוש המאפיין האמיתי
+        const primaryAttr = allAttributes.find(attr => 
+          attr.name === primaryVariantLabel || attr.key === 'variantName'
+        );
+        
+        if (primaryAttr) {
+          existingAttributes.push({
+            attribute: primaryAttr,
+            selectedValues: Array.from(uniqueVariantNames).map(vn => ({
+              value: vn,
+              displayName: vn,
+              disabled: mode === 'edit',
+            })),
+          });
+        } else {
+          console.warn('⚠️ לא נמצא מאפיין עבור ציר ראשי:', primaryVariantLabel);
+          existingAttributes.push({
+            attribute: {
+              _id: 'variantName-temp',
+              key: 'variantName',
+              name: primaryVariantLabel || 'מאפיין 1',
+              type: 'text',
+              description: '',
+              isActive: true,
+              icon: 'Tag',
+              valueType: 'text',
+              values: Array.from(uniqueVariantNames).map(vn => ({ value: vn, displayName: vn })),
+            } as any,
+            selectedValues: Array.from(uniqueVariantNames).map(vn => ({
+              value: vn,
+              displayName: vn,
+              disabled: mode === 'edit',
+            })),
+          });
+        }
+        
+        // ===== ציר משני: צבע (מ-color או subVariantName) =====
+        const uniqueColors = new Map<string, { hex?: string; family?: string }>();
+        value.forEach(sku => {
+          // צבע יכול להיות ב-color או ב-subVariantName
+          const colorName = (sku as any).color || (sku as any).subVariantName || extractVariantsFromName(sku).subVariantName;
+          const hex = (sku as any).colorHex;
+          if (colorName && hex && !uniqueColors.has(colorName)) {
+            uniqueColors.set(colorName, {
+              hex: hex,
+              family: (sku as any).colorFamily,
+            });
+          }
+        });
+        
+        console.log('🎨 uniqueColors (secondary):', Array.from(uniqueColors.entries()).map(([n, d]) => ({ name: n, hex: d.hex })));
+        
+        // חיפוש מאפיין הצבע
+        const colorAttr = allAttributes.find(attr => 
+          attr.key === 'color' || attr.valueType === 'color'
+        );
+        
+        if (colorAttr) {
+          // 🔧 התאמת צבעים לפי hex
+          const matchedColors: any[] = [];
+          
+          uniqueColors.forEach((data, colorFromSku) => {
+            const hex = data.hex?.toUpperCase();
+            let matchedColor: any = null;
+            
+            if (colorAttr.colorFamilies && hex) {
+              for (const family of colorAttr.colorFamilies) {
+                const variant = family.variants?.find((v: any) => v.hex?.toUpperCase() === hex);
+                if (variant) {
+                  matchedColor = {
+                    value: variant.name,
+                    displayName: variant.displayName || variant.name,
+                    hex: variant.hex,
+                    family: family.family,
+                    disabled: mode === 'edit',
+                  };
+                  break;
+                }
+              }
+            }
+            
+            if (matchedColor) {
+              matchedColors.push(matchedColor);
+              console.log('✅ התאמת צבע:', colorFromSku, '→', matchedColor.value);
+            } else {
+              console.warn('⚠️ לא נמצאה התאמה:', colorFromSku, 'hex:', hex);
+              matchedColors.push({
+                value: colorFromSku,
+                displayName: colorFromSku,
+                hex: data.hex,
+                family: data.family,
+                disabled: mode === 'edit',
+              });
+            }
+          });
+          
+          existingAttributes.push({
+            attribute: colorAttr,
+            selectedValues: matchedColors,
+          });
+        }
+      }
+      // ============================================================
+      // 🎯 תרחיש 2: יש colorHex בלי ציר ראשי אחר (צבע בלבד)
+      // ============================================================
+      else if (hasColorHex) {
+        console.log('🎯 Branch 2: Color only (no primary variant)');
+        
+        const uniqueColors = new Map<string, { hex?: string; family?: string }>();
+        value.forEach(sku => {
+          const color = (sku as any).color;
+          if (color && !uniqueColors.has(color)) {
+            uniqueColors.set(color, {
+              hex: (sku as any).colorHex,
+              family: (sku as any).colorFamily,
+            });
+          }
+        });
+        
+        const colorAttr = allAttributes.find(attr => attr.key === 'color' || attr.valueType === 'color');
+        
+        if (colorAttr) {
+          const matchedColors: any[] = [];
+          
+          uniqueColors.forEach((data, colorFromSku) => {
+            const hex = data.hex?.toUpperCase();
+            let matchedColor: any = null;
+            
+            if (colorAttr.colorFamilies && hex) {
+              for (const family of colorAttr.colorFamilies) {
+                const variant = family.variants?.find((v: any) => v.hex?.toUpperCase() === hex);
+                if (variant) {
+                  matchedColor = {
+                    value: variant.name,
+                    displayName: variant.displayName || variant.name,
+                    hex: variant.hex,
+                    family: family.family,
+                    disabled: mode === 'edit',
+                  };
+                  break;
+                }
+              }
+            }
+            
+            matchedColors.push(matchedColor || {
+              value: colorFromSku,
+              displayName: colorFromSku,
+              hex: data.hex,
+              family: data.family,
+              disabled: mode === 'edit',
+            });
+          });
+          
+          existingAttributes.push({
+            attribute: colorAttr,
+            selectedValues: matchedColors,
+          });
+        }
+        
+        // 🆕 ציר משני אם יש - נבדוק גם ב-attributes (לפי secondaryLabel)
+        const uniqueSubVariantNames = new Set<string>();
+        value.forEach(sku => {
+          // בדיקה ב-subVariantName
+          if ((sku as any).subVariantName) {
+            uniqueSubVariantNames.add((sku as any).subVariantName);
+          }
+          // 🆕 בדיקה גם ב-attributes לפי label
+          const attrValue = sku.attributes?.[secondaryVariantLabel?.toLowerCase() || ''];
+          if (attrValue) {
+            uniqueSubVariantNames.add(attrValue);
+          }
+        });
+        
+        console.log('🔍 Branch 2 secondary:', {
+          uniqueSubVariantNames: Array.from(uniqueSubVariantNames),
+          secondaryVariantLabel,
+          firstSkuSubVariant: (firstSku as any).subVariantName,
+          firstSkuAttributes: firstSku.attributes
+        });
+        
+        if (uniqueSubVariantNames.size > 0) {
+          const secondaryAttr = allAttributes.find(attr => 
+            attr.name === secondaryVariantLabel || attr.key === 'subVariantName'
+          );
+          if (secondaryAttr) {
+            existingAttributes.push({
+              attribute: secondaryAttr,
+              selectedValues: Array.from(uniqueSubVariantNames).map(svn => ({
+                value: svn,
+                displayName: svn,
+                disabled: mode === 'edit',
+              })),
+            });
+          }
+        }
+      }
+      // ============================================================
+      // 🎯 תרחיש 3: אין colorHex - Custom Variants (טקסט בלבד)
+      // ============================================================
+      else if ((firstSku as any).variantName || extractedVariant) {
+        console.log('🎯 Branch 3: Custom Variants (text only)');
+        
+        const uniqueVariantNames = new Set(
+          value
+            .map(sku => (sku as any).variantName || extractVariantsFromName(sku).variantName)
+            .filter(Boolean)
+        );
+        
+        const primaryAttr = allAttributes.find(attr => 
+          attr.name === primaryVariantLabel || attr.key === 'variantName'
+        );
+        
+        if (primaryAttr) {
+          existingAttributes.push({
+            attribute: primaryAttr,
+            selectedValues: Array.from(uniqueVariantNames).map(vn => ({
+              value: vn,
+              displayName: vn,
+              disabled: mode === 'edit',
+            })),
+          });
+        }
+        
+        // ציר משני
+        const uniqueSubVariantNames = new Set(
+          value
+            .map(sku => (sku as any).subVariantName || extractVariantsFromName(sku).subVariantName)
+            .filter(Boolean)
+        );
+        
+        if (uniqueSubVariantNames.size > 0) {
+          const secondaryAttr = allAttributes.find(attr => 
+            attr.name === secondaryVariantLabel || attr.key === 'subVariantName'
+          );
+          if (secondaryAttr) {
+            existingAttributes.push({
+              attribute: secondaryAttr,
+              selectedValues: Array.from(uniqueSubVariantNames).map(svn => ({
+                value: svn,
+                displayName: svn,
+                disabled: mode === 'edit',
+              })),
+            });
+          }
+        }
+      }
+      
+      console.log('🎨 Final existingAttributes:', existingAttributes.map(a => ({
+        key: a.attribute.key,
+        name: a.attribute.name,
+        values: a.selectedValues.map(sv => sv.value)
+      })));
+      
+      // 🎯 עדכון ה-state עם המבנה הקיים
+      setSelectedVariantAttributes(existingAttributes);
+      setSelectedCombinations([]); // נאפס את הקומבינציות - המשתמש יבחר חדשות
+      setIsAutoFillOpen(false);
+      setVariantFlowStep('create'); // חזרה לשלב create, אבל עם מבנה קיים!
+    } else {
+      // אין SKUs - התחלה מאפס
+      setSelectedVariantAttributes([]);
+      setSelectedCombinations([]);
+      setIsAutoFillOpen(false);
+      setVariantFlowStep('create');
+    }
+  }, [value, primaryVariantLabel, secondaryVariantLabel]);
+
+  /**
+   * מפה של ערכי ציר ראשי (לשימוש ב-AutoFillPanel)
+   */
+  const primaryValuesMap = useMemo(() => {
+    const map = new Map<string, { displayName: string; hex?: string; family?: string }>();
+    selectedVariantAttributes[0]?.selectedValues.forEach(sv => {
+      map.set(sv.value, {
+        displayName: sv.displayName,
+        hex: sv.hex,
+        family: sv.family,
+      });
+    });
+    return map;
+  }, [selectedVariantAttributes]);
+
+  /**
+   * מפה של ערכי ציר משני (כולל hex ו-family לצבעים)
+   */
+  const secondaryValuesMap = useMemo(() => {
+    const map = new Map<string, { displayName: string; hex?: string; family?: string }>();
+    selectedVariantAttributes[1]?.selectedValues.forEach(sv => {
+      map.set(sv.value, { 
+        displayName: sv.displayName,
+        hex: sv.hex,         // ← הוספת hex
+        family: sv.family    // ← הוספת family
+      });
+    });
+    return map;
+  }, [selectedVariantAttributes]);
+
+  /**
+   * 🆕 צבעים שנבחרו ב-create flow (לפי הקומבינציות המסומנות)
+   * מאפשר לטאב "תמונות לפי צבע" להציג צבעים גם לפני יצירת SKUs.
+   * תומך גם בצבע כציר ראשי וגם כציר משני!
+   */
+  const draftColorsForImages = useMemo(() => {
+    if (variantFlowStep !== 'create') return [];
+    
+    // בדיקה: האם הציר הראשי הוא צבע?
+    const isPrimaryColor = selectedVariantAttributes[0]?.attribute.valueType === 'color';
+    
+    // 🆕 בדיקה: האם הציר המשני הוא צבע?
+    const isSecondaryColor = selectedVariantAttributes[1]?.attribute.valueType === 'color';
+    
+    // אם אין צבעים בכלל - החזר ריק
+    if (!isPrimaryColor && !isSecondaryColor) return [];
+    
+    // אם אין קומבינציות - החזר ריק
+    if (!selectedCombinations || selectedCombinations.length === 0) return [];
+
+    // 🎯 מקרה 1: צבע הוא ציר ראשי
+    if (isPrimaryColor) {
+      const uniquePrimaryKeys = Array.from(new Set(selectedCombinations.map(c => c.primary)));
+
+      return uniquePrimaryKeys
+        .map(primaryKey => {
+          const info = primaryValuesMap.get(primaryKey);
+          return {
+            color: info?.displayName || primaryKey,
+            colorHex: info?.hex,
+            colorFamily: info?.family,
+          };
+        })
+        .filter(c => !!c.color);
+    }
+    
+    // 🆕 מקרה 2: צבע הוא ציר משני
+    if (isSecondaryColor) {
+      const uniqueSecondaryKeys = Array.from(new Set(selectedCombinations.map(c => c.secondary).filter(Boolean)));
+
+      return uniqueSecondaryKeys
+        .map(secondaryKey => {
+          const info = secondaryValuesMap.get(secondaryKey!);
+          const svValue = selectedVariantAttributes[1]?.selectedValues.find(sv => sv.value === secondaryKey);
+          return {
+            color: info?.displayName || secondaryKey!,
+            colorHex: svValue?.hex,
+            colorFamily: svValue?.family,
+          };
+        })
+        .filter(c => !!c.color);
+    }
+    
+    return [];
+  }, [variantFlowStep, selectedVariantAttributes, selectedCombinations, primaryValuesMap, secondaryValuesMap]);
+
+  useEffect(() => {
+    onDraftColorsChange?.(draftColorsForImages);
+  }, [onDraftColorsChange, draftColorsForImages]);
 
   // אם זה מצב SKU בודד - הסתר את כל האופציות למרובה
   if (!isSkuMode) {
@@ -430,256 +1378,216 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     );
   }
 
-  // 🔒 זיהוי סוג הוריאנטים הקיימים (למניעת שילוב color + custom)
-  const hasColorVariants = value.some(sku => sku.color);
-  const hasCustomVariants = value.some(sku => (sku as any).variantName);
-  
-  // 🚫 קביעת מתי להשבית כפתורים (לא ניתן לשלב שני סוגי וריאנטים)
-  const disableColorType = hasCustomVariants; // אם יש custom → לא ניתן לעבור ל-color
-  const disableCustomType = hasColorVariants; // אם יש color → לא ניתן לעבור ל-custom
-
   return (
     <div className={styles.container}>
       {/* ============================================================================
-          🆕 Phase 2: בחירת סוג וריאנט - צבעים או מותאם אישית
+          🆕 זרימה בדף אחד - ללא קפיצות בין שלבים
           ============================================================================ */}
-      {onVariantTypeChange && (
-        <section className={styles.variantTypeSection}>
-          <h4 className={styles.variantTypeTitle}>
-            <Icon name="Settings" size={20} />
-            בחר סוג וריאנטים
-          </h4>
-          <p className={styles.variantTypeSubtitle}>
-            בחר את סוג הוריאנטים שמתאים למוצר זה
-          </p>
-
-          <div className={styles.variantTypeOptions}>
-            {/* אפשרות 1: וריאנטים של צבעים */}
-            <label 
-              className={`${styles.variantTypeCard} ${variantType === 'color' ? styles.selected : ''} ${disableColorType ? styles.disabled : ''}`}
-              title={disableColorType ? '⚠️ לא ניתן לעבור לוריאנטי צבעים - קיימים וריאנטים מותאמים אישית. למחיקת כל הוריאנטים והתחלה מחדש, מחק את כל ה-SKUs.' : ''}
-            >
-              <div className={styles.variantTypeCardHeader}>
-                <input
-                  type="radio"
-                  name="variantType"
-                  value="color"
-                  checked={variantType === 'color'}
-                  onChange={() => handleVariantTypeChange('color')}
-                  className={styles.variantTypeRadio}
-                  disabled={disableColorType}
-                />
-                <div className={styles.variantTypeIcon}>
-                  <Icon name="Palette" size={20} />
-                </div>
-              </div>
-              <div className={styles.variantTypeCardContent}>
-                <h5 className={styles.variantTypeCardTitle}>וריאנטים של צבעים</h5>
-                <p className={styles.variantTypeCardDescription}>
-                  מוצרים עם צבעים שונים (חולצות, נעליים, תיקים)
-                </p>
-              </div>
-              <div className={styles.variantTypeCardFeatures}>
-                <span className={styles.variantTypeFeature}>
-                  <Icon name="Check" size={12} />
-                  כפתורי צבע בכרטיסיות
-                </span>
-                <span className={styles.variantTypeFeature}>
-                  <Icon name="Check" size={12} />
-                  סינון אוטומטי
-                </span>
-              </div>
-              {disableColorType && (
-                <div className={styles.variantTypeCardLock}>
-                  <Icon name="Lock" size={16} />
-                  <span>נעול - קיימים וריאנטים מותאמים</span>
-                </div>
-              )}
-            </label>
-
-            {/* אפשרות 2: וריאנטים מותאמים אישית */}
-            <label 
-              className={`${styles.variantTypeCard} ${variantType === 'custom' ? styles.selected : ''} ${disableCustomType ? styles.disabled : ''}`}
-              title={disableCustomType ? '⚠️ לא ניתן לעבור לוריאנטים מותאמים - קיימים וריאנטי צבעים. למחיקת כל הוריאנטים והתחלה מחדש, מחק את כל ה-SKUs.' : ''}
-            >
-              <div className={styles.variantTypeCardHeader}>
-                <input
-                  type="radio"
-                  name="variantType"
-                  value="custom"
-                  checked={variantType === 'custom'}
-                  onChange={() => handleVariantTypeChange('custom')}
-                  className={styles.variantTypeRadio}
-                  disabled={disableCustomType}
-                />
-                <div className={styles.variantTypeIcon}>
-                  <Icon name="Layers" size={20} />
-                </div>
-              </div>
-              <div className={styles.variantTypeCardContent}>
-                <h5 className={styles.variantTypeCardTitle}>וריאנטים מותאמים אישית</h5>
-                <p className={styles.variantTypeCardDescription}>
-                  מוצרים עם וריאנטים שאינם צבעים (טעמים, גדלים, סוגים)
-                </p>
-              </div>
-              <div className={styles.variantTypeCardFeatures}>
-                <span className={styles.variantTypeFeature}>
-                  <Icon name="Check" size={12} />
-                  תוויות מותאמות
-                </span>
-                <span className={styles.variantTypeFeature}>
-                  <Icon name="Check" size={12} />
-                  קישור לסינון אופציונלי
-                </span>
-              </div>
-              {disableCustomType && (
-                <div className={styles.variantTypeCardLock}>
-                  <Icon name="Lock" size={16} />
-                  <span>נעול - קיימים וריאנטי צבעים</span>
-                </div>
-              )}
-            </label>
-          </div>
-        </section>
-      )}
-
-      {/* 🆕 הודעת מוצר פשוט/מורכב - רק במצב create */}
-      {mode === 'create' && value.length === 0 && (
-        <div className={styles.infoBox}>
-          <div className={styles.infoIcon}><Icon name="AlertCircle" size={24} /></div>
-          <div className={styles.infoContent}>
-            <h4 className={styles.infoTitle}>הגדרת וריאנט</h4>
-            <p className={styles.infoText}>
-              טופס הוריאנט נפתח אוטומטית עם הערכים שהזנת במוצר.
-              <br />
-              <strong>ודא את המלאי והתמונות</strong> לפני השמירה. אם תסגור את הטופס ללא שמירה, המערכת תיצור וריאנט בסיסי אוטומטית.
-            </p>
-          </div>
-        </div>
-      )}
-
+      
       {/* כותרת */}
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h3 className={styles.title}>
-            SKUs - וריאנטים ({value.length})
+            וריאנטים ({value.length})
           </h3>
           <p className={styles.subtitle}>
-            {mode === 'create' && value.length === 0 
-              ? 'הוסף את הוריאנט הראשון של המוצר - השדות מולאו מראש מנתוני המוצר'
-              : variantType === 'custom'
-                ? 'נהל את הוריאנטים המותאמים אישית של המוצר'
-                : 'נהל את הוריאנטים השונים של המוצר (צבעים, מידות וכו׳)'
-            }
+            {variantFlowStep === 'create' && 'בחר את סוגי הוריאנטים הזמינים למכירה'}
+            {variantFlowStep === 'manage' && !isBulkEditMode && 'נהל את הוריאנטים השונים של המוצר'}
+            {variantFlowStep === 'manage' && isBulkEditMode && 'בחר וריאנטים לעריכה מרובה'}
           </p>
         </div>
 
-        {/* 🆕 Toggle בין תצוגה שטוחה למקובצת - רק לוריאנטים של צבעים */}
-        {/* 🔒 HIDDEN: כפתורי ה-toggle מוסתרים - המנהל יראה רק תצוגה מקובצת */}
-        {/* הקוד נשמר למקרה שנרצה להחזיר את האפשרות בעתיד */}
-        {false && (variantType === 'color' || variantType === null) && (
+        {/* כפתור ניהול וריאנטים - הוספה, עריכה ומחיקה */}
+        {variantFlowStep === 'manage' && value.length > 0 && !isBulkEditMode && (
           <div className={styles.headerActions}>
-            <div className={styles.viewToggle}>
-              <button
-                type="button"
-                className={`${styles.toggleButton} ${viewMode === 'flat' ? styles.active : ''}`}
-                onClick={() => setViewMode('flat')}
-                title="תצוגת רשימה"
-              >
-                <Icon name="List" size={18} />
-              </button>
-              <button
-                type="button"
-                className={`${styles.toggleButton} ${viewMode === 'grouped' ? styles.active : ''}`}
-                onClick={() => setViewMode('grouped')}
-                title="תצוגה לפי צבעים"
-              >
-                <Icon name="Palette" size={18} />
-              </button>
-            </div>
+            <button
+              type="button"
+              className={styles.addButton}
+              onClick={handleAddMoreVariants}
+            >
+              <Icon name="Settings" size={18} />
+              <span>ניהול וריאנטים</span>
+            </button>
+          </div>
+        )}
 
-            {viewMode === 'flat' && (
-              <button
-                type="button"
-                className={styles.addButton}
-                onClick={() => setShowAddModal(true)}
-              >
-                <Icon name="Plus" size={20} />
-                <span>הוסף SKU</span>
-              </button>
-            )}
+        {/* כפתור יציאה מעריכה מרובה */}
+        {variantFlowStep === 'manage' && isBulkEditMode && (
+          <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={handleExitBulkEditMode}
+            >
+              <Icon name="X" size={18} />
+              <span>ביטול</span>
+            </button>
           </div>
         )}
       </div>
 
       {/* ============================================================================
-          תצוגת וריאנטים - מותנית לפי סוג
+          שלב יצירה: הכל בדף אחד - מאפיינים → רשת → הגדרות
           ============================================================================ */}
-      
-      {/* 🆕 Phase 3: וריאנטים מותאמים אישית */}
-      {variantType === 'custom' && (
-        <CustomVariantsView
-          value={value}
-          onChange={onChange}
-          basePrice={productFormData?.basePrice || 0}
-          productName={productFormData?.name || ''}
-          primaryVariantLabel={primaryVariantLabel}
-          onPrimaryVariantLabelChange={onPrimaryVariantLabelChange}
-          secondaryVariantLabel={secondaryVariantLabel}
-          onSecondaryVariantLabelChange={onSecondaryVariantLabelChange}
-          onUploadImages={onUploadImages}
-        />
-      )}
+      {variantFlowStep === 'create' && (
+        <div className={styles.createFlow}>
+          {/* בחירת מאפיינים וערכים */}
+          <VariantAttributesInline
+            selectedAttributes={selectedVariantAttributes}
+            onChange={handleAttributesChange}
+            showContinueButton={false}
+            onDisabledValueRemoveRequest={handleDisabledValueRemoveRequest}
+          />
 
-      {/* תצוגת וריאנטים של צבעים - רק כש-variantType === 'color' */}
-      {variantType === 'color' && viewMode === 'grouped' && (
-        <ColorGroupedView
-          value={value}
-          onChange={onChange}
-          basePrice={productFormData?.basePrice || 0}
-          productName={productFormData?.name || ''}
-          onUploadImages={onUploadImages}
-          secondaryAttribute={secondaryVariantAttribute}
-          onSecondaryAttributeChange={onSecondaryVariantAttributeChange}
-        />
-      )}
-
-      {/* Grid של כרטיסי SKUs - תצוגה שטוחה (כולל כש-variantType === null) */}
-      {/* {(variantType === 'color' || variantType === null) && (variantType === null || viewMode === 'flat') && (
-        value.length > 0 ? (
-          <div className={styles.skuGrid}>
-            {value.map((sku, index) => (
-              <SKURow
-                key={`${sku.sku}-${index}`}
-                sku={sku}
-                index={index}
-                isEditing={editingIndex === index}
-                errors={
-                  errors?.[`skus[${index}]`]
-                    ? { [errors[`skus[${index}]`]]: 'שגיאה' }
-                    : undefined
-                }
-                onEdit={handleEdit}
-                onChange={handleChange}
-                onDelete={(i) => setDeletingIndex(i)}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                onCheckAvailability={handleCheckAvailability}
-                onUploadImages={onUploadImages}
-                allSkus={value}
+          {/* רשת השילובים - מופיעה אוטומטית כשיש ערכים */}
+          {primaryAxisValues.length > 0 && (
+            <div className={styles.combinationsSection}>
+              <h4 className={styles.sectionHeader}>
+                <Icon name="Grid3x3" size={18} />
+                בחר אילו וריאנטים זמינים למכירה
+              </h4>
+              <p className={styles.sectionHint}>
+                סמן את הוריאנטים שקיימים במלאי. וריאנטים לא מסומנים לא יווצרו.
+              </p>
+              
+              <CombinationsGrid
+                primaryValues={primaryAxisValues}
+                secondaryValues={secondaryAxisValues}
+                primaryLabel={primaryAxisLabel}
+                secondaryLabel={secondaryAxisLabel}
+                selectedCombinations={selectedCombinations}
+                onChange={setSelectedCombinations}
+                showColors={selectedVariantAttributes[0]?.attribute.valueType === 'color'}
               />
-            ))}
-          </div>
-        ) : (
-          <div className={styles.emptyState}>
-            <Icon name="Package" size={48} />
-            <p className={styles.emptyText}>אין SKUs עדיין</p>
-            <p className={styles.emptySubtext}>
-              לחץ על "הוסף SKU" כדי להתחיל
-            </p>
-          </div>
-        )
-      )} */}
+            </div>
+          )}
+
+          {/* פאנל AutoFill - Accordion שנפתח אוטומטית */}
+          <AutoFillPanel
+            isOpen={isAutoFillOpen}
+            onToggle={handleToggleAutoFill}
+            combinations={selectedCombinations}
+            primaryLabel={primaryAxisLabel}
+            secondaryLabel={secondaryAxisLabel}
+            basePrice={productFormData?.basePrice || 0}
+            productName={productFormData?.name || ''}
+            onGenerate={handleAutoFillGenerate}
+            primaryValuesMap={primaryValuesMap}
+            secondaryValuesMap={secondaryValuesMap}
+            variantType={selectedVariantAttributes[0]?.attribute.valueType === 'color' ? 'color' : 'custom'}
+          />
+
+          {/* כפתור חזרה לניהול אם יש כבר וריאנטים */}
+          {value.length > 0 && (
+            <div className={styles.backToManage}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setVariantFlowStep('manage')}
+              >
+                <Icon name="ChevronRight" size={16} />
+                חזרה לניהול וריאנטים קיימים
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================================
+          🆕 מצב עריכה מרובה - Bulk Edit
+          ============================================================================ */}
+      {variantFlowStep === 'manage' && isBulkEditMode && (
+        <div className={styles.bulkEditSection}>
+          {/* רשת השילובים לבחירה */}
+          {existingPrimaryAxisValues.length > 0 && (
+            <div className={styles.combinationsSection}>
+              <h4 className={styles.sectionHeader}>
+                <Icon name="Grid3x3" size={18} />
+                בחר וריאנטים לעריכה
+              </h4>
+              <p className={styles.sectionHint}>
+                סמן את הוריאנטים שברצונך לעדכן. לאחר מכן בחר אילו שדות לשנות.
+              </p>
+              
+              <CombinationsGrid
+                primaryValues={existingPrimaryAxisValues}
+                secondaryValues={existingSecondaryAxisValues}
+                primaryLabel={bulkEditPrimaryLabel}
+                secondaryLabel={bulkEditSecondaryLabel}
+                selectedCombinations={bulkEditCombinations}
+                onChange={handleBulkEditCombinationsChange}
+                showColors={value.some(sku => sku.colorHex)}
+              />
+            </div>
+          )}
+
+          {/* פאנל עריכה מרובה */}
+          <AutoFillPanel
+            isOpen={isBulkEditPanelOpen}
+            onToggle={handleToggleBulkEditPanel}
+            combinations={bulkEditCombinations}
+            primaryLabel={bulkEditPrimaryLabel}
+            secondaryLabel={bulkEditSecondaryLabel}
+            basePrice={productFormData?.basePrice || 0}
+            productName={productFormData?.name || ''}
+            onGenerate={() => {}} // לא בשימוש במצב edit
+            primaryValuesMap={bulkEditPrimaryValuesMap}
+            variantType={value.some(sku => sku.colorHex) ? 'color' : 'custom'}
+            mode="edit"
+            existingSkus={value}
+            onApplyChanges={handleBulkEditApply}
+          />
+        </div>
+      )}
+
+      {/* ============================================================================
+          שלב 4: טבלת ניהול וריאנטים
+          ============================================================================ */}
+      {variantFlowStep === 'manage' && !isBulkEditMode && (
+        <div className={styles.manageSection}>
+          {value.length === 0 ? (
+            <div className={styles.emptyState}>
+              <Icon name="Package" size={48} />
+              <p className={styles.emptyText}>אין וריאנטים עדיין</p>
+              <p className={styles.emptySubtext}>
+                לחץ על "הוסף וריאנטים" כדי להתחיל בבחירת מאפיינים
+              </p>
+              <button
+                type="button"
+                className={styles.wizardButton}
+                onClick={handleAddMoreVariants}
+              >
+                <Icon name="Plus" size={18} />
+                <span>הוסף וריאנטים</span>
+              </button>
+            </div>
+          ) : (
+            <div className={styles.skuGrid}>
+              {value.map((sku, index) => (
+                <SKURow
+                  key={`${sku.sku}-${index}`}
+                  sku={sku}
+                  index={index}
+                  isEditing={editingIndex === index}
+                  errors={
+                    errors?.[`skus[${index}]`]
+                      ? { [errors[`skus[${index}]`]]: 'שגיאה' }
+                      : undefined
+                  }
+                  onEdit={handleEdit}
+                  onChange={handleChange}
+                  onDelete={(i) => setDeletingIndex(i)}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  onCheckAvailability={handleCheckAvailability}
+                  onUploadImages={onUploadImages}
+                  allSkus={value}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* שגיאה כללית */}
       {errors?.skus && (
@@ -690,53 +1598,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         </div>
       )}
 
-      {/* טיפים */}
-      {/* <div className={styles.tips}>
-        <div className={styles.tipsHeader}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 16v-4"></path>
-            <path d="M12 8h.01"></path>
-          </svg>
-          <span>טיפים ל-SKUs</span>
-        </div>
-        <ul className={styles.tipsList}>
-          <li>
-            <strong>קוד SKU:</strong> השתמש בקוד ייחודי ועקבי (למשל: PROD-RED-L)
-          </li>
-          <li>
-            <strong>שם תצוגה:</strong> תאר בקצרה את הוריאנט (למשל: "אדום - גודל L")
-          </li>
-          <li>
-            <strong>מחיר:</strong> אם לא מוגדר, ישתמש במחיר הבסיס של המוצר
-          </li>
-          <li>
-            <strong>מלאי:</strong> כל SKU מנהל מלאי נפרד
-          </li>
-          <li>
-            <strong>צבעים ומידות:</strong> השתמש בשדות הייעודיים לסינון טוב יותר
-          </li>
-          <li>
-            <strong>SKU בודד:</strong> לפחות SKU אחד נדרש למוצר
-          </li>
-        </ul>
-      </div> */}
-
-      {/* מודאל הוספה */}
-      {/**
-       * 🆕 תמיד נעביר initialSku עם קוד SKU אוטומטי
-       * זה יבטיח שכל וריאנט חדש יקבל קוד אוטומטי
-       */}
+      {/* מודאל הוספת SKU בודד */}
       <AddSKUModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -765,32 +1627,53 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         onCancel={() => setDeletingIndex(null)}
       />
 
-      {/* 🆕 דיאלוג אזהרה לפני יצירת וריאנטים */}
+      {/* 🆕 דיאלוג אישור הסרת ערך וריאנט קיים */}
       <ConfirmDialog
-        isOpen={showVariantTypeWarning}
-        title={pendingVariantType === 'color' ? 'יצירת וריאנטים לפי צבע' : 'יצירת וריאנטים מותאמים אישית'}
+        isOpen={valueToRemove !== null}
+        title="הסרת ערך וריאנט"
         message={
-          <>
-            {/* <p className={styles.variantWarningParagraph}>
-              <strong>שים לב:</strong> בחירה באפשרות זו תמחק את ה-SKU הקיים ותאפשר לך ליצור וריאנטים חדשים.
-            </p> */}
-            <p className={styles.variantWarningParagraph}>
-              <strong>האם למוצר הזה יש {pendingVariantType === 'color' ? 'צבעים שונים' : 'וריאנטים (טעמים, גדלים, סוגים וכו\')'}?</strong>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ marginBottom: '12px', fontWeight: 500 }}>
+              האם אתה בטוח שברצונך להסיר את הערך "{valueToRemove?.value.displayName}"?
             </p>
-            <ul className={styles.variantWarningList}>
-              <li><strong>כן</strong> - לחץ "המשך" כדי ליצור וריאנטים</li>
-              <li><strong>לא</strong> - לחץ "ביטול" ושמור את המוצר כפי שהוא (SKU יחיד)</li>
-            </ul>
-            {/* <p className={styles.variantWarningHint}>
-              💡 מוצר עם SKU יחיד מתאים למוצרים ללא וריאנטים (לדוגמה: מוצר במחיר אחד וללא אפשרויות בחירה)
-            </p> */}
-          </>
+            
+            {affectedSkusCount > 0 && (
+              <div style={{ 
+                background: '#fef3cd', 
+                border: '1px solid #ffc107',
+                borderRadius: '8px',
+                padding: '12px',
+                marginBottom: '12px'
+              }}>
+                <p style={{ margin: 0, color: '#856404' }}>
+                  ⚠️ נמצאו <strong>{affectedSkusCount}</strong> SKUs שמשתמשים בערך הזה
+                </p>
+              </div>
+            )}
+            
+            <div style={{ 
+              background: '#e7f3ff', 
+              border: '1px solid #2196F3',
+              borderRadius: '8px',
+              padding: '12px'
+            }}>
+              <p style={{ margin: 0, marginBottom: '8px', fontWeight: 500, color: '#1976D2' }}>
+                אם תמשיך:
+              </p>
+              <ul style={{ margin: 0, paddingRight: '20px', color: '#1565C0' }}>
+                <li>ה-{affectedSkusCount} SKUs יסומנו כ"לא זמין במלאי"</li>
+                <li>לא יהיה ניתן ליצור SKUs חדשים עם ערך זה</li>
+                <li>הזמנות קיימות לא יושפעו</li>
+                <li>תוכל לשחזר את הערך בעתיד על ידי הוספתו מחדש</li>
+              </ul>
+            </div>
+          </div>
         }
-        confirmText="המשך"
+        confirmText="המשך והסר"
         cancelText="ביטול"
         variant="warning"
-        onConfirm={handleConfirmVariantTypeChange}
-        onCancel={handleCancelVariantTypeChange}
+        onConfirm={handleConfirmValueRemoval}
+        onCancel={handleCancelValueRemoval}
       />
     </div>
   );

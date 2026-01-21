@@ -395,17 +395,19 @@ export const productSchema = yup.object({
     .default([])
     .test(
       'has-valid-variants',
-      'מוצר עם וריאנטים חייב להכיל לפחות וריאנט אחד מלא (לא רק וריאנט ראשוני)',
+      'מוצר עם וריאנטים חייב להכיל לפחות וריאנט אחד עם צבע או שם',
       function (value) {
         const { hasVariants } = this.parent;
         
         // אם זה לא מוצר עם וריאנטים - לא צריך בדיקה
         if (!hasVariants) return true;
         
-        // אם זה מוצר עם וריאנטים - צריך לפחות SKU אחד שלא ריק
+        // אם זה מוצר עם וריאנטים - צריך לפחות SKU אחד "אמיתי"
+        // SKU אמיתי = יש לו שם או צבע (לא רק SKU דיפולטיבי ריק)
         const validSkus = (value || []).filter(sku => {
-          // SKU תקף = יש לו שם שאינו ריק
-          return sku.name && sku.name.trim() !== '';
+          const hasName = sku.name && sku.name.trim() !== '';
+          const hasColor = sku.color && sku.color.trim() !== '';
+          return hasName || hasColor;
         });
         
         return validSkus.length > 0;
@@ -432,6 +434,104 @@ export const productSchema = yup.object({
     .optional()
     .max(50, 'לא ניתן להוסיף יותר מ-50 מאפייני מפרט')
     .default([]),
+
+  // ============================================================================
+  // 🆕 SEO Fields - שדות קידום אורגני
+  // ============================================================================
+
+  // כותרת SEO (meta title)
+  seoTitle: yup
+    .string()
+    .optional()
+    .max(70, 'כותרת SEO לא יכולה להכיל יותר מ-70 תווים')
+    .nullable(),
+
+  // תיאור SEO (meta description)
+  seoDescription: yup
+    .string()
+    .optional()
+    .max(160, 'תיאור SEO לא יכול להכיל יותר מ-160 תווים')
+    .nullable(),
+
+  // Slug לכתובת URL
+  slug: yup
+    .string()
+    .optional()
+    .test(
+      'valid-slug',
+      'Slug יכול להכיל רק אותיות קטנות באנגלית, מספרים ומקפים',
+      function (value) {
+        // אם הערך ריק, null או undefined - תקין
+        if (!value || value.trim() === '') return true;
+        // אחרת בדוק את הפורמט
+        return /^[a-z0-9-]+$/.test(value);
+      }
+    )
+    .max(100, 'Slug לא יכול להכיל יותר מ-100 תווים')
+    .nullable(),
+
+  // ============================================================================
+  // 🆕 Marketing Fields - שדות שיווק ומבצעים
+  // ============================================================================
+
+  // האם המוצר חדש
+  isNew: yup
+    .boolean()
+    .optional()
+    .default(false),
+
+  // האם המוצר מומלץ
+  isFeatured: yup
+    .boolean()
+    .optional()
+    .default(false),
+
+  // האם המוצר רב-מכר
+  isBestSeller: yup
+    .boolean()
+    .optional()
+    .default(false),
+
+  // תגיות קידום מותאמות אישית
+  promotionTags: yup
+    .array()
+    .of(
+      yup
+        .string()
+        .min(2, 'תגית קידום חייבת להכיל לפחות 2 תווים')
+        .max(30, 'תגית קידום לא יכולה להכיל יותר מ-30 תווים')
+        .trim()
+    )
+    .optional()
+    .max(5, 'לא ניתן להוסיף יותר מ-5 תגיות קידום')
+    .default([]),
+
+  // ============================================================================
+  // 🆕 Color Family Images - תמונות לפי משפחת צבע
+  // ============================================================================
+  /**
+   * מפה של תמונות לפי משפחת צבע.
+   * כל SKU עם colorFamily מסוים "יורש" את התמונות של המשפחה.
+   * המפתחות הם שמות משפחות הצבע: red, blue, green וכו'
+   * הערך הוא מערך תמונות לכל משפחה.
+   */
+  colorFamilyImages: yup
+    .object()
+    .optional()
+    .default({}),
+
+  // ============================================================================
+  // 🆕 Color Images - תמונות לפי צבע ספציפי
+  // ============================================================================
+  /**
+   * מפה של תמונות לפי צבע ספציפי.
+   * עדיפות על colorFamilyImages - מאפשר תמונות שונות לכל גוון צבע.
+   * המפתחות הם שמות צבעים ספציפיים ("כחול נייבי", "אדום יין" וכו').
+   */
+  colorImages: yup
+    .object()
+    .optional()
+    .default({}),
 }).required();
 
 // ==========================================
@@ -548,6 +648,17 @@ export const defaultProductValues: Partial<ProductFormData> = {
   specifications: [], // מפרט טכני - ברירת מחדל ריקה
   secondaryVariantAttribute: null, // 🆕 ציר וריאנט משני - ברירת מחדל null
   hasVariants: false, // 🆕 ברירת מחדל: מוצר פשוט
+  // 🆕 SEO Fields
+  seoTitle: null,
+  seoDescription: null,
+  slug: null,
+  // 🆕 Marketing Fields
+  isNew: false,
+  isFeatured: false,
+  isBestSeller: false,
+  promotionTags: [],
+  // 🆕 Color Family Images - תמונות לפי משפחת צבע
+  colorFamilyImages: {},
 };
 
 /**

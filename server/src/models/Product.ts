@@ -189,6 +189,12 @@ export interface IProduct extends Document {
   // Variants and options
   variants: IVariant[];
 
+  // 🆕 Color Family Images - תמונות לפי משפחת צבע
+  colorFamilyImages?: { [colorFamily: string]: IImage[] };
+
+  // 🆕 Color Images - תמונות לפי צבע ספציפי (עדיפות על colorFamilyImages)
+  colorImages?: { [color: string]: IImage[] };
+
   // Time-based features
   featuredUntil?: Date;
   saleUntil?: Date;
@@ -535,6 +541,30 @@ const ProductSchema: Schema = new Schema({
   variants: {
     type: [VariantSchema],
     default: [],
+  },
+
+  // ============================================================================
+  // 🆕 Color Family Images - תמונות לפי משפחת צבע
+  // ============================================================================
+  /**
+   * מפה של תמונות לפי משפחת צבע.
+   * כל SKU עם colorFamily מסוים "יורש" את התמונות של המשפחה.
+   * המפתחות הם שמות משפחות הצבע: red, blue, green, yellow, orange, purple, pink, black, white, gray, brown
+   * הערך הוא מערך תמונות (IImage[]) לכל משפחה.
+   */
+  colorFamilyImages: {
+    type: Schema.Types.Mixed,
+    default: {},
+  },
+
+  /**
+   * 🆕 מפה של תמונות לפי צבע ספציפי.
+   * עדיפות על colorFamilyImages - מאפשר תמונות שונות לכל גוון צבע.
+   * המפתחות הם שמות צבעים ספציפיים ("כחול נייבי", "אדום יין", וכו').
+   */
+  colorImages: {
+    type: Schema.Types.Mixed,
+    default: {},
   },
 
   // Time-based features

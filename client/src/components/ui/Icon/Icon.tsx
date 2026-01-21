@@ -34,7 +34,9 @@ export type IconName =
   // Auth & Users
   | 'LogIn' | 'LogOut' | 'UserPlus' | 'UserCheck' | 'Lock' | 'Unlock'
   // Additional
-  | 'Heart' | 'Share2' | 'Star';
+  | 'Heart' | 'Share2' | 'Star'
+  // Checkboxes & Selection
+  | 'CheckSquare' | 'Square' | 'MinusSquare';
 
 /**
  * Props של רכיב האייקון

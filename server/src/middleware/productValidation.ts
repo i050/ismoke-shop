@@ -248,6 +248,52 @@ const productSchema = Joi.object({
     .messages({
       'string.max': 'מזהה אטריביוט סינון משני לא יכול להכיל יותר מ-50 תווים',
     }),
+
+  // 🎨 תמונות משפחות צבע - מיפוי של משפחת צבע למערך תמונות
+  // מבנה: { colorFamily: [{ thumbnail, medium, large, key, format, uploadedAt }] }
+  colorFamilyImages: Joi.object()
+    .pattern(
+      Joi.string(), // key: משפחת צבע (blue, red, green...)
+      Joi.array().items(
+        Joi.object({
+          thumbnail: Joi.string().uri().required(),
+          medium: Joi.string().uri().required(),
+          large: Joi.string().uri().required(),
+          key: Joi.string().required(),
+          format: Joi.string().optional().default('webp'),
+          uploadedAt: Joi.date().optional(),
+        })
+      )
+    )
+    .optional()
+    .default({})
+    .messages({
+      'object.base': 'colorFamilyImages חייב להיות אובייקט',
+      'string.uri': 'כתובת תמונה לא תקינה',
+    }),
+
+  // 🆕 תמונות לפי צבע ספציפי - עדיפות על colorFamilyImages
+  // מבנה: { "כחול נייבי": [...], "אדום יין": [...] }
+  colorImages: Joi.object()
+    .pattern(
+      Joi.string(), // key: שם הצבע הספציפי
+      Joi.array().items(
+        Joi.object({
+          thumbnail: Joi.string().uri().required(),
+          medium: Joi.string().uri().required(),
+          large: Joi.string().uri().required(),
+          key: Joi.string().required(),
+          format: Joi.string().optional().default('webp'),
+          uploadedAt: Joi.date().optional(),
+        })
+      )
+    )
+    .optional()
+    .default({})
+    .messages({
+      'object.base': 'colorImages חייב להיות אובייקט',
+      'string.uri': 'כתובת תמונה לא תקינה',
+    }),
 });
 
 // ============================================================================

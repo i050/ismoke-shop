@@ -1,0 +1,356 @@
+/**
+ * סטיילים עבור ProductMarketing
+ * ניהול הגדרות שיווק ומבצעים של המוצר
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+/* ===== כותרת ===== */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  border-radius: 12px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.title {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* ===== כרטיסי בחירה ===== */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.card:hover:not(.cardDisabled) {
+  border-color: var(--color-primary);
+  background: var(--bg-tertiary);
+}
+
+.cardChecked {
+  border-color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.cardDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hiddenCheckbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cardContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.cardEmoji {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.cardText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cardDescription {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.cardCheckbox {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.emptyCheckbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  background: var(--bg-primary);
+}
+
+/* צבעי כרטיסים נבחרים */
+.cardBlue.cardChecked {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.cardBlue.cardChecked .cardCheckbox {
+  color: #3b82f6;
+}
+
+.cardYellow.cardChecked {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.08);
+}
+
+.cardYellow.cardChecked .cardCheckbox {
+  color: #eab308;
+}
+
+.cardRed.cardChecked {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.cardRed.cardChecked .cardCheckbox {
+  color: #ef4444;
+}
+
+/* ===== תגיות קידום ===== */
+
+.tagsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+.tagsLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.tagsInputWrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.tagsInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tagsInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha);
+}
+
+.tagsInput::placeholder {
+  color: var(--text-muted);
+}
+
+.tagsInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.addTagButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.addTagButton:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.addTagButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.addTagButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* רשימת תגיות */
+.tagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.removeTagButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
+}
+
+.removeTagButton:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--color-primary-dark);
+}
+
+.removeTagButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* מונה תגיות */
+.tagsCounter {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: var(--color-danger);
+}
+
+/* ===== טיפים ===== */
+
+.tips {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(234, 88, 12, 0.05) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(249, 115, 22, 0.1);
+}
+
+.tipIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.tipContent {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.tipContent strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.tipContent ul {
+  margin: 0;
+  padding-right: 20px;
+  list-style-type: disc;
+}
+
+.tipContent li {
+  margin-bottom: 4px;
+}
+
+.tipContent li:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,400 @@
+/**
+ * סטיילים עבור SKUsTable
+ * טבלה אמיתית לניהול וריאנטים
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+/* ===== מצב ריק ===== */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty p {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.empty span {
+  font-size: 0.875rem;
+}
+
+/* ===== פס פעולות באלק ===== */
+
+.bulkActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.bulkCount {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.bulkButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bulkButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bulkButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.bulkButtonDanger {
+  color: var(--color-danger);
+}
+
+.bulkButtonDanger:hover {
+  border-color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.bulkInput {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bulkInput input {
+  width: 80px;
+  padding: 6px 8px;
+  font-size: 0.8125rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.bulkInput button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ===== טבלה ===== */
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th,
+.table td {
+  padding: 12px 16px;
+  text-align: right;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.table tbody tr.selected {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.table tbody tr.inactive {
+  opacity: 0.6;
+}
+
+/* ===== תאים ===== */
+
+.checkboxCell {
+  width: 48px;
+  text-align: center !important;
+}
+
+.checkbox {
+  display: inline-flex;
+  position: relative;
+  cursor: pointer;
+}
+
+.checkbox input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.checkmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.checkbox input:checked + .checkmark {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox input:checked + .checkmark::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.checkbox input:indeterminate + .checkmark {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox input:indeterminate + .checkmark::after {
+  content: '−';
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* תמונה */
+.imageCell {
+  width: 64px;
+}
+
+.thumbnail {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.noImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  color: var(--text-muted);
+}
+
+/* וריאנט */
+.variantCell {
+  min-width: 150px;
+}
+
+.variantInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colorDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* תא לעריכה */
+.editableCell {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.editableCell:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.cellValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cellInput {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.875rem;
+  border: 2px solid var(--color-primary);
+  border-radius: 4px;
+  background: var(--bg-primary);
+  outline: none;
+}
+
+.inheritedBadge {
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary);
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.outOfStock {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* סטטוס */
+.statusCell {
+  width: 80px;
+}
+
+.statusToggle {
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.statusToggle.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--color-success);
+}
+
+.statusToggle.inactive {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--text-muted);
+}
+
+.statusToggle:hover {
+  opacity: 0.8;
+}
+
+/* פעולות */
+.actionsCell {
+  width: 60px;
+  text-align: center !important;
+}
+
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-danger);
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Footer ===== */
+
+.footer {
+  padding: 12px 16px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 768px) {
+  .bulkActions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .bulkButtons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 12px;
+  }
+
+  .variantCell {
+    min-width: 120px;
+  }
+}

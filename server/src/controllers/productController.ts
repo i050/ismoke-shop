@@ -239,6 +239,10 @@ export const getProductById = async (req: Request, res: Response) => {
       skus: skus, // ← Phase 3.3: SKUs מה-SKU Collection
     };
     
+    // 🔍 DEBUG: בדיקה האם colorImages נשלח ללקוח
+    console.log('🔍 DEBUG getProductById - colorImages:', (product as any).colorImages);
+    console.log('🔍 DEBUG getProductById - colorImages in response:', productWithPrice.colorImages);
+    
     res.json(productWithPrice);
   } catch (error) {
     res.status(500).json({ message: 'שגיאה בקבלת המוצר', error });
@@ -406,17 +410,6 @@ export const updateProductWithSkus = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { product: productData, skus: skusData } = req.body;
 
-    // 🔍 DEBUG: לוג מה מגיע מה-client
-    console.log('🔍 [updateProductWithSkus Controller] Received productData.specifications:', productData?.specifications);
-    console.log('🔍 [updateProductWithSkus Controller] Received SKUs from client:');
-    skusData?.forEach((sku: any, index: number) => {
-      console.log(`  ${index + 1}. ${sku.sku}:`);
-      console.log(`     color: ${sku.color || 'לא מוגדר'}`);
-      console.log(`     colorHex: ${sku.colorHex || 'לא מוגדר'}`); // 🆕 DEBUG
-      console.log(`     colorFamily: ${sku.colorFamily || 'לא מוגדר'}`); // 🆕 DEBUG
-      console.log(`     attributes:`, JSON.stringify(sku.attributes));
-    });
-
     // וולידציה
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ 
@@ -427,16 +420,6 @@ export const updateProductWithSkus = async (req: Request, res: Response) => {
 
     // עדכון המוצר עם SKUs (Transaction)
     const result = await productService.updateProductWithSkus(id, productData, skusData);
-    
-    // 🔍 DEBUG: לוג מה חזר מה-service
-    console.log('🔍 [updateProductWithSkus Controller] Returning SKUs to client:');
-    result.skus?.forEach((sku: any, index: number) => {
-      console.log(`  ${index + 1}. ${sku.sku}:`);
-      console.log(`     color: ${sku.color || 'לא מוגדר'}`);
-      console.log(`     colorHex: ${sku.colorHex || 'לא מוגדר'}`); // 🆕 DEBUG
-      console.log(`     colorFamily: ${sku.colorFamily || 'לא מוגדר'}`); // 🆕 DEBUG
-      console.log(`     attributes:`, JSON.stringify(sku.attributes));
-    });
 
     res.json({
       success: true,
@@ -767,6 +750,48 @@ export const getProductsAutocomplete = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'שגיאה בחיפוש מוצרים',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * POST /api/products/reserve-sequences - הזמנת מספרים סידוריים גלובליים ל-SKUs
+ * מחזיר מערך של מספרים סידוריים ייחודיים מהמונה הגלובלי
+ * 
+ * Body: { count: number } - כמה מספרים להזמין
+ * Response: { success: true, sequences: number[] }
+ */
+export const reserveSkuSequences = async (req: Request, res: Response) => {
+  try {
+    const { count } = req.body;
+    
+    // ולידציה
+    if (!count || typeof count !== 'number' || count < 1 || count > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'מספר ה-SKUs חייב להיות בין 1 ל-1000'
+      });
+    }
+    
+    // קבלת מספרים סידוריים מהמונה
+    const Counter = (await import('../models/Counter')).default;
+    const sequences: number[] = [];
+    
+    for (let i = 0; i < count; i++) {
+      const seq = await Counter.getNextSequence('sku_counter');
+      sequences.push(seq);
+    }
+    
+    res.json({
+      success: true,
+      sequences
+    });
+  } catch (error: any) {
+    console.error('❌ [reserveSkuSequences] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'שגיאה בהזמנת מספרים סידוריים',
       error: error.message
     });
   }

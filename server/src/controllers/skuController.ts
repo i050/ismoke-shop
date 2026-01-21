@@ -1,9 +1,47 @@
 import { Request, Response } from 'express';
 import * as skuService from '../services/skuService';
+import Counter from '../models/Counter';
 
 /**
  * SKU Controller - טיפול בבקשות API עבור SKUs
  */
+
+/**
+ * קבלת מספרים סידוריים הבאים למספר SKUs
+ * GET /api/skus/next-sequences?count=5
+ */
+export const getNextSequences = async (req: Request, res: Response) => {
+  try {
+    const count = parseInt(req.query.count as string) || 1;
+    
+    // הגבלה למקסימום 100 בבקשה אחת
+    if (count > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot request more than 100 sequences at once'
+      });
+    }
+
+    // קבלת מספרים סידוריים
+    const sequences: number[] = [];
+    for (let i = 0; i < count; i++) {
+      const seq = await Counter.getNextSequence('sku_counter');
+      sequences.push(seq);
+    }
+
+    res.json({
+      success: true,
+      data: { sequences }
+    });
+  } catch (error: any) {
+    console.error('Error in getNextSequences:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get sequences',
+      error: error.message
+    });
+  }
+};
 
 /**
  * קבלת פרטי SKU לפי קוד

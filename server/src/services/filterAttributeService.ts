@@ -461,10 +461,21 @@ export const getAttributesForFilter = async (): Promise<Array<{
       .map((attr) => {
         // 🎨 עבור מאפיין צבע - החלפת colorFamilies בנתונים דינמיים
         if (attr.key === 'color' && attr.valueType === 'color') {
+          // בניית values מ-colorFamilies (שטוח - לתאימות לקומפוננטות)
+          const values = activeColorFamilies.flatMap(family =>
+            family.variants.map(variant => ({
+              value: variant.name,
+              displayName: variant.name,
+              hex: variant.hex,
+              family: family.family,
+            }))
+          );
+          
           return {
             attribute: {
               ...attr,
               colorFamilies: activeColorFamilies,
+              values, // ✅ הוספת values שטוח
             } as IFilterAttribute,
             usageCount: countMap.get(attr.key) || 0,
           };

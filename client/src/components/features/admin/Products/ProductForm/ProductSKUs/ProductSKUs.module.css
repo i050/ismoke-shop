@@ -511,3 +511,311 @@
   margin-right: 20px;
   margin-bottom: 12px;
 }
+
+/* ===================================
+   Wizard Button Styles (Phase 4)
+   =================================== */
+.wizardButtonContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #38bdf8;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 1rem;
+}
+
+.wizardButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.wizardButton:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+.wizardButton:active {
+  transform: translateY(0);
+}
+
+/* 🆕 כפתור משני להוספת וריאנטים נוספים */
+.wizardButtonSecondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+  border-radius: var(--border-radius-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wizardButtonSecondary:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.wizardHint {
+  font-size: 0.8125rem;
+  color: #1e40af;
+  flex: 1;
+}
+
+/* 🆕 Empty State - כשאין עדיין וריאנטים */
+.wizardEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
+  border: 2px dashed #7dd3fc;
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  min-height: 280px;
+}
+
+.wizardEmptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  color: #0369a1;
+}
+
+.wizardEmptyTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0c4a6e;
+  margin: 0 0 0.5rem 0;
+}
+
+.wizardEmptyText {
+  font-size: 0.9375rem;
+  color: #475569;
+  margin: 0 0 1.5rem 0;
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .wizardButtonContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .wizardButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wizardEmptyState {
+    padding: 2rem 1rem;
+    min-height: 240px;
+  }
+
+  .wizardEmptyIcon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .wizardEmptyTitle {
+    font-size: 1.125rem;
+  }
+}
+
+/* ===================================
+   🆕 Inline Variant Flow Styles
+   =================================== */
+
+/* קטע שילובים */
+.combinationsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+/* כפתור חזרה */
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.backButton:hover {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+/* פעולות Flow */
+.flowActions {
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* כפתור המשך */
+.continueButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.continueButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.continueButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* קטע ניהול */
+.manageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===================================
+   🆕 זרימה בדף אחד - Create Flow
+   =================================== */
+
+.createFlow {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a202c);
+  margin: 0 0 4px 0;
+}
+
+.sectionHint {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #64748b);
+  margin: 0 0 12px 0;
+}
+
+.backToManage {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+  margin-top: 8px;
+}
+
+.secondaryButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: transparent;
+  color: var(--color-text-secondary, #64748b);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondaryButton:hover {
+  background-color: var(--color-background-subtle, #f8fafc);
+  color: var(--color-text-primary, #1a202c);
+  border-color: var(--color-text-secondary, #94a3b8);
+}
+
+/* ============================================================================
+   🆕 Bulk Edit - עריכה מרובה
+   ============================================================================ */
+
+.bulkEditSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background-color: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+}
+
+.cancelButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: transparent;
+  color: var(--color-danger, #dc2626);
+  border: 1px solid var(--color-danger, #dc2626);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-danger, #dc2626);
+  color: #fff;
+}

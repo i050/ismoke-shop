@@ -1,2 +1,3 @@
 // Barrel export לדף ProductsManagementPage
-export { default } from './ProductsManagementPage';
+import ProductsManagementPage from './ProductsManagementPage';
+export default ProductsManagementPage;

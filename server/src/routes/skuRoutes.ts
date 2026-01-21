@@ -24,6 +24,12 @@ const router = Router();
 router.get('/search', skuController.searchSkus);
 
 /**
+ * קבלת מספרים סידוריים הבאים
+ * GET /api/skus/next-sequences?count=5
+ */
+router.get('/next-sequences', skuController.getNextSequences);
+
+/**
  * שליפת SKUs לניהול מלאי (Admin) - עם פגינציה, חיפוש ומיון
  * GET /api/skus/inventory?page=1&limit=50&search=xxx&sortBy=stockQuantity&sortOrder=asc&stockFilter=low
  */

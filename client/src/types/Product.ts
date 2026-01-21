@@ -15,7 +15,7 @@ export interface IImage {
   large: string;      // 1200×1200 WebP - לזום ותצוגה מוגדלת
   key: string;        // Base path ב-Spaces (לצורך מחיקה)
   format: string;     // 'webp'
-  uploadedAt: string; // Date string מ-JSON
+  uploadedAt?: unknown; // Date string מ-JSON (או ערך זמני בזמן עריכה)
 }
 
 // ממשק למפרט טכני (Technical Specification)
@@ -117,6 +117,24 @@ export interface Product {// זה הטייפ של מוצר
     };
   }>;
   skus?: Sku[]; // Phase 3.4: SKUs מה-SKU Collection (חדש)
+
+  // ============================================================================
+  // 🆕 Color Family Images - תמונות לפי משפחת צבע
+  // ============================================================================
+  /**
+   * מפה של תמונות לפי משפחת צבע.
+   * כל SKU עם colorFamily מסוים "יורש" את התמונות של המשפחה.
+   * המפתחות הם שמות משפחות הצבע: red, blue, green, yellow, orange, purple, pink, black, white, gray, brown
+   * הערך הוא מערך תמונות (IImage[]) לכל משפחה.
+   */
+  colorFamilyImages?: { [family: string]: IImage[] };
+
+  /**
+   * 🆕 מפה של תמונות לפי צבע ספציפי.
+   * עדיפות על colorFamilyImages - מאפשר תמונות שונות לכל גוון צבע.
+   * המפתחות הם שמות צבעים ספציפיים ("כחול נייבי", "אדום יין" וכו').
+   */
+  colorImages?: { [color: string]: IImage[] };
 
   // ============================================================================
   // 🆕 Dual Variant System - מערכת וריאנטים כפולה

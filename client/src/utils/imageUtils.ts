@@ -25,7 +25,7 @@ export const PRODUCT_PLACEHOLDER_IMAGE = '/ismoke-placeholder.png';
  * getImageUrl(product.images[0], 'large')
  */
 export function getImageUrl(
-  image: IImage | string | undefined,
+  image: IImage | { url?: string } | string | undefined,
   size: 'thumbnail' | 'medium' | 'large' = 'medium'
 ): string {
   if (!image) {

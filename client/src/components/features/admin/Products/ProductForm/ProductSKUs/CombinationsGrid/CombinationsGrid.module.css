@@ -1,0 +1,377 @@
+/**
+ * CombinationsGrid Styles
+ * סגנונות לקומפוננטת טבלת שילובים דו-ממדית
+ */
+
+/* קונטיינר ראשי */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background-color: var(--bg-secondary, #fafafa);
+}
+
+.container.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* כותרת */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #212121);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+}
+
+.statsText {
+  font-size: 13px;
+  color: var(--text-secondary, #757575);
+  background-color: var(--bg-tertiary, #eee);
+  padding: 4px 10px;
+  border-radius: 16px;
+}
+
+/* טקסט עזרה */
+.helpText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: var(--info-bg, #e3f2fd);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--info-color, #1565c0);
+}
+
+/* כפתורי פעולה */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  background-color: var(--bg-primary, #fff);
+  color: var(--text-secondary, #757575);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionButton:hover:not(:disabled) {
+  background-color: var(--bg-hover, #f5f5f5);
+  border-color: var(--primary-color, #1976d2);
+  color: var(--primary-color, #1976d2);
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* מעטפת טבלה */
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background-color: var(--bg-primary, #fff);
+}
+
+/* הטבלה */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 400px;
+}
+
+/* תא פינתי */
+.cornerCell {
+  padding: 8px;
+  background-color: var(--bg-tertiary, #eee);
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+  border-inline-end: 2px solid var(--border-color, #e0e0e0);
+  position: relative;
+  min-width: 80px;
+}
+
+.axisLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary, #757575);
+  text-transform: uppercase;
+}
+
+.axisLabel:first-child {
+  text-align: start;
+  margin-bottom: 8px;
+}
+
+.axisLabel:last-child {
+  text-align: end;
+}
+
+/* כותרות עמודות */
+.columnHeader {
+  padding: 0;
+  background-color: var(--bg-tertiary, #eee);
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+  border-inline-end: 1px solid var(--border-color, #e0e0e0);
+  text-align: center;
+  min-width: 60px;
+}
+
+.columnHeader.fullySelected {
+  background-color: var(--primary-bg, #e3f2fd);
+}
+
+.columnHeader:last-child {
+  border-inline-end: none;
+}
+
+/* כותרות שורות */
+.rowHeader {
+  padding: 0;
+  background-color: var(--bg-tertiary, #eee);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  border-inline-end: 2px solid var(--border-color, #e0e0e0);
+  text-align: start;
+  min-width: 100px;
+}
+
+.rowHeader.fullySelected {
+  background-color: var(--primary-bg, #e3f2fd);
+}
+
+/* כפתור בכותרת */
+.headerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 8px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #212121);
+  transition: background-color 0.2s;
+}
+
+.headerButton:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.headerCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--primary-color, #1976d2);
+}
+
+.emptyCheckbox {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-color, #bbb);
+  border-radius: 3px;
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+/* תאים רגילים */
+.cell {
+  padding: 0;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  border-inline-end: 1px solid var(--border-color, #e0e0e0);
+  text-align: center;
+}
+
+.cell:last-child {
+  border-inline-end: none;
+}
+
+.cell.selected {
+  background-color: var(--success-bg, #e8f5e9);
+}
+
+/* כפתור בתא */
+.cellButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cellButton:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.checkIcon {
+  width: 22px;
+  height: 22px;
+  color: var(--success-color, #2e7d32);
+}
+
+.emptyCell {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 2px dashed var(--border-color, #ccc);
+  border-radius: 4px;
+}
+
+/* סיכום */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--bg-primary, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.summaryLabel {
+  color: var(--text-secondary, #757575);
+  min-width: 100px;
+}
+
+.summaryValue {
+  color: var(--text-primary, #212121);
+}
+
+/* מצב ריק */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--text-secondary, #757575);
+  font-size: 14px;
+}
+
+/* RTL תמיכה - רווחים בין עמודות */
+[dir="rtl"] .rowHeader {
+  text-align: end;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .actions {
+    width: 100%;
+  }
+  
+  .actionButton {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .summary {
+    font-size: 12px;
+  }
+}
+
+/* =================== מצב 1D - רשימת ערכים =================== */
+.valuesList1D {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.valueItem1D {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 2px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background-color: var(--bg-primary, #fff);
+  color: var(--text-primary, #212121);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+}
+
+.valueItem1D:hover:not(:disabled) {
+  border-color: var(--primary-color, #1976d2);
+  background-color: var(--bg-hover, #f5f5f5);
+}
+
+.valueItem1D.selected {
+  border-color: var(--primary-color, #1976d2);
+  background-color: var(--primary-light, #e3f2fd);
+  color: var(--primary-color, #1976d2);
+}
+
+.valueItem1D:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.valueCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color, #1976d2);
+}
+
+.valueName {
+  font-weight: 500;
+}

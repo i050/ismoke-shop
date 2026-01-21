@@ -376,6 +376,7 @@
   align-items: center;
   gap: var(--spacing-3, 12px);
   padding: var(--spacing-2, 8px) 0;
+  width: 100%;
 }
 
 .customVariantLabel {
@@ -383,18 +384,21 @@
   font-weight: 600;
   color: var(--color-text-primary);
   white-space: nowrap;
+  min-width: 130px;
+  letter-spacing: -0.01em;
 }
 
 .customVariantSelect {
   width: 100%;
-  max-width: 280px;
-  padding: 10px 36px 10px 14px;
+  min-height: 44px;
+  height: 44px;
+  padding: 10px 40px 10px 14px;
   border: 1.5px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg-elevated));
   color: var(--color-text-primary);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -402,7 +406,7 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .customVariantSelect:hover {
@@ -413,7 +417,7 @@
 
 .customVariantSelect:focus {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px var(--focus-ring), 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 3px var(--focus-ring), 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .customVariantSelect optgroup {

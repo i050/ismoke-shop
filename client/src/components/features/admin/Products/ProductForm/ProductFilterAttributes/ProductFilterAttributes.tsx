@@ -306,8 +306,8 @@ const ProductFilterAttributes: React.FC<ProductFilterAttributesProps> = ({
           <h3 className={styles.title}>מאפייני סינון</h3>
           <p className={styles.subtitle}>
             {isSimpleProduct 
-              ? 'הגדרת מאפייני סינון למוצר - צבע, מידה ומאפיינים נוספים'
-              : 'ניהול מאפייני סינון עבור וריאנטים - צבע, מידה ומאפיינים נוספים'
+              ? 'הגדרת מאפייני סינון למוצר - צבע או מידה'
+              : 'ניהול מאפייני סינון עבור וריאנטים - צבע או מידה'
             }
           </p>
         </div>

@@ -28,6 +28,9 @@ export { default as Typography } from './Typography';
 export { default as Checkbox } from './Checkbox';
 export { default as Breadcrumbs } from './Breadcrumbs';
 
+// RichTextEditor - עורך טקסט עשיר
+export { RichTextEditor } from './RichTextEditor';
+
 // מודאל אישור גנרי
 export { ConfirmModal } from './ConfirmModal';
 export type { ConfirmModalProps } from './ConfirmModal';
@@ -35,6 +38,10 @@ export type { ConfirmModalProps } from './ConfirmModal';
 // NativeSelect - סלקט נייטיבי עם עיצוב אחיד
 export { NativeSelect } from './NativeSelect';
 export type { NativeSelectProps, SelectOption } from './NativeSelect';
+
+// ImageGalleryManager - ניהול גלריות תמונות
+export { default as ImageGalleryManager } from './ImageGalleryManager';
+export type { ImageObject, ImageGalleryManagerProps, DisplayMode, DeleteMode } from './ImageGalleryManager';
 
 //  אם צריך גם את הטיפוסים:
 // export type { ButtonProps } from './Button/Button';

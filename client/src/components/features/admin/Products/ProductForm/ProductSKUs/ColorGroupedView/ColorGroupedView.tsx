@@ -148,24 +148,11 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
     );
   }, [filterAttributes]);
 
-  // 🔧 FIX: בדיקה האם יש רק SKU דיפולטיבי אחד (ללא צבע)
-  // אם כן - מתעלמים ממנו ומציגים emptyState
-  const hasOnlyDefaultSku = useMemo(() => {
-    return value.length === 1 && 
-           !value[0].color && 
-           !value[0].variantName &&
-           !value[0].name; // SKU ראשוני בלי שם
-  }, [value]);
-
   // Transform flat SKUs to color groups (🆕 with dynamic attribute key support)
-  // 🔧 FIX: אם יש רק SKU דיפולטיבי - מחזירים מערך ריק
   const colorGroups = useMemo(() => {
-    if (hasOnlyDefaultSku) {
-      return []; // לא להציג את ה-SKU הדיפולטיבי כקבוצת צבע
-    }
     const attributeKey = secondaryAttribute || 'size';
     return groupSkusByColor(value, attributeKey);
-  }, [value, secondaryAttribute, hasOnlyDefaultSku]);
+  }, [value, secondaryAttribute]);
 
   // 🔧 FIX: עדכון form state כש-colorGroups מכילים color/colorHex שלא קיימים ב-SKUs המקוריים
   // זה קורה כש-SKUs ישנים נטענים מהשרת ללא color/colorHex, ו-groupSkusByColor יוצר להם אוטומטית
@@ -424,6 +411,47 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
           </div>
         </div>
 
+        {/* 🆕 בורר סוג וריאנט משני */}
+        <div className={styles.attributeSelector}>
+          <label className={styles.attributeLabel}>
+            סוג וריאנט:
+          </label>
+          {isLoadingAttributes ? (
+            <span className={styles.loadingText}>טוען...</span>
+          ) : (
+            <select
+              className={styles.attributeSelect}
+              value={secondaryAttribute || ''}
+              onChange={(e) => {
+                const newValue = e.target.value || null;
+                // אם יש SKUs קיימים - הצג אזהרה
+                if (value.length > 0 && newValue !== secondaryAttribute) {
+                  setPendingAttributeChange(newValue);
+                  setShowChangeWarning(true);
+                } else {
+                  onSecondaryAttributeChange?.(newValue);
+                }
+              }}
+              disabled={disabled || availableAttributes.length === 0}
+              title="בחר את סוג הווריאנט המשני (מידה, התנגדות, ניקוטין וכו') או ללא"
+            >
+              {/* 🆕 אופציית ללא תת-וריאנט */}
+              <option value="">ללא תת-וריאנט (רק צבעים)</option>
+              {/* אופציית ברירת מחדל - מידה */}
+              <option value="size">מידה</option>
+              {/* מאפיינים מהמערכת (לא כולל צבע ומידה כבר יש) */}
+              {availableAttributes
+                .filter(attr => attr.key !== 'size') // מידה כבר יש
+                .map(attr => (
+                  <option key={attr._id} value={attr.key}>
+                    {attr.icon && `${attr.icon} `}{attr.name}
+                  </option>
+                ))
+              }
+            </select>
+          )}
+        </div>
+
         <div className={styles.headerActions}>
           {colorGroups.length > 0 && (
             <>
@@ -468,120 +496,6 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
             הוסף צבע
           </button>
         </div>
-      </div>
-
-      {/* 🆕 בורר סוג וריאנט משני - גדול ובולט */}
-      <div className={styles.variantTypeSection}>
-        <div className={styles.variantTypeHeader}>
-          <Icon name="Layers" size={20} />
-          <h4 className={styles.variantTypeTitle}>הגדרת תת-וריאנט</h4>
-          <span className={styles.variantTypeHint}>
-            האם לכל צבע יש אופציות נוספות (כמו מידות)?
-          </span>
-        </div>
-        
-        {isLoadingAttributes ? (
-          <div className={styles.loadingText}>טוען אפשרויות...</div>
-        ) : (
-          <div className={styles.variantTypeOptions}>
-            {/* אופציה 1: ללא תת-וריאנט */}
-            <button
-              type="button"
-              className={`${styles.variantTypeCard} ${!secondaryAttribute ? styles.variantTypeCardActive : ''}`}
-              onClick={() => {
-                if (value.length > 0 && secondaryAttribute !== null) {
-                  setPendingAttributeChange(null);
-                  setShowChangeWarning(true);
-                } else {
-                  onSecondaryAttributeChange?.(null);
-                }
-              }}
-              disabled={disabled}
-            >
-              <div className={styles.variantTypeCardIcon}>
-                <Icon name="Palette" size={24} />
-              </div>
-              <div className={styles.variantTypeCardContent}>
-                <span className={styles.variantTypeCardTitle}>רק צבעים</span>
-                <span className={styles.variantTypeCardDesc}>כל צבע = מוצר אחד</span>
-              </div>
-              {!secondaryAttribute && (
-                <div className={styles.variantTypeCardCheck}>
-                  <Icon name="Check" size={18} />
-                </div>
-              )}
-            </button>
-
-            {/* אופציה 2: צבע + מידה */}
-            <button
-              type="button"
-              className={`${styles.variantTypeCard} ${secondaryAttribute === 'size' ? styles.variantTypeCardActive : ''}`}
-              onClick={() => {
-                if (value.length > 0 && secondaryAttribute !== 'size') {
-                  setPendingAttributeChange('size');
-                  setShowChangeWarning(true);
-                } else {
-                  onSecondaryAttributeChange?.('size');
-                }
-              }}
-              disabled={disabled}
-            >
-              <div className={styles.variantTypeCardIcon}>
-                <Icon name="Layers" size={24} />
-              </div>
-              <div className={styles.variantTypeCardContent}>
-                <span className={styles.variantTypeCardTitle}>צבע + מידה</span>
-                <span className={styles.variantTypeCardDesc}>S, M, L, XL וכו'</span>
-              </div>
-              {secondaryAttribute === 'size' && (
-                <div className={styles.variantTypeCardCheck}>
-                  <Icon name="Check" size={18} />
-                </div>
-              )}
-            </button>
-
-            {/* אופציות נוספות מהמערכת */}
-            {availableAttributes
-              .filter(attr => attr.key !== 'size')
-              .map(attr => (
-                <button
-                  key={attr._id}
-                  type="button"
-                  className={`${styles.variantTypeCard} ${secondaryAttribute === attr.key ? styles.variantTypeCardActive : ''}`}
-                  onClick={() => {
-                    if (value.length > 0 && secondaryAttribute !== attr.key) {
-                      setPendingAttributeChange(attr.key);
-                      setShowChangeWarning(true);
-                    } else {
-                      onSecondaryAttributeChange?.(attr.key);
-                    }
-                  }}
-                  disabled={disabled}
-                >
-                  <div className={styles.variantTypeCardIcon}>
-                    {attr.icon ? (
-                      <span className={styles.emojiIcon}>{attr.icon}</span>
-                    ) : (
-                      <Icon name="Settings" size={24} />
-                    )}
-                  </div>
-                  <div className={styles.variantTypeCardContent}>
-                    <span className={styles.variantTypeCardTitle}>צבע + {attr.name}</span>
-                    <span className={styles.variantTypeCardDesc}>
-                      {attr.values?.slice(0, 3).map(v => v.value).join(', ')}
-                      {attr.values && attr.values.length > 3 && '...'}
-                    </span>
-                  </div>
-                  {secondaryAttribute === attr.key && (
-                    <div className={styles.variantTypeCardCheck}>
-                      <Icon name="Check" size={18} />
-                    </div>
-                  )}
-                </button>
-              ))
-            }
-          </div>
-        )}
       </div>
 
       {/* Color Panels */}

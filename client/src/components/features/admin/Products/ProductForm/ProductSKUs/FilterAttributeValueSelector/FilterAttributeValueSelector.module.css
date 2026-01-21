@@ -1,0 +1,406 @@
+/**
+ * FilterAttributeValueSelector Styles
+ * סגנונות לקומפוננטת בחירת ערכים ממאפיין סינון
+ */
+
+/* קונטיינר ראשי */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background-color: var(--bg-secondary, #fafafa);
+}
+
+.container.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* כותרת */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #212121);
+}
+
+.required {
+  color: var(--error-color, #d32f2f);
+  margin-inline-start: 4px;
+}
+
+.selectionInfo {
+  font-size: 13px;
+  color: var(--text-secondary, #757575);
+}
+
+/* חיפוש */
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  inset-inline-start: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary, #757575);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  padding-inline-start: 36px;
+  padding-inline-end: 36px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: var(--bg-primary, #fff);
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--primary-color, #1976d2);
+}
+
+.clearSearch {
+  position: absolute;
+  inset-inline-end: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--bg-tertiary, #eee);
+  color: var(--text-secondary, #757575);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clearSearch:hover {
+  background-color: var(--bg-hover, #ddd);
+}
+
+/* כפתורי פעולה */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  background-color: var(--bg-primary, #fff);
+  color: var(--text-secondary, #757575);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionButton:hover:not(:disabled) {
+  background-color: var(--bg-hover, #f5f5f5);
+  border-color: var(--primary-color, #1976d2);
+  color: var(--primary-color, #1976d2);
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* קונטיינר ערכים */
+.valuesContainer {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  background-color: var(--bg-primary, #fff);
+}
+
+/* משפחות צבעים */
+.colorFamiliesContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.colorFamily {
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.colorFamily:last-child {
+  border-bottom: none;
+}
+
+.familyHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  text-align: start;
+  transition: background-color 0.2s;
+}
+
+.familyHeader:hover:not(:disabled) {
+  background-color: var(--bg-hover, #f5f5f5);
+}
+
+.familyColorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.familyName {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #212121);
+}
+
+.selectedCount {
+  font-size: 12px;
+  color: var(--primary-color, #1976d2);
+  font-weight: 600;
+}
+
+.expandIcon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary, #757575);
+  transition: transform 0.2s;
+}
+
+/* וריאנטי צבע */
+.colorVariants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px 12px 32px;
+  background-color: var(--bg-secondary, #fafafa);
+}
+
+/* Swatch צבע */
+.colorSwatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  min-width: 60px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background-color: var(--bg-primary, #fff);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.colorSwatch:hover:not(:disabled) {
+  border-color: var(--primary-light, #90caf9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.colorSwatch.selected {
+  border-color: var(--primary-color, #1976d2);
+  background-color: var(--primary-bg, #e3f2fd);
+}
+
+.swatchColor {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.swatchName {
+  font-size: 11px;
+  color: var(--text-secondary, #757575);
+  text-align: center;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkIcon {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  width: 14px;
+  height: 14px;
+  color: var(--primary-color, #1976d2);
+}
+
+/* ערכי טקסט */
+.textValuesContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+}
+
+/* פריט Checkbox */
+.checkboxItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  background-color: var(--bg-primary, #fff);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  color: var(--text-primary, #212121);
+}
+
+.checkboxItem:hover {
+  border-color: var(--primary-light, #90caf9);
+  background-color: var(--bg-hover, #f5f5f5);
+}
+
+.checkboxItem.selected {
+  border-color: var(--primary-color, #1976d2);
+  background-color: var(--primary-bg, #e3f2fd);
+}
+
+.checkboxItem input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color, #1976d2);
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* סיכום נבחרים */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.summaryLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #757575);
+}
+
+.selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.selectedTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: var(--primary-bg, #e3f2fd);
+  border: 1px solid var(--primary-color, #1976d2);
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--primary-dark, #1565c0);
+}
+
+.tagColorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.removeTag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--primary-dark, #1565c0);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.removeTag:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* מצבים מיוחדים */
+.loading,
+.error,
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--text-secondary, #757575);
+  font-size: 14px;
+}
+
+.error {
+  color: var(--error-color, #d32f2f);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* RTL תמיכה */
+[dir="rtl"] .expandIcon {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .colorVariants {
+  padding: 8px 32px 12px 12px;
+}

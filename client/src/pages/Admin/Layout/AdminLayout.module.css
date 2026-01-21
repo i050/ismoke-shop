@@ -158,6 +158,64 @@
   }
 }
 
+/* =============================================================================
+   ADMIN LAYOUT OVERRIDES - Force full-width content on desktop
+   Purpose: Some admin pages used `max-width` and `margin: 0 auto` causing them
+   to remain centered and not span the full width on large desktops. This rule
+   overrides those local restrictions for children of `.pageContent` on
+   desktop (min-width: 769px). It uses `!important` sparingly to ensure the
+   layout expands correctly while avoiding changes to mobile behavior.
+   ============================================================================= */
+@media (min-width: 769px) {
+  .pageContent > * {
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Fallback: some components use `.container` or `.form` classes */
+  .pageContent .container,
+  .pageContent .form,
+  .pageContent .productsPage,
+  .pageContent .categoriesPage {
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* 🔥 Fallback global rule: force all descendants under the admin main scroll container
+     to allow full-width layout on desktop. This is intentionally broad to override
+     any remaining local centering rules that use module-scoped classes or inline styles. */
+  [data-scroll-container="admin-main"] * {
+    max-width: none !important;
+    margin: 0 !important;
+    width: auto !important;
+    box-sizing: border-box !important; /* keep padding inside width */
+  }
+
+  /* Ensure top-level direct children occupy full width */
+  [data-scroll-container="admin-main"] > * {
+    width: 100% !important;
+  }
+
+  /* Specific fix: the global `.app-container` sets `max-width` and `margin: 0 auto` which
+     keeps the admin centered. When AdminLayout is rendered inside `.app-container` we
+     need the admin area to occupy the full viewport width on large screens. */
+  :global(.app-container) .adminLayout {
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100vw !important; /* force full viewport width */
+    padding: 0 !important; /* remove outer padding so grid can span fully */
+  }
+
+  /* Also ensure the app-container itself does not constrain width while admin is active */
+  :global(.app-container) {
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    padding: 0 10px !important; /* keep small side padding if desired */
+  }
+}
 /* מסכים קטנים מאוד (עד 360px) - קטנו עוד יותר */
 @media (max-width: 360px) {
   .mobileHeader {

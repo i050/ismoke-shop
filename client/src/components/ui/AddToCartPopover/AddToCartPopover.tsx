@@ -26,6 +26,10 @@ interface AddToCartPopoverProps {
   onSkuChange?: (sku: string) => void;
   /** 🆕 שם המאפיין המשני (size/resistance וכו') */
   secondaryVariantAttribute?: string | null;
+  /** 🆕 תמונות לפי צבע ספציפי (עדיפות ראשונה) */
+  colorImages?: Record<string, string[]>;
+  /** 🆕 תמונות לפי משפחת צבע (fallback) */
+  colorFamilyImages?: Record<string, string[]>;
   // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
   /** סוג הוריאנט: 'color' | 'custom' | null */
   variantType?: VariantType;
@@ -57,6 +61,8 @@ const AddToCartPopover = ({
   selectedSku,
   onSkuChange,
   secondaryVariantAttribute,
+  colorImages = {},
+  colorFamilyImages = {},
   // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
   variantType,
   primaryVariantLabel,
@@ -153,6 +159,9 @@ const AddToCartPopover = ({
                   secondaryVariantAttribute={secondaryVariantAttribute}
                   showColorPreview={false}
                   secondaryOnly={!!secondaryVariantAttribute}
+                  useDropdownForSecondary={true}
+                  colorImages={colorImages}
+                  colorFamilyImages={colorFamilyImages}
                   // 🆕 Phase 4: העברת props לוריאנטים מותאמים אישית
                   variantType={variantType}
                   primaryVariantLabel={primaryVariantLabel}

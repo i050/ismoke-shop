@@ -322,8 +322,6 @@ class ProductManagementService {
       
       // תמיד נשתמש ב-/with-skus endpoint. גם כשאין SKUs נקבל מערך ריק -
       // השרת יודע ליצור SKU בסיס אוטומטית לפי כללי ה-service.
-      // 🔍 DEBUG: בדיקת secondaryVariantAttribute לפני שליחה
-      console.log('🔍 [createProduct] secondaryVariantAttribute from form:', productFields.secondaryVariantAttribute);
       
       const payload = this.cleanPayload({
         product: {
@@ -333,14 +331,10 @@ class ProductManagementService {
           sku: productFields.sku || undefined,
           lowStockThreshold: productFields.lowStockThreshold ?? 5,
           secondaryVariantAttribute: productFields.secondaryVariantAttribute ?? null, // 🆕 ציר וריאנט משני
+          colorFamilyImages: productFields.colorFamilyImages || {}, // 🎨 תמונות לפי משפחת צבע
+          colorImages: productFields.colorImages || {}, // 🆕 תמונות לפי צבע ספציפי
         },
         skus: this.normalizeSKUs(skus), // יכול להיות []
-      });
-      
-      console.log('� [createProduct] Sending payload to /with-skus:', {
-        url: `${this.baseUrl}/with-skus`,
-        productKeys: Object.keys(payload.product),
-        skusCount: payload.skus.length,
       });
 
       const response = await this.makeRequest<
@@ -409,15 +403,10 @@ class ProductManagementService {
             sku: productFields.sku || undefined,
             lowStockThreshold: productFields.lowStockThreshold ?? 5,
             secondaryVariantAttribute: productFields.secondaryVariantAttribute ?? null, // 🆕 ציר וריאנט משני
+            colorFamilyImages: productFields.colorFamilyImages || {}, // 🎨 תמונות לפי משפחת צבע
+            colorImages: productFields.colorImages || {}, // 🆕 תמונות לפי צבע ספציפי
           },
           skus: normalizedSkus, // 🔧 FIX: שטח attributes
-        });
-
-        console.log('📤 [updateProduct] Sending payload:', {
-          url: `${this.baseUrl}/${productId}/with-skus`,
-          productKeys: Object.keys(payload.product),
-          skusCount: payload.skus.length,
-          firstSku: payload.skus[0],
         });
 
         const response = await this.makeRequest<
@@ -447,6 +436,8 @@ class ProductManagementService {
           quantityInStock: productFields.stockQuantity ?? 0,
           sku: productFields.sku || undefined,
           lowStockThreshold: productFields.lowStockThreshold ?? 5,
+          colorFamilyImages: productFields.colorFamilyImages || {}, // 🎨 תמונות לפי משפחת צבע
+          colorImages: productFields.colorImages || {}, // 🆕 תמונות לפי צבע ספציפי
           secondaryVariantAttribute: productFields.secondaryVariantAttribute ?? null, // 🆕 ציר וריאנט משני
         });
 

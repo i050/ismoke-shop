@@ -1,0 +1,336 @@
+/**
+ * סטיילים עבור ProductSEO
+ * ניהול SEO של המוצר - כותרת, תיאור, slug ותצוגה מקדימה בגוגל
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+/* ===== כותרת ===== */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+  border-radius: 12px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.title {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* ===== טופס ===== */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha);
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.textareaError {
+  border-color: var(--color-danger);
+}
+
+.textareaError:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+/* ===== Slug Input ===== */
+
+.slugInput {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.slugInput:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha);
+}
+
+.slugPrefix {
+  padding: 12px 12px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border-left: 1px solid var(--border-color);
+  white-space: nowrap;
+  direction: ltr;
+}
+
+.slugInput input {
+  flex: 1;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  direction: ltr;
+  text-align: left;
+}
+
+.generateButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.generateButton:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--bg-tertiary);
+}
+
+.generateButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Field Footer ===== */
+
+.fieldFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.charCounter {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.counterEmpty {
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+}
+
+.counterGood {
+  color: var(--color-success);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.counterWarning {
+  color: var(--color-warning);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.counterDanger {
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.helperText {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: var(--color-danger);
+}
+
+/* ===== תצוגה מקדימה של גוגל ===== */
+
+.googlePreview {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.previewCard {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  direction: ltr;
+  text-align: left;
+}
+
+.previewUrl {
+  font-size: 0.75rem;
+  color: #202124;
+  margin-bottom: 4px;
+}
+
+.previewTitle {
+  font-size: 1.125rem;
+  color: #1a0dab;
+  margin-bottom: 4px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.previewTitle:hover {
+  text-decoration: underline;
+}
+
+.previewDescription {
+  font-size: 0.8125rem;
+  color: #4d5156;
+  line-height: 1.5;
+}
+
+/* ===== טיפים ===== */
+
+.tips {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.tipIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.tipContent {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.tipContent strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.tipContent ul {
+  margin: 0;
+  padding-right: 20px;
+  list-style-type: disc;
+}
+
+.tipContent li {
+  margin-bottom: 4px;
+}
+
+.tipContent li:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .slugInput {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .slugPrefix {
+    border-left: none;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+  }
+
+  .fieldFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

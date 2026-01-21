@@ -10,18 +10,21 @@ import { Icon } from '../Icon';
 import { Button } from '../Button';
 import { useConfirm } from '../../../hooks/useConfirm';
 import { getImageUrl } from '../../../utils/imageUtils'; // ✅ ייבוא הפונקציה החדשה
+import type { IImage } from '../../../types/Product';
 import styles from './ImageGalleryManager.module.css';
 
-/**
- * Image type - תואם ל-IImage מ-Product types
- */
-export interface ImageObject {
+export interface CloudinaryImageObject {
   url: string;
   public_id: string;
   format?: string;
   width?: number;
   height?: number;
 }
+
+/**
+ * Image type - תומך גם ב-DigitalOcean Spaces (IImage) וגם ב-Cloudinary (legacy)
+ */
+export type ImageObject = IImage | CloudinaryImageObject;
 
 /**
  * מצב תצוגה
@@ -522,10 +525,12 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
           {images.map((image, index) => {
             const isMarked = deleteMode === 'soft' && imagesToDelete.has(index);
             const isDragging = draggedIndex === index;
+
+            const imageId = 'public_id' in image ? image.public_id : image.key;
             
             return (
               <div
-                key={`${image.public_id}-${index}`}
+                key={`${imageId}-${index}`}
                 className={`${styles.imageWrapper} ${isDragging ? styles.dragging : ''} ${
                   isMarked ? styles.markedForDeletion : ''
                 }`}
@@ -537,7 +542,7 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
               >
                 {/* ✅ שימוש ב-getImageUrl עם 'medium' (800×800) לתצוגה בAdmin */}
                 <img
-                  src={getImageUrl(image, 'medium')}
+                  src={getImageUrl(image as any, 'medium')}
                   alt={`תמונה ${index + 1}`}
                   className={styles.image}
                 />
@@ -602,9 +607,12 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
           <h4 className={styles.sectionTitle}>תמונות חדשות ({newImages.length})</h4>
           <div className={styles.imagesGrid}>
             {newImages.map((image, index) => (
-              <div key={image.public_id || index} className={styles.imageWrapper}>
+              <div
+                key={('public_id' in image ? image.public_id : image.key) || index}
+                className={styles.imageWrapper}
+              >
                 {/* ✅ שימוש ב-getImageUrl עם 'medium' */}
-                <img src={getImageUrl(image, 'medium')} alt={`תמונה חדשה ${index + 1}`} className={styles.image} />
+                <img src={getImageUrl(image as any, 'medium')} alt={`תמונה חדשה ${index + 1}`} className={styles.image} />
                 <div className={styles.newBadge}>חדש</div>
                 <Button
                   type="button"

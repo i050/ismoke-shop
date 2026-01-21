@@ -63,6 +63,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
       try {
         setLoading(true);
         const productData = await ProductService.getProductById(productId);
+        
+        
         setProduct(productData);
         // הגדרת SKU ברירת מחדל (הראשון ברשימה)
         if (productData.skus && productData.skus.length > 0) {
@@ -346,21 +348,36 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
   // שילוב תמונות וריאנט + מוצר (memo לביצועים - מונע renders מיותרים)
   // ✅ החזרת IImage[] ישירות - ProductGallery יטפל בבחירת הגדלים
+  // 🆕 סדר עדיפות: 1. תמונות צבע ספציפי (colorImages), 2. תמונות משפחת צבע, 3. תמונות SKU, 4. תמונות מוצר
   const currentImages = useMemo(() => {
-    // תמונות הוריאנט הנבחר (משתנות לפי צבע)
+    // 🆕 שלב 1: בדיקה אם יש תמונות לפי צבע ספציפי של ה-SKU הנבחר (עדיפות ראשונה!)
+    const skuColorName = (selectedSkuData as any)?.color; // שם הצבע הספציפי (לא משפחה)
+    const colorImages = (product as any)?.colorImages;
+    const specificColorImages = skuColorName && colorImages && colorImages[skuColorName]?.length > 0
+      ? colorImages[skuColorName] // ✅ IImage[] של הצבע הספציפי
+      : [];
+    
+    // 🆕 שלב 2: בדיקה אם יש תמונות לפי משפחת צבע של ה-SKU הנבחר (fallback)
+    const colorFamily = selectedSkuData?.colorFamily;
+    const colorFamilyImages = (product as any)?.colorFamilyImages;
+    const familyImages = colorFamily && colorFamilyImages && colorFamilyImages[colorFamily]?.length > 0
+      ? colorFamilyImages[colorFamily] // ✅ IImage[] של משפחת הצבע
+      : [];
+    
+    // שלב 3: תמונות הוריאנט הנבחר (משתנות לפי צבע)
     const variantImages = selectedSkuData?.images && selectedSkuData.images.length > 0
       ? selectedSkuData.images // ✅ IImage[] ישירות
       : [];
     
-    // תמונות המוצר הכלליות (קבועות לכל הצבעים)
+    // שלב 4: תמונות המוצר הכלליות (קבועות לכל הצבעים)
     const productImages = product?.images && product.images.length > 0
       ? product.images // ✅ IImage[] ישירות
       : [];
     
-    // 🎯 שילוב: תמונות וריאנט קודם, אחר כך תמונות מוצר
-    // דוגמה: [כחול1, כחול2, כחול3, פיצ'רים, גודל, אריזה]
-    return [...variantImages, ...productImages];
-  }, [selectedSkuData?.images, product?.images]);
+    // 🎯 שילוב: תמונות צבע ספציפי (עדיפות!), תמונות משפחת צבע, תמונות וריאנט, תמונות מוצר
+    // דוגמה: [אדום-ספציפי1, אדום-ספציפי2] + [אדום-משפחה] + [אדום-sku] + [פיצ'רים, גודל, אריזה]
+    return [...specificColorImages, ...familyImages, ...variantImages, ...productImages];
+  }, [selectedSkuData?.images, selectedSkuData?.colorFamily, (selectedSkuData as any)?.color, product?.images, (product as any)?.colorFamilyImages, (product as any)?.colorImages]);
 
   // איפוס הגלריה לתמונה הראשונה כשמשנים ווריאנט
   // כך המשתמש יראה מיד את התמונה הראשונה של הצבע החדש
@@ -481,6 +498,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
                 onSkuChange={handleSkuChange}
                 showColorPreview={true}
                 secondaryVariantAttribute={product.secondaryVariantAttribute}
+                colorFamilyImages={(product as any).colorFamilyImages}
+                colorImages={(product as any).colorImages}
+                useDropdownForSecondary={true}
                 // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
                 variantType={(product as any).variantType}
                 primaryVariantLabel={(product as any).primaryVariantLabel}

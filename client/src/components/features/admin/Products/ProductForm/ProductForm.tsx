@@ -8,8 +8,11 @@ import ProductInventory from './ProductInventory';
 import ProductImages from './ProductImages';
 import ProductCategories from './ProductCategories';
 import ProductSKUs, { generateNextSkuCode } from './ProductSKUs'; // ייבוא הפונקציה החדשה
+import ColorFamilyImages from './ColorFamilyImages';
 import ProductFilterAttributes from './ProductFilterAttributes';
 import ProductSpecifications from './ProductSpecifications/ProductSpecifications';
+import { ProductSEO } from './ProductSEO';
+import { ProductMarketing } from './ProductMarketing';
 import { ProductFormActions } from './ProductFormActions';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Button, Icon } from '@/components/ui';
@@ -27,10 +30,7 @@ export interface ProductFormProps {
   /** מצב הטופס: יצירה או עריכה */
   mode: 'create' | 'edit';
   
-  /** האם למוצר יש וריאנטים (צבעים/מידות) או שהוא מוצר פשוט */
-  hasVariants?: boolean;
-  
-  /** נתונים ראשוניים (רק במצב עריכה) */
+  /** נתונים ראשוניים (רק במצב עריכה) - hasVariants יילקח מכאן */
   initialData?: Product;
   
   /** פונקציה לשמירת הטופס - מחזירה את המוצר שנוצר/העודכן (כדי לאפשר ניווט/עדכון) */
@@ -46,7 +46,7 @@ export interface ProductFormProps {
   onDuplicate?: () => Promise<void>;
   
   /** טאב התחלתי לפתיחה (למשל: 'skus' כשבאים מאזהרת inconsistency, 'attributes' לעריכת מאפיינים) */
-  initialActiveTab?: 'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'specifications' | 'skus';
+  initialActiveTab?: 'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'specifications' | 'skus' | 'colorFamilyImages' | 'seo' | 'marketing';
 }
 
 /**
@@ -64,7 +64,6 @@ export interface ProductFormProps {
  */
 export const ProductForm: React.FC<ProductFormProps> = ({
   mode,
-  hasVariants = false,
   initialData,
   onSubmit,
   onCancel,
@@ -80,8 +79,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [activeSection, setActiveSection] = useState<'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'specifications' | 'skus'>(initialActiveTab);
+  const [activeSection, setActiveSection] = useState<'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'specifications' | 'skus' | 'colorFamilyImages' | 'seo' | 'marketing'>(initialActiveTab);
   const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState<number>(5);
+  
+  // 🆕 hasVariants עכשיו state פנימי - נקבע מ-initialData במצב edit, או ע"י המשתמש במצב create
+  const [hasVariants, setHasVariants] = useState<boolean>(initialData?.hasVariants ?? false);
+
+  // 🆕 צבעים שנבחרו בזרימת יצירת הוריאנטים (לפני יצירת SKUs בפועל)
+  const [draftVariantColors, setDraftVariantColors] = useState<Array<{ color: string; colorHex?: string; colorFamily?: string }>>([]);
   
   // טעינת סף מלאי נמוך גלובלי מהגדרות החנות
   useEffect(() => {
@@ -98,6 +103,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     };
     fetchGlobalThreshold();
   }, []);
+
+  // 🔧 FIX: עדכון hasVariants אוטומטי לפי מספר ה-SKUs שנטענו מהשרת
+  // זה מבטיח שהטאב "וריאנטים" יופיע בעריכת מוצר אם יש לו SKUs
+  useEffect(() => {
+    const skus = initialData?.skus || [];
+    if (mode === 'edit' && skus.length > 0) {
+      // אם יש יותר מ-SKU אחד, או אם ה-SKU היחיד הוא וריאנט (יש לו צבע/מאפיינים)
+      const hasMultipleSkus = skus.length > 1;
+      const singleSkuIsVariant = skus.length === 1 && (
+        skus[0].color || 
+        (skus[0].attributes && Object.keys(skus[0].attributes).length > 0)
+      );
+      
+      if (hasMultipleSkus || singleSkuIsVariant) {
+        setHasVariants(true);
+      }
+    }
+  }, [initialData, mode]);
 
   // ==========================================
   // React Hook Form Setup
@@ -120,6 +143,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       { id: 'attributes-section', name: 'attributes' as const },
       { id: 'specifications-section', name: 'specifications' as const },
       { id: 'skus-section', name: 'skus' as const },
+      { id: 'color-family-images-section', name: 'colorFamilyImages' as const },
+      { id: 'seo-section', name: 'seo' as const },
+      { id: 'marketing-section', name: 'marketing' as const },
     ];
 
     // יצירת Intersection Observer לעקוב אחרי הקטעים
@@ -235,6 +261,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           secondaryVariantLabel: (initialData as any).secondaryVariantLabel || '',
           primaryFilterAttribute: (initialData as any).primaryFilterAttribute || '',
           secondaryFilterAttribute: (initialData as any).secondaryFilterAttribute || '',
+          // 🆕 Color Family Images - תמונות לפי משפחת צבע
+          colorFamilyImages: (initialData as any).colorFamilyImages || {},
+          // 🆕 Color Images - תמונות לפי צבע ספציפי
+          colorImages: (initialData as any).colorImages || {},
+          // 🆕 hasVariants - חשוב ל-validation של SKUs
+          hasVariants: initialData.hasVariants ?? false,
         };
       }
 
@@ -261,6 +293,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         ...defaultProductValues,
         // ודא שיש לפחות SKU ראשוני לעריכה מידית
         skus: [initialSku as any],
+        // 🆕 hasVariants - ברירת מחדל false (מוצר פשוט)
+        hasVariants: false,
       } as any;
     })(),
   });
@@ -275,7 +309,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   } = methods;
 
   // ניטור ערכים מהטופס
+  // הערה: watch() ללא פרמטרים גורם ל-re-render בכל שינוי, 
+  // אבל זה נדרש כדי שהקומפוננטות יקבלו את הערכים המעודכנים
   const formValues = watch();
+  
+  // Alias לתאימות לאחור
+  const watchedName = formValues.name;
+  const watchedSkus = formValues.skus;
 
   // 🔧 FIX: הפעלת validation מיידית בפתיחת הטופס (מצב יצירה)
   // כך המנהל יראה מיד את השגיאות לפני שהוא ממלא את השדות
@@ -286,59 +326,59 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [mode, trigger]);
 
-  // 🔧 FIX: הפעלת validation מחדש כשמשתנים את שדות הקריטיים
-  // כדי שהשגיאות יעלמו בזמן אמת כשהמנהל מתקן את הבעיות
-  useEffect(() => {
-    if (mode === 'create' || isDirty) {
-      trigger(['name', 'basePrice', 'categoryId']);
-    }
-  }, [formValues.name, formValues.basePrice, formValues.categoryId, trigger, mode, isDirty]);
+  // 🔧 PERF: הסרנו useEffect שהריץ trigger בכל הקשה
+  // react-hook-form עם mode: 'all' כבר מפעיל validation אוטומטית בזמן אמת
 
   // 🆕 עדכון אוטומטי של SKU ראשוני כשמשנים את שם המוצר
-  // רק במצב יצירה וכאשר יש SKU ראשוני בלבד (לא נערך ידנית)
+  // 🔧 PERF: שימוש ב-debounce ו-ref למניעת עדכונים מיותרים
+  const skuUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
-    if (mode === 'create' && formValues.name && formValues.skus?.length === 1) {
-      const currentSku = formValues.skus[0];
-      // בדיקה אם ה-SKU הנוכחי נוצר אוטומטית (מתחיל ב-PRODUCT- או שם ריק)
-      const isAutoGenerated = currentSku.sku.startsWith('PRODUCT-') || 
-                              currentSku.name === '' || 
-                              !currentSku.name;
-      
-      if (isAutoGenerated) {
-        // יצירת SKU חדש מהשם המעודכן
-        const newSkuCode = generateNextSkuCode(formValues.name, []);
-        setValue('skus.0.sku', newSkuCode, { shouldDirty: false });
-        console.log('🔄 [ProductForm] Auto-updated initial SKU:', newSkuCode);
-      }
+    // ניקוי timeout קודם
+    if (skuUpdateTimeoutRef.current) {
+      clearTimeout(skuUpdateTimeoutRef.current);
     }
-  }, [formValues.name, formValues.skus, mode, setValue]);
+    
+    // רק במצב יצירה ועם SKU יחיד
+    if (mode !== 'create' || !watchedName || watchedSkus?.length !== 1) {
+      return;
+    }
+    
+    const currentSku = watchedSkus[0];
+    const isAutoGenerated = currentSku.sku.startsWith('PRODUCT-') || 
+                            currentSku.name === '' || 
+                            !currentSku.name;
+    
+    if (!isAutoGenerated) return;
+    
+    // 🔧 PERF: debounce של 500ms - מחכה שהמשתמש יסיים להקליד
+    skuUpdateTimeoutRef.current = setTimeout(() => {
+      const newSkuCode = generateNextSkuCode(watchedName, []);
+      setValue('skus.0.sku', newSkuCode, { shouldDirty: false });
+    }, 500);
+    
+    return () => {
+      if (skuUpdateTimeoutRef.current) {
+        clearTimeout(skuUpdateTimeoutRef.current);
+      }
+    };
+  }, [watchedName, watchedSkus, mode, setValue]);
 
   // ניווט React Router - משמש לאחר יצירה כדי לעבור לדף עריכה
   const navigate = useNavigate();
   
-  // 🔍 DEBUG: בדיקת formValues
-  useEffect(() => {
-    console.log('📊 [ProductForm] formValues:', {
-      name: formValues.name,
-      basePrice: formValues.basePrice,
-      categoryId: formValues.categoryId,
-      images: formValues.images?.length || 0,
-      skus: formValues.skus?.length || 0,
-      secondaryVariantAttribute: formValues.secondaryVariantAttribute // 🔍 DEBUG
-    });
-  }, [formValues.name, formValues.basePrice, formValues.categoryId, formValues.secondaryVariantAttribute]);
+  // 🔍 DEBUG: בדיקת formValues - מושבת לשיפור ביצועים
+  // אפשר להפעיל מחדש בפיתוח עם process.env.NODE_ENV === 'development'
   
   // ⚠️ FIX: במצב edit, RHF לפעמים לא מזהה dirty נכון
   // נעקוב ידנית אחרי שינויים
   const [hasManualChanges, setHasManualChanges] = useState(false);
   
-  // Wrapper ל-setValue שמסמן שינויים ידניים
+  // Wrapper ל-setValue שמסמן שינויים ידניים ומריץ validation
   const setValueWithDirty = (field: any, value: any, options?: any) => {
-    console.log('🔄 [ProductForm] setValue called:', { field, mode, hasManualChanges, value });
-    setValue(field, value, { ...options, shouldDirty: true });
+    setValue(field, value, { ...options, shouldDirty: true, shouldValidate: true });
     // במצב edit - תמיד מסמן כ-dirty אחרי שינוי
     if (mode === 'edit') {
-      console.log('✅ [ProductForm] Marking form as dirty (edit mode)');
       setHasManualChanges(true);
     }
   };
@@ -352,22 +392,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   
   // isDirty משולב - RHF או ידני
   const isFormDirty = mode === 'create' ? isDirty : (isDirty || hasManualChanges);
-  
-  // Logging לדיבאג
-  useEffect(() => {
-    console.log('📊 [ProductForm] Dirty state:', {
-      mode,
-      isDirty,
-      hasManualChanges,
-      isFormDirty,
-      isSubmitting,
-      isValid,
-      buttonWillBeDisabled: !isFormDirty || !isValid || isSubmitting,
-      dirtyFieldsCount: Object.keys(dirtyFields).length,
-      errorsCount: Object.keys(errors).length,
-      errors: errors
-    });
-  }, [isDirty, hasManualChanges, isFormDirty, mode, dirtyFields, isSubmitting, isValid, errors]);
 
   // ==========================================
   // Auto-save Draft (localStorage)
@@ -709,14 +733,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           <div className={styles.titleSection}>
             <h2 className={styles.title}>
               {mode === 'create' 
-                ? (hasVariants ? 'יצירת מוצר עם וריאנטים' : 'יצירת מוצר פשוט')
+                ? 'יצירת מוצר חדש'
                 : 'עריכת מוצר'}
             </h2>
             <p className={styles.subtitle}>
               {mode === 'create'
-                ? (hasVariants 
-                    ? 'מוצר עם אפשרויות כמו צבעים או מידות'
-                    : 'מוצר עם מחיר אחד ומלאי אחד')
+                ? 'מלא את פרטי המוצר ובחר האם יש לו גרסאות'
                 : 'ערוך את פרטי המוצר ושמור את השינויים'}
             </p>
           </div>
@@ -835,6 +857,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </button>
               <button
                 type="button"
+                className={`${styles.navTab} ${activeSection === 'colorFamilyImages' ? styles.active : ''}`}
+                onClick={() => {
+                  document.getElementById('color-family-images-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  setActiveSection('colorFamilyImages');
+                }}
+              >
+                תמונות צבע
+              </button>
+              <button
+                type="button"
                 className={`${styles.navTab} ${activeSection === 'inventory' ? styles.active : ''}`}
                 onClick={() => {
                   document.getElementById('inventory-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -855,6 +887,28 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </button>
             </>
           )}
+          
+          {/* טאבים קבועים: SEO ושיווק */}
+          <button
+            type="button"
+            className={`${styles.navTab} ${activeSection === 'seo' ? styles.active : ''}`}
+            onClick={() => {
+              document.getElementById('seo-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('seo');
+            }}
+          >
+            SEO
+          </button>
+          <button
+            type="button"
+            className={`${styles.navTab} ${activeSection === 'marketing' ? styles.active : ''}`}
+            onClick={() => {
+              document.getElementById('marketing-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              setActiveSection('marketing');
+            }}
+          >
+            שיווק
+          </button>
         </div>
 
         {/* Form Sections - כל הקטעים מוצגים בגלילה רציפה */}
@@ -876,6 +930,73 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               onChange={(field, value) => setValueWithDirty(field, value)}
               disabled={isSubmitting}
             />
+            
+            {/* 🆕 שאלה "האם למוצר יש גרסאות?" - בתוך הטופס במקום בדיאלוג */}
+            {mode === 'create' && (
+              <div className={styles.variantQuestion}>
+                <div className={styles.variantQuestionHeader}>
+                  <Icon name="HelpCircle" size={20} />
+                  <span>האם למוצר הזה יש גרסאות שונות?</span>
+                </div>
+                <p className={styles.variantQuestionSubtext}>
+                  (כמו מידות, צבעים, חומרים וכו')
+                </p>
+                <div className={styles.variantQuestionOptions}>
+                  <label className={`${styles.variantOption} ${!hasVariants ? styles.selected : ''}`}>
+                    <input
+                      type="radio"
+                      name="hasVariants"
+                      checked={!hasVariants}
+                      onChange={() => {
+                        setHasVariants(false);
+                        // 🔧 FIX: סנכרון hasVariants עם הטופס ל-validation נכון
+                        setValue('hasVariants', false, { shouldValidate: true });
+                      }}
+                      disabled={isSubmitting}
+                    />
+                    <div className={styles.variantOptionContent}>
+                      <Icon name="Package" size={24} />
+                      <div>
+                        <strong>לא - מוצר פשוט</strong>
+                        <span>מוצר אחד עם מחיר אחד ומלאי אחד</span>
+                      </div>
+                    </div>
+                  </label>
+                  <label className={`${styles.variantOption} ${hasVariants ? styles.selected : ''}`}>
+                    <input
+                      type="radio"
+                      name="hasVariants"
+                      checked={hasVariants}
+                      onChange={() => {
+                        setHasVariants(true);
+                        // 🔧 FIX: סנכרון hasVariants עם הטופס ל-validation נכון
+                        setValue('hasVariants', true, { shouldValidate: true });
+                        // 🆕 מחיקת ה-SKU הדיפולטיבי כשבוחרים "מוצר עם וריאנטים"
+                        // המנהל יוסיף וריאנטים בעצמו דרך הממשק
+                        const currentSkus = formValues.skus || [];
+                        // מחיקת SKUs "ריקים" (ללא שם או צבע) - אלה הדיפולטיביים
+                        const realSkus = currentSkus.filter(sku => 
+                          (sku.name && sku.name.trim() !== '') || 
+                          (sku.color && sku.color.trim() !== '')
+                        );
+                        setValueWithDirty('skus', realSkus);
+                      }}
+                      disabled={isSubmitting}
+                    />
+                    <div className={styles.variantOptionContent}>
+                      <Icon name="Palette" size={24} />
+                      <div>
+                        <strong>כן - למוצר יש גרסאות</strong>
+                        <span>מוצר עם צבעים, מידות או וריאציות אחרות</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+                <p className={styles.variantQuestionTip}>
+                  💡 לדוגמה: ספר הוא מוצר פשוט, חולצה עם מידות היא מוצר עם גרסאות
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Pricing Section */}
@@ -972,6 +1093,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   isSkuMode={true}
                   mode={mode}
                   onUploadImages={handleSKUImagesUpload}
+                  onDraftColorsChange={setDraftVariantColors}
                   productFormData={{
                     name: formValues.name,
                     basePrice: formValues.basePrice,
@@ -987,6 +1109,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   onPrimaryVariantLabelChange={(label) => setValueWithDirty('primaryVariantLabel', label)}
                   secondaryVariantLabel={formValues.secondaryVariantLabel || undefined}
                   onSecondaryVariantLabelChange={(label) => setValueWithDirty('secondaryVariantLabel', label)}
+                />
+              </div>
+
+              {/* 🆕 Color Family Images Section - תמונות לפי משפחת צבע */}
+              <div id="color-family-images-section" className={styles.section}>
+                <ColorFamilyImages
+                  value={(formValues as any).colorFamilyImages || {}}
+                  onChange={(images) => setValueWithDirty('colorFamilyImages' as any, images)}
+                  // 🆕 תמונות לפי צבע ספציפי
+                  colorImagesValue={(formValues as any).colorImages || {}}
+                  onColorImagesChange={(images) => setValueWithDirty('colorImages' as any, images)}
+                  draftColors={draftVariantColors}
+                  onUpload={(files: File[]) => handleSKUImagesUpload(files, '__COLOR_IMAGES__') as unknown as Promise<any>}
+                  maxImagesPerFamily={10}
+                  disabled={isSubmitting}
+                  activeFamilies={(formValues.skus || []).map(sku => sku.colorFamily).filter((f): f is string => !!f)}
+                  // 🆕 נתוני ה-SKUs לשליפת מידע על הצבעים
+                  skus={formValues.skus || []}
                 />
               </div>
 
@@ -1019,9 +1159,43 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </div>
             </>
           )}
+
+          {/* SEO Section */}
+          <div id="seo-section" className={styles.section}>
+            <ProductSEO
+              seoTitle={formValues.seoTitle || ''}
+              seoDescription={formValues.seoDescription || ''}
+              slug={formValues.slug || ''}
+              productName={formValues.name || ''}
+              onChange={(field, value) => setValueWithDirty(field as any, value)}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* Marketing Section */}
+          <div id="marketing-section" className={styles.section}>
+            <ProductMarketing
+              isNew={formValues.isNew || false}
+              isFeatured={formValues.isFeatured || false}
+              isBestSeller={formValues.isBestSeller || false}
+              promotionTags={(formValues.promotionTags || []).filter((t): t is string => !!t)}
+              onChange={(field, value) => setValueWithDirty(field as any, value)}
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
 
         {/* Actions Footer (Sticky) */}
+          {/* 🔍 DEBUG - הדפס שגיאות לזיהוי הבעיה */}
+        {Object.keys(errors).length > 0 && (
+          <div style={{ background: '#fee', padding: '10px', margin: '10px', direction: 'ltr', fontSize: '12px' }}>
+            <strong>DEBUG Errors:</strong>
+            <pre>{JSON.stringify(errors, (key, value) => {
+              if (key === 'ref') return undefined;
+              return value;
+            }, 2)}</pre>
+          </div>
+        )}
         <ProductFormActions
           mode={mode}
           isSubmitting={isSubmitting}

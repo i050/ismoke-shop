@@ -18,6 +18,7 @@ import {
   getProductsForManagement,
   getProductsAutocomplete,
   getRelatedProducts,
+  reserveSkuSequences,
 } from '../controllers/productController';
 import { authMiddleware, optionalAuthMiddleware, requireAdmin } from '../middleware/authMiddleware';
 import { 
@@ -52,6 +53,11 @@ router.get('/popular', optionalAuthMiddleware, getPopularProducts);
 // Query params: q (טקסט חיפוש), limit (מספר תוצאות)
 // חייב להיות לפני /:id כדי שלא יתפס כ-ID
 router.get('/autocomplete', getProductsAutocomplete);
+
+// POST /api/products/reserve-sequences - הזמנת מספרים סידוריים גלובליים ל-SKUs
+// Body: { count: number } - כמה מספרים להזמין
+// Response: { success: true, sequences: number[] }
+router.post('/reserve-sequences', authMiddleware, requireAdmin, reserveSkuSequences);
 
 // GET /api/products/filter - Get products with filtering + pagination + meta
 router.get('/filter', optionalAuthMiddleware, mapSizeQueryParam, getFilteredProducts);

@@ -8,8 +8,8 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
+  /* max-width: 1400px; */
+  /* margin: 0 auto; */
   padding-bottom: 8rem; /* מקום לסרגל הפעולות הקבוע */
 }
 
@@ -410,5 +410,108 @@
       padding: 0.375rem 0.5rem; /* פחות פנימי */
       margin-bottom: 0.375rem; /* פחות ריווח מעל הכותרת */
     }
+  }
+}
+
+/* ================================================
+   Variant Question - שאלה "יש גרסאות?" בתוך הטופס
+   ================================================ */
+
+.variantQuestion {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 2px solid #0ea5e9;
+  border-radius: 12px;
+}
+
+.variantQuestionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 0.25rem;
+}
+
+.variantQuestionSubtext {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0 0 1rem 0;
+}
+
+.variantQuestionOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.variantOption {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.variantOption:hover {
+  border-color: #0ea5e9;
+  background: #f8fafc;
+}
+
+.variantOption.selected {
+  border-color: #0ea5e9;
+  background: #f0f9ff;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+.variantOption input[type="radio"] {
+  display: none;
+}
+
+.variantOptionContent {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.variantOptionContent > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.variantOptionContent strong {
+  font-size: 0.9375rem;
+  color: #1e293b;
+}
+
+.variantOptionContent span {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.variantQuestionTip {
+  margin: 1rem 0 0 0;
+  padding: 0.75rem;
+  background: #fefce8;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: #713f12;
+}
+
+@media (min-width: 640px) {
+  .variantQuestionOptions {
+    flex-direction: row;
+  }
+  
+  .variantOption {
+    flex: 1;
   }
 }

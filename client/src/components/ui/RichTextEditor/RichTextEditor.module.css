@@ -1,0 +1,212 @@
+/**
+ * סטיילים עבור RichTextEditor
+ * עורך טקסט עשיר עם כפתורי עיצוב
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.container:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-alpha);
+}
+
+.container.error {
+  border-color: var(--color-danger);
+}
+
+.container.error:focus-within {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.container.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ===== סרגל כלים ===== */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.toolbarButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toolbarButton:hover:not(:disabled) {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.toolbarButton.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.toolbarButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.separator {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 6px;
+}
+
+/* ===== אזור עריכה ===== */
+
+.editorWrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+.editor {
+  padding: 12px 16px;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  outline: none;
+  overflow-y: auto;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Placeholder */
+.editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* עיצוב תוכן */
+.editor b,
+.editor strong {
+  font-weight: 700;
+}
+
+.editor i,
+.editor em {
+  font-style: italic;
+}
+
+.editor u {
+  text-decoration: underline;
+}
+
+.editor s,
+.editor strike {
+  text-decoration: line-through;
+}
+
+.editor ul,
+.editor ol {
+  margin: 8px 0;
+  padding-right: 24px;
+}
+
+.editor li {
+  margin-bottom: 4px;
+}
+
+.editor ul {
+  list-style-type: disc;
+}
+
+.editor ol {
+  list-style-type: decimal;
+}
+
+/* ===== Footer ===== */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-color);
+}
+
+.charCounter {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.counterEmpty {
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.counterGood {
+  color: var(--color-success);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.counterWarning {
+  color: var(--color-warning);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.counterDanger {
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 480px) {
+  .toolbar {
+    padding: 6px;
+  }
+
+  .toolbarButton {
+    width: 28px;
+    height: 28px;
+  }
+
+  .separator {
+    height: 20px;
+    margin: 0 4px;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+}

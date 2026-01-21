@@ -27,6 +27,7 @@ export interface ColorFamily {
   displayName: string;
   variants: Array<{
     name: string;
+    displayName?: string;  // שם תצוגה בעברית (אם לא קיים - ישתמש ב-name)
     hex: string;
   }>;
 }

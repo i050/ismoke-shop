@@ -1,5 +1,5 @@
 // ייבוא ספריית React הבסיסית
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 
 // ייבוא קובץ הסטיילים שלנו (CSS Modules)
 import styles from './VariantSelector.module.css';
@@ -22,7 +22,11 @@ interface VariantSelectorProps {
   secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine)
   secondaryOnly?: boolean;              // 🆕 מצב להצגת רק תת-וריאנט (בלי כפתורי צבע)
   hideSecondaryVariants?: boolean;      // 🆕 הסתרת תת-וריאנטים (לשימוש בכרטיסייה)
+  showSecondaryColorsInCompact?: boolean; // 🎯 הצג כפתורי צבע של ציר משני גם במצב compact (כרטיסייה)
   maxColors?: number;                   // 🆕 מספר מקסימלי של כפתורי צבעים להצגה (שאר יוצגו כ-+X)
+  colorFamilyImages?: { [colorFamily: string]: any[] }; // 🆕 תמונות משפחות צבעים (fallback)
+  colorImages?: { [color: string]: any[] }; // 🆕 תמונות לפי צבע ספציפי (עדיפות)
+  useDropdownForSecondary?: boolean;    // 🎯 האם להציג תת-וריאנטים כ-dropdown (במקום כפתורים)
   // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
   variantType?: VariantType;            // סוג הוריאנט: 'color' | 'custom' | null
   primaryVariantLabel?: string;         // תווית הוריאנט הראשי (לדוגמה: "טעם")
@@ -50,7 +54,11 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   secondaryVariantAttribute = null,
   secondaryOnly = false,
   hideSecondaryVariants = false,
+  showSecondaryColorsInCompact = false, // 🎯 ברירת מחדל: לא מציגים ציר משני ב-compact
   maxColors = compactMode ? 2 : undefined, // ברירת מחדל חכמה: 2 ב-compactMode
+  colorFamilyImages = {}, // 🆕 תמונות משפחות צבעים (fallback)
+  colorImages = {}, // 🆕 תמונות לפי צבע ספציפי (עדיפות)
+  useDropdownForSecondary = false, // 🎯 ברירת מחדל: כפתורים (תאימות לאחור)
   // 🆕 Phase 4: תמיכה בוריאנטים מותאמים אישית
   variantType = null,
   primaryVariantLabel = 'וריאנט',
@@ -79,7 +87,16 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       'אפור': '#6c757d',
       'לבן': '#f8f9fa',
       'זהב': '#ffd700',
-      'כסף': '#c0c0c0'
+      'כסף': '#c0c0c0',
+      // צבעים ספציפיים
+      'Crimson': '#DC143C',
+      'ארגמן': '#DC143C',
+      'Scarlet': '#FF2400',
+      'שני': '#FF2400',
+      'Amber': '#FFBF00',
+      'ענבר': '#FFBF00',
+      'Burnt Orange': '#CC5500',
+      'כתום שרוף': '#CC5500'
     };
     
     // אם הצבע קיים כמו שהוא במיפוי, החזר אותו
@@ -143,9 +160,19 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     if ((sku as any).color) {
       return (sku as any).color;
     }
-    // נסה attributes.color (פורמט טופס ישן - backward compatibility)
-    if (sku.attributes?.color) {
-      return sku.attributes.color;
+    // נסה attributes['צבע'] או attributes.color (תמיכה בעברית)
+    if (sku.attributes) {
+      const skuAny = sku as any;
+      if (skuAny.attributes['צבע']) {
+        return skuAny.attributes['צבע'];
+      }
+      if (skuAny.attributes.color) {
+        return skuAny.attributes.color;
+      }
+    }
+    // נסה subVariantName אם הציר המשני הוא צבע
+    if ((sku as any).subVariantName) {
+      return (sku as any).subVariantName;
     }
     // fallback - נסה לחלץ צבע מתוך שם ה-SKU (למוצרים ישנים)
     if (sku.name) {
@@ -165,9 +192,19 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     if ((sku as any).color) {
       return (sku as any).color;
     }
-    // נסה attributes.color (פורמט טופס ישן - backward compatibility)
-    if (sku.attributes?.color) {
-      return sku.attributes.color;
+    // נסה attributes['צבע'] או attributes.color (תמיכה בעברית)
+    if (sku.attributes) {
+      const skuAny = sku as any;
+      if (skuAny.attributes['צבע']) {
+        return skuAny.attributes['צבע'];
+      }
+      if (skuAny.attributes.color) {
+        return skuAny.attributes.color;
+      }
+    }
+    // נסה subVariantName אם הציר המשני הוא צבע
+    if ((sku as any).subVariantName) {
+      return (sku as any).subVariantName;
     }
     // fallback - נסה לחלץ צבע מתוך שם ה-SKU (למוצרים ישנים)
     if (sku.name) {
@@ -192,28 +229,54 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     return colorHex;
   };
 
-  // 🆕 קיבוץ SKUs לפי צבעים
+  // 🆕 זיהוי מבנה הוריאנטים: האם יש variantName שמשתנה?
+  // ⚠️ חשוב: כשצבע הוא ראשי, variantName מכיל את שם הצבע!
+  // לכן צריך לבדוק: האם יש attributes['צבע']? אם כן = צבע משני = יש variantName אמיתי
+  // אם אין attributes['צבע'] = צבע ראשי = variantName הוא הצבע עצמו, לא ציר נפרד
+  const hasVariantNameAxis = useMemo(() => {
+    // בדיקה אם יש צבע ב-attributes (סימן שהצבע משני)
+    const hasColorInAttributes = skus.some(sku => !!(sku as any).attributes?.['צבע']);
+    if (hasColorInAttributes) {
+      // צבע משני → יש variantName אמיתי כציר ראשי
+      const variantNames = new Set(skus.map(sku => (sku as any).variantName).filter(Boolean));
+      return variantNames.size > 1;
+    }
+    // צבע ראשי או אין צבע → אין ציר variantName נפרד
+    return false;
+  }, [skus]);
+
+  // 🆕 קיבוץ SKUs - אם יש variantName קבץ לפיו, אחרת לפי צבע
   const colorGroups = useMemo<ColorGroup[]>(() => {
     const groups: { [color: string]: ColorGroup } = {};
     
+    // אם יש variantName שמשתנה, לא נקבץ לפי צבע כאן (הצבע יהיה משני)
+    if (hasVariantNameAxis) {
+      return [];
+    }
+    
     for (const sku of skus) {
-      const color = getSkuColor(sku);
-      if (!color) continue;
+      // 🎯 קבלת color (צבע ספציפי) לקיבוץ - לא colorFamily!
+      const colorValue = (sku as any).color || getSkuColor(sku);
+      if (!colorValue) continue;
       
-      if (!groups[color]) {
-        groups[color] = {
-          color,
-          colorHex: color.startsWith('#') ? color : undefined,
+      if (!groups[colorValue]) {
+        // השתמש ב-SKU הראשון כנציג של הצבע
+        const representativeSku = sku;
+        const colorHex = getSkuColor(representativeSku);
+        
+        groups[colorValue] = {
+          color: colorValue, // הצבע הספציפי
+          colorHex: colorHex.startsWith('#') ? colorHex : undefined,
           skus: [],
           variants: []
         };
       }
       
-      groups[color].skus.push(sku);
+      groups[colorValue].skus.push(sku);
       
       // אם יש תת-וריאנט, הוסף אותו לרשימה
       if (secondaryVariantAttribute && sku.attributes?.[secondaryVariantAttribute]) {
-        groups[color].variants.push({
+        groups[colorValue].variants.push({
           value: sku.attributes[secondaryVariantAttribute]!,
           sku: sku.sku
         });
@@ -221,15 +284,16 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     }
     
     return Object.values(groups);
-  }, [skus, secondaryVariantAttribute]);
+  }, [skus, secondaryVariantAttribute, hasVariantNameAxis]);
 
   // 🆕 אתחול selectedColor לפי SKU הנבחר
   React.useEffect(() => {
     if (selectedSku) {
       const currentSku = skus.find(s => s.sku === selectedSku);
       if (currentSku) {
-        const color = getSkuColor(currentSku);
-        setSelectedColor(color);
+        // 🎯 שימוש ב-color במקום colorFamily כדי להתאים ל-colorGroups
+        const colorValue = (currentSku as any).color || getSkuColor(currentSku);
+        setSelectedColor(colorValue);
       }
     }
   }, [selectedSku, skus]);
@@ -239,31 +303,295 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     return null;
   }
 
-  // 🔧 אם אין SKUs עם צבעים (colorGroups ריק) ולא מדובר בוריאנטים מותאמים - אל תציג כלום
-  // זה מונע הצגת כפתורי צבע ריקים למוצרים עם SKU דיפולטיבי בלבד
-  if (colorGroups.length === 0 && variantType !== 'custom') {
+  // 🔧 מוצר עם SKU בודד בלבד - לא צריך להציג בורר
+  // (אבל אם יש יותר מ-SKU אחד - תמיד צריך להציג בורר)
+  if (skus.length === 1) {
     return null;
   }
+
+  // ============================================================================
+  // 🆕 הכנה לוריאנטים מותאמים (custom): זיהוי צירים וארגון קבוצות
+  // ============================================================================
+  const hasCustomSecondaryAxis = useMemo(() => {
+    // זיהוי אם קיים ציר משני אמיתי (subVariantName או attributes)
+    return skus.some(sku => {
+      const skuAny = sku as any;
+      return Boolean(skuAny.subVariantName) || (skuAny.attributes && Object.keys(skuAny.attributes).length > 0);
+    });
+  }, [skus]);
+
+  const customVariantGroups = useMemo(() => {
+    // קיבוץ לפי variantName (ציר ראשי)
+    const groups: { [key: string]: { variantName: string; skus: Sku[] } } = {};
+
+    for (const sku of skus) {
+      const variantName = (sku as any).variantName || sku.name || 'ללא שם';
+
+      if (!groups[variantName]) {
+        groups[variantName] = { variantName, skus: [] };
+      }
+      groups[variantName].skus.push(sku);
+    }
+
+    return Object.values(groups);
+  }, [skus]);
+
+  const currentSelectedCustomGroup = useMemo(() => {
+    if (!selectedSku) return customVariantGroups[0];
+    return customVariantGroups.find(g => g.skus.some(s => s.sku === selectedSku)) || customVariantGroups[0];
+  }, [selectedSku, customVariantGroups]);
+
+  const [selectedCustomPrimaryValue, setSelectedCustomPrimaryValue] = useState<string>(
+    currentSelectedCustomGroup?.variantName || ''
+  );
+
+  useEffect(() => {
+    if (currentSelectedCustomGroup) {
+      setSelectedCustomPrimaryValue(currentSelectedCustomGroup.variantName);
+    }
+  }, [currentSelectedCustomGroup]);
+
+  const customSecondaryOptions = useMemo(() => {
+    const group = customVariantGroups.find(g => g.variantName === selectedCustomPrimaryValue);
+    return group?.skus || [];
+  }, [customVariantGroups, selectedCustomPrimaryValue]);
 
   // 🆕 Phase 4: **תצוגת וריאנטים מותאמים אישית (dropdown)**
   // עבור variantType === 'custom' - מציג dropdown במקום כפתורי צבע
   if (variantType === 'custom') {
-    // קיבוץ לפי variantName (הוריאנט הראשי)
-    const customVariantGroups = useMemo(() => {
-      const groups: { [key: string]: { variantName: string; skus: Sku[] } } = {};
-      
-      for (const sku of skus) {
-        const variantName = (sku as any).variantName || sku.name || 'ללא שם';
-        
-        if (!groups[variantName]) {
-          groups[variantName] = { variantName, skus: [] };
-        }
-        groups[variantName].skus.push(sku);
-      }
-      
-      return Object.values(groups);
-    }, [skus]);
+    // 🎯 עדכון: אם אחד הצירים הוא צבע, נציג אותו ככפתורים גם ב-custom mode
 
+    const isPrimaryAxisColor = customVariantGroups.length > 1 && customVariantGroups.every(g => {
+      if (!g.skus[0]) return false;
+      const c = (g.skus[0] as any).color || (g.skus[0] as any).colorHex;
+      return Boolean(c);
+    }) && new Set(customVariantGroups.map(g => (g.skus[0] as any).color || (g.skus[0] as any).colorHex)).size === customVariantGroups.length;
+
+    const isSecondaryAxisColor = customSecondaryOptions.length > 1 && (() => {
+      // זיהוי אם ה-attributes מכילים מפתח "צבע" או "color"
+      const colors = customSecondaryOptions.map(sku => {
+        const skuAny = sku as any;
+        // אם יש color/colorHex ישירות - השתמש בהם
+        if (skuAny.color || skuAny.colorHex) {
+          return skuAny.color || skuAny.colorHex;
+        }
+        // אחרת בדוק אם יש attribute "צבע" או "color"
+        if (skuAny.attributes) {
+          return skuAny.attributes['צבע'] || skuAny.attributes['color'];
+        }
+        return null;
+      });
+      
+      const uniqueColors = new Set(colors.filter(Boolean));
+      
+      // אם יש לפחות 2 צבעים שונים ולכל SKU יש צבע - הציר הוא צבע
+      return uniqueColors.size >= 2 && colors.filter(Boolean).length === customSecondaryOptions.length;
+    })();
+
+    // אם יש שני צירים → מציג שני דרופדאונים (או כפתורים אם זה צבע) מדורגים
+    if (hasCustomSecondaryAxis) {
+      const primaryLabelText = primaryVariantLabel || 'וריאנט';
+      const secondaryLabelText = secondaryVariantLabel || 'וריאנט משני';
+
+      const handlePrimaryChange = (primaryValue: string) => {
+        setSelectedCustomPrimaryValue(primaryValue);
+        // בחר אוטומטית SKU ראשון בקבוצה החדשה
+        const newGroup = customVariantGroups.find(g => g.variantName === primaryValue);
+        if (newGroup && newGroup.skus.length > 0) {
+          onSkuChange(newGroup.skus[0].sku);
+        }
+      };
+
+      return (
+        <div className={styles.variantSection}>
+          {/* 🎯 אם הציר המשני הוא צבע - נציג אותו ראשון (UX: צבע תמיד ראשון) */}
+          {isSecondaryAxisColor && customSecondaryOptions.length > 0 && (!hideSecondaryVariants || showSecondaryColorsInCompact) && (
+            <div className={styles.secondaryVariantSection}>
+              {!compactMode && <h4 className={styles.secondaryVariantTitle}>{secondaryLabelText}:</h4>}
+              <div className={styles.variantOptions}>
+                {customSecondaryOptions.map((sku, idx) => {
+                  const colorHex = getSkuColor(sku);
+                  const colorName = getSkuColorName(sku);
+                  const colorCode = getColorCode(colorHex);
+                  const isSelected = sku.sku === selectedSku;
+                  // קבלת שם הצבע בעברית מקוד ה-HEX
+                  const hebrewColorName = getColorNameHebrew(colorCode);
+                  
+                  return (
+                    <Button
+                      key={`custom-secondary-${sku.sku}-${idx}`}
+                      variant={'ghost'}
+                      size="sm"
+                      className={`${styles.variantButton} ${
+                        isSelected ? styles.variantActive : ''
+                      } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
+                      onClick={() => onSkuChange(sku.sku)}
+                      style={{
+                        ['--variant-color' as any]: colorCode,
+                        ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
+                      }}
+                      title={`בחר ${secondaryLabelText} ${hebrewColorName || colorName || colorHex}`}
+                    >
+                      {showColorPreview && (
+                        <div className={styles.colorPreview} />
+                      )}
+                      
+                      {!compactMode && (() => {
+                         // 🆕 לוגיקת חיפוש תמונה: colorImages (עדיפות) -> colorFamilyImages (fallback) -> תמונות SKU
+                         const skuColorName = (sku as any).color;
+                         const skuColorFamily = (sku as any).colorFamily;
+                         
+                         // ניסיון 1: תמונות לפי צבע ספציפי
+                         const specificColorImages = skuColorName && colorImages[skuColorName];
+                         // ניסיון 2: תמונות משפחת צבע (fallback)
+                         const familyImages = skuColorFamily && colorFamilyImages[skuColorFamily];
+                         // ניסיון 3: תמונות ה-SKU עצמו
+                         const imageToShow = specificColorImages?.[0] || familyImages?.[0] || sku.images?.[0];
+                         
+                         return imageToShow ? (
+                          <img 
+                            src={getImageUrl(imageToShow)} 
+                            alt={`${hebrewColorName || colorName || colorHex} variant`}
+                            className={styles.variantImage}
+                          />
+                        ) : (
+                          <span className={styles.variantColorName}>{hebrewColorName || colorName || getColorDisplayName(colorHex)}</span>
+                        );
+                      })()}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ציר ראשי: דרופדאון או כפתורי צבע */}
+          {/* 🎯 במצב compact: אם הציר המשני הוא צבע, לא מציגים את הציר הראשי */}
+          {!(compactMode && isSecondaryAxisColor && showSecondaryColorsInCompact) && (isPrimaryAxisColor ? (
+             <div className={styles.variantOptions}>
+                {!compactMode && <h3 className={styles.variantTitle}>{primaryLabelText}:</h3>}
+                {customVariantGroups.map((group, index) => {
+                  const representativeSku = group.skus[0];
+                  const colorHex = getSkuColor(representativeSku);
+                  const colorCode = getColorCode(colorHex);
+                  const isSelected = group.variantName === selectedCustomPrimaryValue;
+
+                  return (
+                    <Button
+                      key={`custom-primary-${group.variantName}-${index}`}
+                      variant={'ghost'}
+                      size="sm"
+                      className={`${styles.variantButton} ${
+                        isSelected ? styles.variantActive : ''
+                      } ${showColorPreview ? styles.withColorPreview : ''}`}
+                      onClick={() => handlePrimaryChange(group.variantName)}
+                      style={{
+                        ['--variant-color' as any]: colorCode,
+                        ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
+                      }}
+                      title={`בחר ${primaryLabelText} ${group.variantName}`}
+                    >
+                      {showColorPreview && (
+                        <div className={styles.colorPreview} />
+                      )}
+                      
+                      {(() => {
+                        // 🆕 לוגיקת חיפוש תמונה גם ב-custom: colorImages (עדיפות) -> colorFamilyImages (fallback) -> תמונות SKU
+                        const skuColorName = (representativeSku as any).color;
+                        const skuColorFamily = (representativeSku as any).colorFamily;
+                        
+                        // ניסיון 1: תמונות לפי צבע ספציפי
+                        const specificColorImages = skuColorName && colorImages[skuColorName];
+                        // ניסיון 2: תמונות משפחת צבע (fallback)
+                        const familyImages = skuColorFamily && colorFamilyImages[skuColorFamily];
+                        // ניסיון 3: תמונות ה-SKU עצמו
+                        const imageToShow = specificColorImages?.[0] || familyImages?.[0] || representativeSku.images?.[0];
+                        
+                        return imageToShow ? (
+                          <img 
+                            src={getImageUrl(imageToShow)} 
+                            alt={`${group.variantName} variant`}
+                            className={styles.variantImage}
+                          />
+                        ) : (
+                           <span className={styles.variantColorName}>{group.variantName}</span>
+                        );
+                      })()}
+                    </Button>
+                  );
+                })}
+             </div>
+          ) : !compactMode && (
+            <div className={styles.customVariantSelector}>
+              <label className={styles.customVariantLabel}>
+                {primaryLabelText}:
+              </label>
+              <div className={styles.selectWrapper}>
+                <select
+                  className={styles.customVariantSelect}
+                  value={selectedCustomPrimaryValue}
+                  onChange={(e) => handlePrimaryChange(e.target.value)}
+                  title={`בחר ${primaryLabelText}`}
+                >
+                  {customVariantGroups.map(group => (
+                    <option key={`primary-${group.variantName}`} value={group.variantName}>
+                      {group.variantName}
+                    </option>
+                  ))}
+                </select>
+                <svg className={styles.selectIcon} width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          ))}
+
+          {/* ציר משני: דרופדאון (רק אם הוא לא צבע, כי אז הוצג למעלה) */}
+          {/* 🎯 במצב compact: לא מציגים דרופדאון בכלל, רק כפתורי צבע */}
+          {customSecondaryOptions.length > 0 && !isSecondaryAxisColor && !compactMode && (
+            <div className={styles.customVariantSelector}>
+              <label className={styles.customVariantLabel}>
+                {secondaryLabelText}:
+              </label>
+              <div className={styles.selectWrapper}>
+                <select
+                  className={styles.customVariantSelect}
+                  value={selectedSku || ''}
+                  onChange={(e) => onSkuChange(e.target.value)}
+                  title={`בחר ${secondaryLabelText}`}
+                >
+                  {customSecondaryOptions.map((sku, idx) => {
+                    const skuAny = sku as any;
+                    let secondaryDisplayValue: string;
+
+                    // עדיפות ל-subVariantName, אחרת attributes, אחרת name
+                    if (skuAny.subVariantName) {
+                      secondaryDisplayValue = skuAny.subVariantName;
+                    } else if (skuAny.attributes && Object.keys(skuAny.attributes).length > 0) {
+                      const attributeKey = Object.keys(skuAny.attributes)[0];
+                      secondaryDisplayValue = skuAny.attributes[attributeKey];
+                    } else {
+                      secondaryDisplayValue = skuAny.name || sku.name;
+                    }
+
+                    return (
+                      <option key={`secondary-${sku.sku}-${idx}`} value={sku.sku}>
+                        {secondaryDisplayValue}
+                      </option>
+                    );
+                  })}
+                </select>
+                <svg className={styles.selectIcon} width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // אם יש ציר אחד בלבד → מציג דרופדאון יחיד (התנהגות קודמת)
     return (
       <div className={styles.variantSection}>
         {/* Dropdown לבחירת וריאנט ראשי */}
@@ -313,12 +641,20 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     );
   }
 
+  // 🔍 **זיהוי אוטומטי: האם אחד מהצירים הוא צבע**
+  // בדיקה אם לפחות SKU אחד מכיל color/colorHex/colorFamily
+  const hasColorVariant = useMemo(() => {
+    return skus.some(sku => 
+      (sku as any).color || 
+      (sku as any).colorHex || 
+      (sku as any).colorFamily
+    );
+  }, [skus]);
+
   // 🔍 **קביעת מצב התצוגה:**
-  // מצב פשוט רק אם:
-  // 1. אין secondaryVariantAttribute (מוצר ישן)
-  // 2. יש רק SKU אחד בסה"כ
-  // אם יש secondaryVariantAttribute - תמיד מצב היררכי (גם עם צבע אחד!)
-  const useSimpleMode = !secondaryVariantAttribute || skus.length === 1;
+  // מצב פשוט רק אם יש SKU אחד בסה"כ
+  // אם יש יותר מ-SKU אחד - תמיד מצב היררכי (קיבוץ לפי צבע)
+  const useSimpleMode = skus.length === 1;
 
   // **תצוגה פשוטה (מצב ישן - תאימות לאחור)**
   if (useSimpleMode) {
@@ -352,17 +688,42 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                 
                 {!compactMode && (
                   <>
-                    {skuItem.images && skuItem.images.length > 0 ? (
-                      <img 
-                        src={getImageUrl(skuItem.images[0])} 
-                        alt={`${colorName || colorHex} variant`}
-                        className={styles.variantImage}
-                      />
-                    ) : (
-                      (colorName || colorHex) && (
-                        <span className={styles.variantColorName}>{colorName || getColorDisplayName(colorHex)}</span>
-                      )
-                    )}
+                    {(() => {
+                      // 🆕 לוגיקת חיפוש תמונה: colorImages (עדיפות) -> colorFamilyImages (fallback) -> תמונות SKU
+                      const colorName = skuItem.color;
+                      const colorFamily = skuItem.colorFamily;
+                      
+                      // ניסיון 1: תמונות לפי צבע ספציפי
+                      const specificColorImages = colorName && colorImages[colorName];
+                      // ניסיון 2: תמונות משפחת צבע (fallback)
+                      const familyImages = colorFamily && colorFamilyImages[colorFamily];
+                      // ניסיון 3: תמונות ה-SKU עצמו
+                      const imageToShow = specificColorImages?.[0] || familyImages?.[0] || skuItem.images?.[0];
+                      
+                      // 🔍 DEBUG
+                      if (colorName) {
+                        console.log(`🎨 VariantSelector - SKU ${skuItem.sku}:`, {
+                          colorName,
+                          colorFamily,
+                          specificColorImages: specificColorImages ? `${specificColorImages.length} images` : 'none',
+                          familyImages: familyImages ? `${familyImages.length} images` : 'none',
+                          skuImages: skuItem.images?.length || 0,
+                          imageToShow: imageToShow ? 'found' : 'NOT FOUND'
+                        });
+                      }
+                      
+                      return imageToShow ? (
+                        <img 
+                          src={getImageUrl(imageToShow)} 
+                          alt={`${colorName || colorHex} variant`}
+                          className={styles.variantImage}
+                        />
+                      ) : (
+                        (colorName || colorHex) && (
+                          <span className={styles.variantColorName}>{colorName || getColorDisplayName(colorHex)}</span>
+                        )
+                      );
+                    })()}
                   </>
                 )}
               </Button>
@@ -380,22 +741,305 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     ? colorGroups.find(g => g.color === selectedColor) 
     : null;
 
-  // 🆕 בדיקה אם יש תת-וריאנטים להציג
-  const hasSecondaryVariants = selectedColorGroup && selectedColorGroup.variants.length > 1;
+  // 🔍 בדיקה אם יש תת-וריאנטים להציג
+  // מציג dropdown אם:
+  // 1. יש קבוצת צבע נבחרת
+  // 2. ויש יותר מ-SKU אחד באותה קבוצה (כלומר יש מה לבחור)
+  const hasSecondaryVariants = selectedColorGroup && selectedColorGroup.skus.length > 1;
 
-  // 🆕 תרגום label לפי סוג המאפיין
-  const getSecondaryAttributeLabel = (): string => {
-    if (!secondaryVariantAttribute) return 'בחר';
-    if (secondaryVariantAttribute === 'size') return 'מידה';
-    if (secondaryVariantAttribute === 'htngdvt_slylym') return 'התנגדות';
-    if (secondaryVariantAttribute === 'nicotine') return 'ניקוטין';
+  // 🆕 זיהוי אם הציר המשני הוא צבע
+  // בודק אם ה-SKUs בקבוצה הנבחרת שונים בצבע שלהם
+  const isSecondaryAxisColor = useMemo(() => {
+    if (!selectedColorGroup || selectedColorGroup.skus.length <= 1) return false;
+    
+    // בדיקה אם לכל SKU בקבוצה יש צבע
+    const colors = selectedColorGroup.skus.map(sku => {
+      const skuAny = sku as any;
+      if (skuAny.color || skuAny.colorHex) {
+        return skuAny.color || skuAny.colorHex;
+      }
+      if (skuAny.attributes) {
+        return skuAny.attributes['צבע'] || skuAny.attributes['color'];
+      }
+      return null;
+    });
+    const uniqueColors = new Set(colors.filter(Boolean));
+    
+    // אם יש לפחות 2 צבעים שונים ולכל SKU יש צבע - הציר המשני הוא צבע
+    return uniqueColors.size >= 2 && colors.filter(Boolean).length === selectedColorGroup.skus.length;
+  }, [selectedColorGroup]);
+
+  // 🆕 זיהוי אוטומטי של שם הוריאנט הראשי
+  const getPrimaryVariantLabel = (): string => {
+    // קודם כל ננסה להשתמש ב-label שהועבר מהמוצר
+    if (primaryVariantLabel) return primaryVariantLabel;
+    
+    // זיהוי אוטומטי מה-SKUs
+    if (skus.length > 0) {
+      const firstSku = skus[0] as any;
+      
+      // אם יש variantName + attributes → הציר הראשי הוא ה-attribute
+      if (firstSku.variantName && firstSku.attributes && Object.keys(firstSku.attributes).length > 0) {
+        const attributeKey = Object.keys(firstSku.attributes)[0];
+        // אם המפתח הוא בעברית - נחזיר אותו
+        if (/[\u0590-\u05FF]/.test(attributeKey)) {
+          return attributeKey; // למשל: "טעם"
+        }
+        // תרגום שמות באנגלית
+        if (attributeKey === 'flavor') return 'טעם';
+        if (attributeKey === 'type') return 'סוג';
+        return attributeKey;
+      }
+      
+      // אחרת - variantName הוא הציר הראשי
+      if (firstSku.variantName) {
+        return 'דגם';
+      }
+    }
+    
     return 'בחר';
   };
 
+  // 🆕 תרגום label לפי סוג המאפיין - לציר משני  
+  const getSecondaryAttributeLabel = (): string => {
+    // קודם כל ננסה להשתמש ב-label שהועבר מהמוצר
+    if (secondaryVariantLabel) return secondaryVariantLabel;
+    
+    // זיהוי אוטומטי מה-SKUs
+    if (skus.length > 0) {
+      const firstSku = skus[0] as any;
+      
+      // אם יש variantName + attributes → הציר המשני הוא variantName
+      if (firstSku.variantName && firstSku.attributes && Object.keys(firstSku.attributes).length > 0) {
+        return 'דגם'; // או "התנגדות סלילים" אם זה מוגדר ב-secondaryVariantLabel
+      }
+    }
+    
+    return 'בחר';
+  };
+
+  // 🎯 **החלטת מצב תצוגה לפי צבע:**
+  // אם יש variantName שמשתנה → variantName הוא ראשי, צבע הוא משני
+  // אחרת אם יש צבע → צבע הוא ראשי
+  const shouldShowColorButtons = hasColorVariant && !hasVariantNameAxis;
+
+  // 🆕 אם אין צבע בכלל → מצב דרופדאונים לשני הצירים
+  if (!shouldShowColorButtons && !secondaryOnly) {
+    // 🔧 זיהוי חכם של הצירים מבנה ה-SKU:
+    // אם יש variantName + attributes → ציר ראשי = attribute value, ציר משני = variantName
+    // אחרת → ציר ראשי = variantName
+    
+    const primaryAxisGroups = useMemo(() => {
+      const groups: { [key: string]: { primaryValue: string; skus: Sku[] } } = {};
+      
+      for (const sku of skus) {
+        let primaryValue: string;
+        
+        // בדיקה אם יש attributes + variantName (מבנה של 2 צירים)
+        const skuAny = sku as any;
+        if (skuAny.variantName && skuAny.attributes && Object.keys(skuAny.attributes).length > 0) {
+          // יש שני צירים: variantName הוא הציר הראשי, וה-subVariantName/attributes הם המשניים
+          primaryValue = skuAny.variantName;
+        } else {
+          // אין שני צירים - variantName הוא הראשי או fallback לשם ה-SKU
+          primaryValue = skuAny.variantName || sku.name;
+        }
+        
+        if (!groups[primaryValue]) {
+          groups[primaryValue] = { primaryValue, skus: [] };
+        }
+        groups[primaryValue].skus.push(sku);
+      }
+      
+      return Object.values(groups);
+    }, [skus]);
+
+    // 🎯 מציאת הקבוצה הנבחרת לפי ה-SKU הנבחר
+    const currentSelectedGroup = useMemo(() => {
+      if (!selectedSku) return primaryAxisGroups[0];
+      return primaryAxisGroups.find(g => g.skus.some(s => s.sku === selectedSku)) || primaryAxisGroups[0];
+    }, [selectedSku, primaryAxisGroups]);
+
+    // 🎯 שמירת הציר הראשי הנבחר (לא SKU - רק הערך של הציר)
+    const [selectedPrimaryValue, setSelectedPrimaryValue] = useState<string>(
+      currentSelectedGroup?.primaryValue || ''
+    );
+
+    // 🔄 סנכרון selectedPrimaryValue עם ה-SKU הנבחר
+    React.useEffect(() => {
+      if (currentSelectedGroup) {
+        setSelectedPrimaryValue(currentSelectedGroup.primaryValue);
+      }
+    }, [currentSelectedGroup]);
+
+    // 📋 רשימת האפשרויות לדרופדאון המשני (מסוננת לפי הציר הראשי)
+    const secondaryOptions = useMemo(() => {
+      const group = primaryAxisGroups.find(g => g.primaryValue === selectedPrimaryValue);
+      return group?.skus || [];
+    }, [primaryAxisGroups, selectedPrimaryValue]);
+
+    // 🆕 בדיקה אם הציר המשני הוא צבע (לפי נוכחות color/colorHex ב-SKUs)
+    const isSecondaryAxisColorInNonColorMode = useMemo(() => {
+      if (secondaryOptions.length <= 1) return false;
+      
+      // בודק אם לכל SKU יש צבע
+      const colors = secondaryOptions.map(sku => {
+        const skuAny = sku as any;
+        if (skuAny.color || skuAny.colorHex) {
+          return skuAny.color || skuAny.colorHex;
+        }
+        if (skuAny.attributes) {
+          return skuAny.attributes['צבע'] || skuAny.attributes['color'];
+        }
+        return null;
+      });
+      const uniqueColors = new Set(colors.filter(Boolean));
+      
+      // אם יש לפחות 2 צבעים שונים ולכל SKU יש צבע - הציר הוא צבע
+      return uniqueColors.size >= 2 && colors.filter(Boolean).length === secondaryOptions.length;
+    }, [secondaryOptions]);
+
+    // 🎯 פונקציה לטיפול בשינוי הציר הראשי
+    const handlePrimaryChange = (primaryValue: string) => {
+      setSelectedPrimaryValue(primaryValue);
+      // בחר אוטומטית את ה-SKU הראשון בקבוצה החדשה
+      const newGroup = primaryAxisGroups.find(g => g.primaryValue === primaryValue);
+      if (newGroup && newGroup.skus.length > 0) {
+        onSkuChange(newGroup.skus[0].sku);
+      }
+    };
+
+    return (
+      <div className={styles.variantSection}>
+        {/* דרופדאון 1: ציר ראשי (variantName/name) */}
+        <div className={styles.customVariantSelector}>
+          <label className={styles.customVariantLabel}>
+            {getPrimaryVariantLabel()}:
+          </label>
+          <div className={styles.selectWrapper}>
+            <select
+              className={styles.customVariantSelect}
+              value={selectedPrimaryValue}
+              onChange={(e) => handlePrimaryChange(e.target.value)}
+              title={`בחר ${getPrimaryVariantLabel()}`}
+            >
+              {primaryAxisGroups.map((group, idx) => (
+                <option key={`primary-${group.primaryValue}-${idx}`} value={group.primaryValue}>
+                  {group.primaryValue}
+                </option>
+              ))}
+            </select>
+            <svg className={styles.selectIcon} width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* ציר משני: כפתורי צבע או dropdown */}
+        {secondaryOptions.length > 0 && (
+          isSecondaryAxisColorInNonColorMode ? (
+            /* 🎯 אם הציר המשני הוא צבע - הצג כפתורי צבע */
+            <div className={styles.secondaryVariantSection}>
+              <h4 className={styles.secondaryVariantTitle}>צבע:</h4>
+              <div className={styles.variantOptions}>
+                {secondaryOptions.map((sku, index) => {
+                  const colorHex = getSkuColor(sku);
+                  const colorName = getSkuColorName(sku);
+                  const colorCode = getColorCode(colorHex);
+                  const isSelected = sku.sku === selectedSku;
+                  
+                  return (
+                    <Button
+                      key={`noncolor-secondary-color-${sku.sku}-${index}`}
+                      variant={'ghost'}
+                      size="sm"
+                      className={`${styles.variantButton} ${
+                        isSelected ? styles.variantActive : ''
+                      } ${showColorPreview ? styles.withColorPreview : ''}`}
+                      onClick={() => onSkuChange(sku.sku)}
+                      style={{
+                        ['--variant-color' as any]: colorCode,
+                        ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
+                      }}
+                      title={`בחר צבע ${colorName || colorHex}`}
+                    >
+                      {showColorPreview && (
+                        <div className={styles.colorPreview} />
+                      )}
+                      
+                      {(() => {
+                        const skuColorName = sku.color;
+                        const skuColorFamily = sku.colorFamily;
+                        
+                        const specificColorImages = skuColorName && colorImages[skuColorName];
+                        const familyImages = skuColorFamily && colorFamilyImages[skuColorFamily];
+                        const imageToShow = specificColorImages?.[0] || familyImages?.[0] || sku.images?.[0];
+                        
+                        return imageToShow ? (
+                          <img 
+                            src={getImageUrl(imageToShow)} 
+                            alt={`${colorName || colorHex} variant`}
+                            className={styles.variantImage}
+                          />
+                        ) : (
+                          (colorName || colorHex) && (
+                            <span className={styles.variantColorName}>{colorName || getColorDisplayName(colorHex)}</span>
+                          )
+                        );
+                      })()}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* 🔽 אם הציר המשני אינו צבע - הצג dropdown */
+            <div className={styles.customVariantSelector}>
+              <label className={styles.customVariantLabel}>
+                {getSecondaryAttributeLabel()}:
+              </label>
+              <div className={styles.selectWrapper}>
+                <select
+                  className={styles.customVariantSelect}
+                  value={selectedSku || ''}
+                  onChange={(e) => onSkuChange(e.target.value)}
+                  title={`בחר ${getSecondaryAttributeLabel()}`}
+                >
+                  {secondaryOptions.map((sku, idx) => {
+                    const skuAny = sku as any;
+                    let secondaryDisplayValue: string;
+                    
+                    if (skuAny.subVariantName) {
+                      secondaryDisplayValue = skuAny.subVariantName;
+                    } else if (skuAny.attributes && Object.keys(skuAny.attributes).length > 0) {
+                      const attributeKey = Object.keys(skuAny.attributes)[0];
+                      secondaryDisplayValue = skuAny.attributes[attributeKey];
+                    } else {
+                      secondaryDisplayValue = skuAny.name;
+                    }
+                    
+                    return (
+                      <option key={`secondary-${sku.sku}-${idx}`} value={sku.sku}>
+                        {secondaryDisplayValue}
+                      </option>
+                    );
+                  })}
+                </select>
+                <svg className={styles.selectIcon} width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          )
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={styles.variantSection}>
-      {/* שלב 1: בחירת צבע - רק אם לא במצב secondaryOnly */}
-      {!secondaryOnly && (
+      {/* שלב 1: בחירת צבע - רק אם יש צבע ולא במצב secondaryOnly */}
+      {shouldShowColorButtons && !secondaryOnly && (
         <>
           {!compactMode && <h3 className={styles.variantTitle}>צבע:</h3>}
           <div className={styles.variantOptions}>
@@ -432,17 +1076,30 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
               
               {!compactMode && (
                 <>
-                  {group.skus[0].images && group.skus[0].images.length > 0 ? (
-                    <img 
-                      src={getImageUrl(group.skus[0].images[0])} 
-                      alt={`${colorName || colorHex} variant`}
-                      className={styles.variantImage}
-                    />
-                  ) : (
-                    (colorName || colorHex) && (
-                      <span className={styles.variantColorName}>{colorName || getColorDisplayName(colorHex)}</span>
-                    )
-                  )}
+                  {(() => {
+                    // 🆕 לוגיקת חיפוש תמונה: colorImages (עדיפות) -> colorFamilyImages (fallback) -> תמונות SKU
+                    const skuColorName = group.skus[0].color;
+                    const colorFamily = group.skus[0].colorFamily;
+                    
+                    // ניסיון 1: תמונות לפי צבע ספציפי
+                    const specificColorImages = skuColorName && colorImages[skuColorName];
+                    // ניסיון 2: תמונות משפחת צבע (fallback)
+                    const familyImages = colorFamily && colorFamilyImages[colorFamily];
+                    // ניסיון 3: תמונות ה-SKU עצמו
+                    const imageToShow = specificColorImages?.[0] || familyImages?.[0] || group.skus[0].images?.[0];
+                    
+                    return imageToShow ? (
+                      <img 
+                        src={getImageUrl(imageToShow)} 
+                        alt={`${colorName || colorHex} variant`}
+                        className={styles.variantImage}
+                      />
+                    ) : (
+                      (colorName || colorHex) && (
+                        <span className={styles.variantColorName}>{colorName || getColorDisplayName(colorHex)}</span>
+                      )
+                    );
+                  })()}
                 </>
               )}
             </Button>
@@ -466,35 +1123,65 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       )}
 
       {/* שלב 2: בחירת תת-וריאנט */}
-      {hasSecondaryVariants && !hideSecondaryVariants && (
+      {/* 🎯 הצג את הציר המשני אם: יש תת-וריאנטים + (לא הוסתר OU הוא צבע ומותר להציג במצב compact) */}
+      {hasSecondaryVariants && (!hideSecondaryVariants || (isSecondaryAxisColor && showSecondaryColorsInCompact)) && (
         <div className={styles.secondaryVariantSection}>
-          {/* 🆕 מצב רגיל - כפתורים */}
-          {!compactMode && (
+          {/* 🎯 אם הציר המשני הוא צבע - הצג כפתורי צבע */}
+          {isSecondaryAxisColor ? (
             <>
               <h4 className={styles.secondaryVariantTitle}>{getSecondaryAttributeLabel()}:</h4>
-              <div className={styles.secondaryVariantOptions}>
-                {selectedColorGroup!.variants.map((variant, index) => {
-                  const isSelected = variant.sku === selectedSku;
+              <div className={styles.variantOptions}>
+                {selectedColorGroup!.skus.map((sku, index) => {
+                  const colorHex = getSkuColor(sku);
+                  const colorName = getSkuColorName(sku);
+                  const colorCode = getColorCode(colorHex);
+                  const isSelected = sku.sku === selectedSku;
+                  // קבלת שם הצבע בעברית מקוד ה-HEX
+                  const hebrewColorName = getColorNameHebrew(colorCode);
                   
                   return (
-                    <button
-                      key={`variant-${variant.value}-${index}`}
-                      className={`${styles.secondaryVariantButton} ${
-                        isSelected ? styles.secondaryVariantActive : ''
-                      }`}
-                      onClick={() => onSkuChange(variant.sku)}
-                      title={`בחר ${variant.value}`}
+                    <Button
+                      key={`secondary-color-${sku.sku}-${index}`}
+                      variant={'ghost'}
+                      size="sm"
+                      className={`${styles.variantButton} ${
+                        isSelected ? styles.variantActive : ''
+                      } ${showColorPreview ? styles.withColorPreview : ''}`}
+                      onClick={() => onSkuChange(sku.sku)}
+                      style={{
+                        ['--variant-color' as any]: colorCode,
+                        ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
+                      }}
+                      title={`בחר ${getSecondaryAttributeLabel()} ${hebrewColorName || colorName || colorHex}`}
                     >
-                      {variant.value}
-                    </button>
+                      {showColorPreview && (
+                        <div className={styles.colorPreview} />
+                      )}
+                      
+                      {(() => {
+                        const skuColorName = sku.color;
+                        const colorFamily = sku.colorFamily;
+                        
+                        const specificColorImages = skuColorName && colorImages[skuColorName];
+                        const familyImages = colorFamily && colorFamilyImages[colorFamily];
+                        const imageToShow = specificColorImages?.[0] || familyImages?.[0] || sku.images?.[0];
+                        
+                        return imageToShow ? (
+                          <img 
+                            src={getImageUrl(imageToShow)} 
+                            alt={`${hebrewColorName || colorName || colorHex} variant`}
+                            className={styles.variantImage}
+                          />
+                        ) : (
+                          <span className={styles.variantColorName}>{hebrewColorName || colorName || getColorDisplayName(colorHex)}</span>
+                        );
+                      })()}
+                    </Button>
                   );
                 })}
               </div>
             </>
-          )}
-
-          {/* 🆕 מצב קומפקטי - dropdown */}
-          {compactMode && (
+          ) : (useDropdownForSecondary || compactMode) ? (
             <div className={styles.compactSecondaryVariant}>
               <label className={styles.compactLabel}>{getSecondaryAttributeLabel()}:</label>
               <div className={styles.selectWrapper}>
@@ -504,17 +1191,48 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   onChange={(e) => onSkuChange(e.target.value)}
                   title={`בחר ${getSecondaryAttributeLabel()}`}
                 >
-                  {selectedColorGroup!.variants.map((variant, index) => (
-                    <option key={`opt-${variant.value}-${index}`} value={variant.sku}>
-                      {variant.value}
-                    </option>
-                  ))}
+                  {selectedColorGroup!.skus.map((sku, index) => {
+                    const displayValue = secondaryVariantAttribute && sku.attributes?.[secondaryVariantAttribute]
+                      ? sku.attributes[secondaryVariantAttribute]
+                      : sku.name || sku.sku;
+                    return (
+                      <option key={`opt-${sku.sku}-${index}`} value={sku.sku}>
+                        {displayValue}
+                      </option>
+                    );
+                  })}
                 </select>
                 <svg className={styles.selectIcon} width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
             </div>
+          ) : (
+            /* מצב רגיל - כפתורים (רק אם לא ביקשו dropdown) */
+            <>
+              <h4 className={styles.secondaryVariantTitle}>{getSecondaryAttributeLabel()}:</h4>
+              <div className={styles.secondaryVariantOptions}>
+                {selectedColorGroup!.skus.map((sku, index) => {
+                  const isSelected = sku.sku === selectedSku;
+                  const displayValue = secondaryVariantAttribute && sku.attributes?.[secondaryVariantAttribute]
+                    ? sku.attributes[secondaryVariantAttribute]
+                    : sku.name || sku.sku;
+                  
+                  return (
+                    <button
+                      key={`variant-${sku.sku}-${index}`}
+                      className={`${styles.secondaryVariantButton} ${
+                        isSelected ? styles.secondaryVariantActive : ''
+                      }`}
+                      onClick={() => onSkuChange(sku.sku)}
+                      title={`בחר ${displayValue}`}
+                    >
+                      {displayValue}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       )}

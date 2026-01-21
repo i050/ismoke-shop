@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import styles from './ProductFormActions.module.css';
 
 /**
@@ -27,7 +28,16 @@ export interface ProductFormActionsProps {
     skus?: string;
   };
   
-  /** פונקציה לשמירת הטופס */
+  /** פונקציה לשמירה כטיוטה */
+  onSaveDraft?: () => void;
+  
+  /** פונקציה לפתיחת תצוגה מקדימה */
+  onPreview?: () => void;
+  
+  /** פונקציה לפרסום המוצר */
+  onPublish?: () => void;
+  
+  /** פונקציה לשמירת הטופס (fallback אם אין 3 כפתורים) */
   onSave: () => void;
   
   /** פונקציה לביטול השינויים */
@@ -38,6 +48,9 @@ export interface ProductFormActionsProps {
   
   /** פונקציה לשכפול המוצר (רק במצב עריכה) */
   onDuplicate?: () => void;
+  
+  /** סטטוס המוצר הנוכחי */
+  productStatus?: 'draft' | 'published' | 'archived';
 }
 
 /**
@@ -57,22 +70,20 @@ export const ProductFormActions: React.FC<ProductFormActionsProps> = ({
   isDirty,
   isValid = true,
   validationErrors = {},
+  onSaveDraft,
+  onPreview,
+  onPublish,
   onSave,
   onCancel,
   onDelete,
   onDuplicate,
+  productStatus = 'draft',
 }) => {
   // הכפתור מושבת אם: אין שינויים, או יש שגיאות validation, או בתהליך שליחה
   const isDisabled = !isDirty || !isValid || isSubmitting;
-
-  console.log('🎯 [ProductFormActions] Render:', {
-    mode,
-    isSubmitting,
-    isDirty,
-    isValid,
-    buttonWillBeDisabled: isDisabled,
-    onSaveType: typeof onSave
-  });
+  
+  // האם להציג כפתורים מפוצלים (טיוטה/תצוגה/פרסום)
+  const showSplitButtons = !!(onSaveDraft || onPreview || onPublish);
 
   return (
     <div className={styles.container}>
@@ -146,25 +157,79 @@ export const ProductFormActions: React.FC<ProductFormActionsProps> = ({
       <div className={styles.actionsBar}>
         {/* כפתורים ראשיים (ימין) */}
         <div className={styles.primaryActions}>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => {
-              console.log('🔵 [ProductFormActions] Save button clicked!', {
-                isDirty,
-                isValid,
-                isSubmitting,
-                disabled: isDisabled
-              });
-              onSave();
-            }}
-            disabled={isDisabled}
-            loading={isSubmitting}
-            elevated
-            aria-label={mode === 'create' ? 'יצירת מוצר חדש' : 'שמירת שינויים'}
-          >
-            {mode === 'create' ? 'יצירת מוצר' : 'שמירת שינויים'}
-          </Button>
+          {showSplitButtons ? (
+            <>
+              {/* כפתור טיוטה */}
+              {onSaveDraft && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={onSaveDraft}
+                  disabled={!isDirty || isSubmitting}
+                  loading={isSubmitting}
+                  icon={<Icon name="Save" size={18} />}
+                  iconPosition="right"
+                  aria-label="שמירה כטיוטה (Ctrl+S)"
+                  title="שמירה כטיוטה (Ctrl+S)"
+                >
+                  טיוטה
+                </Button>
+              )}
+              
+              {/* כפתור תצוגה מקדימה */}
+              {onPreview && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={onPreview}
+                  disabled={isSubmitting}
+                  icon={<Icon name="Eye" size={18} />}
+                  iconPosition="right"
+                  aria-label="תצוגה מקדימה"
+                >
+                  תצוגה מקדימה
+                </Button>
+              )}
+              
+              {/* כפתור פרסום */}
+              {onPublish && (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={onPublish}
+                  disabled={isDisabled}
+                  loading={isSubmitting}
+                  elevated
+                  icon={<Icon name="Upload" size={18} />}
+                  iconPosition="right"
+                  aria-label={mode === 'create' ? 'פרסום מוצר חדש' : 'פרסום שינויים'}
+                >
+                  {productStatus === 'published' ? 'עדכון' : 'פרסום'}
+                </Button>
+              )}
+            </>
+          ) : (
+            /* כפתור שמירה רגיל (fallback) */
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => {
+                console.log('🔵 [ProductFormActions] Save button clicked!', {
+                  isDirty,
+                  isValid,
+                  isSubmitting,
+                  disabled: isDisabled
+                });
+                onSave();
+              }}
+              disabled={isDisabled}
+              loading={isSubmitting}
+              elevated
+              aria-label={mode === 'create' ? 'יצירת מוצר חדש' : 'שמירת שינויים'}
+            >
+              {mode === 'create' ? 'יצירת מוצר' : 'שמירת שינויים'}
+            </Button>
+          )}
 
           <Button
             variant="outline"

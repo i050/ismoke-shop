@@ -1,0 +1,312 @@
+/* ColorFamilyImages Styles */
+/* עיצוב קומפוננטת תמונות לפי משפחת צבע */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* כותרת */
+.header {
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: var(--bg-secondary, #f9fafb);
+  border: 2px dashed var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--text-tertiary, #9ca3af);
+  margin-bottom: 1rem;
+}
+
+.emptyState p {
+  margin: 0;
+  color: var(--text-secondary, #6b7280);
+}
+
+.emptyHint {
+  font-size: 0.875rem;
+  color: var(--text-tertiary, #9ca3af) !important;
+  margin-top: 0.5rem !important;
+}
+
+/* רשימת משפחות */
+.familiesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* פריט משפחה */
+.familyItem {
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.familyItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* כותרת משפחה */
+.familyHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: right;
+  transition: background-color 0.2s ease;
+}
+
+.familyHeader:hover:not(:disabled) {
+  background: var(--bg-hover, #f3f4f6);
+}
+
+.familyHeader:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.familyHeader.expanded {
+  background: var(--bg-secondary, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* עיגול צבע */
+.colorCircle {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid var(--border-color, #e5e7eb);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🆕 סימון ✓ בתוך העיגול */
+.checkIcon {
+  color: white;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  z-index: 1;
+}
+
+/* 🆕 סגנון מיוחד לכותרת עם תמונות */
+.familyHeader.hasImages {
+  background: linear-gradient(to left, transparent, rgba(34, 197, 94, 0.05));
+}
+
+.familyHeader.hasImages:hover:not(:disabled) {
+  background: linear-gradient(to left, var(--bg-hover, #f3f4f6), rgba(34, 197, 94, 0.08));
+}
+
+/* שם משפחה */
+.familyName {
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  flex-grow: 1;
+}
+
+/* מספר תמונות */
+.imageCount {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  padding: 0.25rem 0.75rem;
+  background: var(--bg-tertiary, #f3f4f6);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+/* 🆕 מצב פעיל - יש תמונות */
+.imageCount.active {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(21, 128, 61);
+  font-weight: 500;
+}
+
+/* 🆕 כפתור מחיקה מהירה */
+.quickDeleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-tertiary, #9ca3af);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.familyHeader:hover .quickDeleteBtn {
+  opacity: 1;
+}
+
+.quickDeleteBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(220, 38, 38);
+}
+
+.quickDeleteBtn:active {
+  transform: scale(0.95);
+}
+
+/* אייקון chevron */
+.chevron {
+  color: var(--text-tertiary, #9ca3af);
+  transition: transform 0.2s ease;
+}
+
+.familyHeader.expanded .chevron {
+  transform: rotate(180deg);
+}
+
+/* תוכן משפחה */
+.familyContent {
+  padding: 1rem;
+  background: var(--bg-secondary, #f9fafb);
+  animation: slideDown 0.2s ease-out;
+}
+
+/* 🆕 Toggle לבחירת מצב תצוגה (צבעים/משפחות) */
+.viewModeToggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.25rem;
+  background: var(--bg-tertiary, #f3f4f6);
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.viewModeBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewModeBtn:hover {
+  background: var(--bg-hover, #e5e7eb);
+  color: var(--text-primary, #1f2937);
+}
+
+.viewModeBtn.active {
+  background: var(--bg-primary, #ffffff);
+  color: var(--primary-color, #3b82f6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+}
+
+/* 🆕 Badge לסימון fallback */
+.fallbackBadge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--warning-bg, #fef3c7);
+  color: var(--warning-color, #92400e);
+  border-radius: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* 🆕 הערה על fallback */
+.fallbackNote {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem 0;
+  padding: 0.75rem;
+  background: var(--info-bg, #dbeafe);
+  color: var(--info-color, #1e40af);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+/* 🆕 Empty state inline */
+.emptyStateInline {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary, #6b7280);
+  background: var(--bg-secondary, #f9fafb);
+  border-radius: 8px;
+  border: 1px dashed var(--border-color, #e5e7eb);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .familyHeader {
+    padding: 0.75rem;
+  }
+
+  .colorCircle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .familyName {
+    font-size: 0.9rem;
+  }
+
+  .imageCount {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .familyContent {
+    padding: 0.75rem;
+  }
+}

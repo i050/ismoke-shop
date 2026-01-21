@@ -25,6 +25,7 @@ export interface IFilterAttribute extends Document {
     displayName: string;     // שם בעברית (אדום, כחול, ירוק)
     variants: Array<{
       name: string;          // שם הגוון (Crimson, Navy)
+      displayName?: string;  // שם הגוון בעברית (ארגמן, כחול כהה)
       hex: string;           // קוד צבע (#DC143C)
     }>;
   }>;
@@ -130,6 +131,11 @@ const FilterAttributeSchema = new Schema<IFilterAttribute>(
               type: String,
               required: true,
               trim: true,
+            },
+            displayName: {
+              type: String,
+              trim: true,
+              // אם לא נמסר, ישתמש ב-name
             },
             hex: {
               type: String,

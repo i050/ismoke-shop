@@ -1,8 +1,10 @@
 // ProductBasicInfo - מידע בסיסי על המוצר
 // מטרת הקומפוננטה: טופס למילוי מידע בסיסי (שם, תיאור, מותג)
+// כולל: מונה תווים לשם המוצר ועורך טקסט עשיר לתיאור
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Input } from '../../../../../ui/Input/Input';
+import { RichTextEditor } from '../../../../../ui/RichTextEditor';
 import styles from './ProductBasicInfo.module.css';
 
 // ==========================================
@@ -40,10 +42,24 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
   onChange,
   disabled = false,
 }) => {
-  // מעקב אחרי כמות תווים בתיאור
-  const [descriptionLength, setDescriptionLength] = useState(
-    values.description?.length || 0
-  );
+  // מעקב אחרי כמות תווים בשם המוצר
+  const nameLength = values.name?.length || 0;
+  
+  // מעקב אחרי כמות תווים בתיאור (חישוב מטקסט נקי)
+  const descriptionLength = useMemo(() => {
+    // הסרת תגיות HTML לספירת תווים אמיתית
+    const textOnly = values.description?.replace(/<[^>]*>/g, '') || '';
+    return textOnly.length;
+  }, [values.description]);
+
+  // צבע מונה תווים לשם המוצר
+  const nameCounterClass = useMemo(() => {
+    if (nameLength === 0) return styles.counterEmpty;
+    if (nameLength < 3) return styles.counterDanger;
+    if (nameLength <= 150) return styles.counterGood;
+    if (nameLength <= 200) return styles.counterWarning;
+    return styles.counterDanger;
+  }, [nameLength]);
 
   // טיפול בשינוי שם המוצר
   const handleNameChange = useCallback(
@@ -61,12 +77,10 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
     [onChange]
   );
 
-  // טיפול בשינוי תיאור המוצר
+  // טיפול בשינוי תיאור המוצר (עורך עשיר)
   const handleDescriptionChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const newValue = e.target.value;
-      setDescriptionLength(newValue.length);
-      onChange('description', newValue);
+    (htmlValue: string) => {
+      onChange('description', htmlValue);
     },
     [onChange]
   );
@@ -91,22 +105,37 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
 
       {/* שדות הטופס */}
       <div className={styles.form}>
-        {/* שם המוצר */}
+        {/* שם המוצר - עם מונה תווים */}
         <div className={styles.formGroup}>
+          <label htmlFor="product-name" className={styles.label}>
+            שם המוצר
+            <span className={styles.required}>*</span>
+          </label>
           <Input
             id="product-name"
             name="name"
-            label="שם המוצר"
             type="text"
             value={values.name}
             onChange={handleNameChange}
-            placeholder="למשל: ASPIRE NEXI PRO KIT"
+            placeholder="למשל: חולצת טי טקסטורה"
             disabled={disabled}
             required
             error={!!errors.name}
-            helperText={errors.name?.message || (!values.name ? 'מינימום 3 תווים, מקסימום 200 תווים' : undefined)}
             size="large"
+            maxLength={200}
           />
+          <div className={styles.fieldFooter}>
+            <span className={`${styles.charCounter} ${nameCounterClass}`}>
+              {nameLength}/200
+            </span>
+            {errors.name?.message ? (
+              <span className={styles.errorText}>{errors.name.message}</span>
+            ) : (
+              <span className={styles.helperText}>
+                {nameLength < 3 ? 'מינימום 3 תווים' : 'שם ברור ותיאורי של המוצר'}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* שם משני אופציונלי */}
@@ -126,47 +155,30 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
           />
         </div>
 
-        {/* תיאור המוצר */}
+        {/* תיאור המוצר - עורך טקסט עשיר */}
         <div className={styles.formGroup}>
           <label htmlFor="product-description" className={styles.label}>
             תיאור המוצר
             <span className={styles.required}>*</span>
           </label>
           
-          <textarea
+          <RichTextEditor
             id="product-description"
-            name="description"
-            value={values.description}
+            value={values.description || ''}
             onChange={handleDescriptionChange}
             placeholder="תאר את המוצר בפירוט - תכונות, יתרונות, שימושים..."
             disabled={disabled}
-            required
-            className={`${styles.textarea} ${errors.description ? styles.error : ''} ${disabled ? styles.disabled : ''}`}
-            rows={6}
             maxLength={5000}
+            minRows={6}
+            error={!!errors.description}
           />
           
-          {/* מונה תווים */}
-          <div className={styles.textareaFooter}>
-            <div className={styles.charCounter}>
-              <span className={descriptionLength < 10 ? styles.warning : descriptionLength > 4500 ? styles.danger : ''}>
-                {descriptionLength}
-              </span>
-              <span className={styles.charCounterSeparator}>/</span>
-              <span>5000</span>
+          {/* הודעת שגיאה */}
+          {errors.description?.message && (
+            <div className={styles.errorText}>
+              {errors.description.message}
             </div>
-            
-            {/* הודעת שגיאה או עזרה */}
-            {errors.description ? (
-              <div className={styles.errorText}>
-                {errors.description}
-              </div>
-            ) : (
-              <div className={styles.helperText}>
-                מינימום 10 תווים, מומלץ 100-500 תווים לתיאור איכותי
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* מותג */}

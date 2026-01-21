@@ -152,14 +152,28 @@ const ProductCard: React.FC<ProductCardProps> = ({
   }, [selectedSkuData, updatedProduct.pricing, updatedProduct.basePrice, updatedProduct._id]);
 
   // חישוב דינמי של רשימת תמונות לפי SKU נבחר (אחרי הגדרת ה-state!)
-  // אם יש SKU נבחר עם תמונות משלו - השתמש בהן, אחרת השתמש בתמונות המוצר הראשי
+  // 🆕 סדר עדיפות: 1. תמונות צבע ספציפי (colorImages), 2. תמונות משפחת צבע, 3. תמונות SKU, 4. תמונות מוצר
   // ✅ שימוש במערך IImage[] ישירות - לא צריך להמיר ל-URLs
   const productImages = React.useMemo(() => {
-    // בדיקה אם ל-SKU הנבחר יש תמונות
+    // 🆕 שלב 1: בדיקה אם יש תמונות לפי צבע ספציפי של ה-SKU הנבחר (עדיפות ראשונה!)
+    const skuColorName = (selectedSkuData as any)?.color; // שם הצבע הספציפי (לא משפחה)
+    const colorImages = (product as any)?.colorImages;
+    if (skuColorName && colorImages && colorImages[skuColorName]?.length > 0) {
+      return colorImages[skuColorName]; // ✅ החזרת תמונות הצבע הספציפי
+    }
+    
+    // 🆕 שלב 2: בדיקה אם יש תמונות לפי משפחת צבע של ה-SKU הנבחר (fallback)
+    const colorFamily = selectedSkuData?.colorFamily;
+    const colorFamilyImages = (product as any).colorFamilyImages;
+    if (colorFamily && colorFamilyImages && colorFamilyImages[colorFamily]?.length > 0) {
+      return colorFamilyImages[colorFamily]; // ✅ החזרת תמונות משפחת הצבע
+    }
+    
+    // שלב 3: בדיקה אם ל-SKU הנבחר יש תמונות
     if (selectedSkuData?.images && selectedSkuData.images.length > 0) {
       return selectedSkuData.images; // ✅ החזרת IImage[] ישירות
     }
-    // אחרת, השתמש בתמונות המוצר הראשי
+    // שלב 4: אחרת, השתמש בתמונות המוצר הראשי
     if (product.images && product.images.length > 0) {
       return product.images; // ✅ החזרת IImage[] ישירות
     }
@@ -168,7 +182,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       return [product.imageUrl]; // string - getImageUrl יטפל בזה
     }
     return []; // אם אין כלום - מערך ריק
-  }, [selectedSkuData, product.images, product.imageUrl]);
+  }, [selectedSkuData, (selectedSkuData as any)?.color, product.images, product.imageUrl, (product as any).colorFamilyImages, (product as any).colorImages]);
 
   // לוג מותנה לבדיקת נתוני SKU בעת פיתוח בלבד
   React.useEffect(() => {
@@ -300,7 +314,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   />
 
                   <div className={styles.imageIndicators}>
-                    {productImages.map((_, index) => (
+                    {productImages.map((_img: any, index: number) => (
                       <Button
                           key={index}
                           variant="ghost"
@@ -353,9 +367,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div> */}
 
-          {/* בחירת SKU - רק אם יש SKUs ומדובר בוריאנטים של צבעים (לא וריאנטים מותאמים אישית)
-              🆕 Phase 4: וריאנטים מותאמים אישית מוצגים רק בדף המוצר, לא בכרטיס */}
-          {product.skus && product.skus.length > 0 && product.variantType !== 'custom' && (
+          {/* בחירת SKU - רק אם יש SKUs
+              🆕 Phase 4: כעת מציג גם וריאנטים מותאמים אישית בכרטיסייה */}
+          {product.skus && product.skus.length > 0 && (
             <div className={styles.variantSelector} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
               <VariantSelector
                 skus={product.skus}
@@ -364,7 +378,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 compactMode={true}
                 secondaryVariantAttribute={product.secondaryVariantAttribute}
                 hideSecondaryVariants={true}
+                showSecondaryColorsInCompact={true}
                 maxColors={2}
+                colorFamilyImages={(product as any).colorFamilyImages}
+                colorImages={(product as any).colorImages}
+                variantType={(product as any).variantType}
+                primaryVariantLabel={(product as any).primaryVariantLabel}
+                secondaryVariantLabel={(product as any).secondaryVariantLabel}
               />
             </div>
           )}
@@ -403,6 +423,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     selectedSku={selectedSku}
                     onSkuChange={handleSkuChange}
                     secondaryVariantAttribute={product.secondaryVariantAttribute}
+                    colorImages={(product as any).colorImages}
+                    colorFamilyImages={(product as any).colorFamilyImages}
                     // 🆕 Phase 4: העברת props לוריאנטים מותאמים אישית
                     variantType={product.variantType}
                     primaryVariantLabel={(product as any).primaryVariantLabel}

@@ -153,6 +153,32 @@ export const deleteProduct = createAsyncThunk(
 );
 
 /**
+ * פונקציה עזר: וידוא שכל ה-SKUs כוללים variantName ו-subVariantName
+ * מחלצת אותם מ-name אם חסרים (תיקון לבעיה שבה השרת לא מחזיר שדות אלה)
+ */
+const ensureSkusHaveVariantFields = (skus: any[] | undefined): any[] => {
+  if (!skus || skus.length === 0) return [];
+  
+  return skus.map(sku => {
+    // אם כבר יש את השדות - החזר כמו שהוא
+    if (sku.variantName && sku.subVariantName) return sku;
+    
+    // אם יש name עם " - " - חלץ את השדות
+    if (sku.name && sku.name.includes(' - ')) {
+      const [variant, subVariant] = sku.name.split(' - ');
+      return {
+        ...sku,
+        variantName: variant.trim(),
+        subVariantName: subVariant?.trim() || '',
+      };
+    }
+    
+    // אחרת - החזר כמו שהוא
+    return sku;
+  });
+};
+
+/**
  * יצירת מוצר חדש
  * Phase 6.2: הוספה כחלק מהאינטגרציה עם ProductForm
  */
@@ -160,7 +186,13 @@ export const createProduct = createAsyncThunk(
   'productsManagement/createProduct',
   async (productData: ProductFormData, { rejectWithValue }) => {
     try {
-      const newProduct = await productManagementService.createProduct(productData);
+      // 🔧 FIX: וידוא שכל ה-SKUs כוללים variantName/subVariantName לפני שליחה לשרת
+      const normalizedData = {
+        ...productData,
+        skus: ensureSkusHaveVariantFields(productData.skus),
+      };
+      
+      const newProduct = await productManagementService.createProduct(normalizedData);
       return newProduct;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -177,7 +209,13 @@ export const updateProduct = createAsyncThunk(
   'productsManagement/updateProduct',
   async ({ productId, productData }: { productId: string; productData: ProductFormData }, { rejectWithValue }) => {
     try {
-      const updatedProduct = await productManagementService.updateProduct(productId, productData);
+      // 🔧 FIX: וידוא שכל ה-SKUs כוללים variantName/subVariantName לפני שליחה לשרת
+      const normalizedData = {
+        ...productData,
+        skus: ensureSkusHaveVariantFields(productData.skus),
+      };
+      
+      const updatedProduct = await productManagementService.updateProduct(productId, normalizedData);
       return updatedProduct;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
