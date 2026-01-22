@@ -286,6 +286,7 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
   // ולפחות SKU אחד עם M (יכול להיות אותו SKU או SKUs שונים)
   let productIdsWithAttributes: string[] | null = null;
   if (attributeFilters && Object.keys(attributeFilters).length > 0) {
+    console.log('🔍 [DEBUG] attributeFilters received:', JSON.stringify(attributeFilters, null, 2));
     if (isDev) console.log('🎨 [fetchProductsFiltered] Filtering by attributes:', attributeFilters);
     // אם יש סינון של צבע, נרצה ללמוד אילו hex שייכים לכל משפחה
     // כדי לתמוך גם ב-SKUs שלא עברו migration של colorFamily
@@ -337,8 +338,13 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
           attributeMatchConditions.push({ $or: orClauses });
         } else {
           // שאר המאפיינים נמצאים בתוך attributes
+          // אבל גם יכולים להיות ב-variantName/subVariantName (custom variants)
           attributeMatchConditions.push({
-            [`attributes.${attrKey}`]: { $in: values }
+            $or: [
+              { [`attributes.${attrKey}`]: { $in: values } },
+              { variantName: { $in: values } },
+              { subVariantName: { $in: values } }
+            ]
           });
         }
       }
@@ -346,6 +352,7 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
 
     if (attributeMatchConditions.length > 0) {
       if (isDev) console.log('🔍 [fetchProductsFiltered] Match conditions:', JSON.stringify(attributeMatchConditions, null, 2));
+      console.log('🔍 [DEBUG] Full match conditions:', JSON.stringify(attributeMatchConditions, null, 2));
       
       // מצא את כל ה-productIds שיש להם SKUs עם המאפיינים
       // אבל צריך שכל מאפיין יופיע בלפחות SKU אחד
@@ -358,12 +365,14 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
         {
           $group: {
             _id: '$productId',
-            // נשמור גם את attributes וגם את השדות השטוחים (colorFamily, color)
+            // נשמור גם את attributes וגם את השדות השטוחים (colorFamily, color, variantName, subVariantName)
             matchedAttributes: { 
               $addToSet: {
                 attributes: '$attributes',
                 colorFamily: '$colorFamily',
-                color: '$color'
+                color: '$color',
+                variantName: '$variantName',
+                subVariantName: '$subVariantName'
               }
             }
           }
@@ -410,9 +419,20 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
               const skuValueAlt = skuData.attributes?.[attrKey];
               return skuValueAlt && requiredValues.includes(skuValueAlt);
             }
-            // שאר המאפיינים בתוך attributes
+            // שאר המאפיינים - בדוק ב-attributes, variantName ו-subVariantName
             const skuValue = skuData.attributes?.[attrKey];
-            return skuValue && requiredValues.includes(skuValue);
+            if (skuValue && requiredValues.includes(skuValue)) {
+              return true;
+            }
+            // 🆕 בדיקה ב-variantName (custom variants)
+            if (skuData.variantName && requiredValues.includes(skuData.variantName)) {
+              return true;
+            }
+            // 🆕 בדיקה ב-subVariantName (custom variants)
+            if (skuData.subVariantName && requiredValues.includes(skuData.subVariantName)) {
+              return true;
+            }
+            return false;
           });
         });
         

@@ -484,10 +484,10 @@ client/src/
   {/* טבלת וריאנטים */}
   <section className={styles.variants}>
     <div className={styles.header}>
-      <h3>וריאנטים ({variants.length})</h3>
+      <h3>גרסאות ({variants.length})</h3>
       <Button onClick={openAddModal}>
         <Icon name="Plus" />
-        הוסף וריאנט
+        הוסף גירסא
       </Button>
     </div>
     
@@ -507,7 +507,7 @@ client/src/
 
 ```jsx
 <AddVariantModal>
-  <h2>הוספת וריאנט חדש</h2>
+  <h2>הוספת גרסא חדחדשהש</h2>
   
   {/* שם הוריאנט */}
   <Input
