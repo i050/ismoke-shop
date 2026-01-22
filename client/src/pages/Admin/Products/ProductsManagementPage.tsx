@@ -188,7 +188,6 @@ const ProductsManagementPage: React.FC = () => {
 
   // Phase 6: ביטול טופס
   const handleProductCancel = () => {
-    setSelectedProductType(null); // 🆕 איפוס סוג מוצר
     dispatch(setModeList());
   };
 

@@ -6,6 +6,8 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Input } from '../../../../../ui/Input';
 import styles from './ProductSEO.module.css';
+import { transliterate } from '../../../../../../utils/translationService';
+
 
 // ==========================================
 // טיפוסים
@@ -51,16 +53,21 @@ interface ProductSEOProps {
 
 /**
  * המרת טקסט ל-slug ידידותי ל-URL
- * תומך בעברית ואנגלית
+ * תומך בתעתיק אוטומטי של עברית לאנגלית (transliteration)
+ * פורמט: lowercase, kebab-case, ASCII בלבד
  */
 const generateSlug = (text: string): string => {
-  return text
+  if (!text) return '';
+  // שלב 1: תעתיק עברית→אנגלית (transliteration)
+  const transliteratedText = transliterate(text).replace(/_/g, '-');
+  // שלב 2: ניקוי וסטנדרטיזציה
+  return transliteratedText
     .trim()
     .toLowerCase()
     // החלפת רווחים במקפים
     .replace(/\s+/g, '-')
-    // הסרת תווים מיוחדים (משאיר עברית, אנגלית, מספרים ומקפים)
-    .replace(/[^\u0590-\u05FFa-z0-9-]/g, '')
+    // הסרת תווים מיוחדים (משאיר רק אנגלית, מספרים ומקפים)
+    .replace(/[^a-z0-9-]/g, '')
     // הסרת מקפים כפולים
     .replace(/-+/g, '-')
     // הסרת מקפים בהתחלה ובסוף
@@ -104,23 +111,28 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
   // ===== אכלוס אוטומטי מהמוצר =====
   useEffect(() => {
     // אכלוס כותרת SEO משם המוצר (אם לא מולא ידנית)
-    if (autoFilledTitle && productName && !seoTitle) {
+    if (autoFilledTitle && productName && seoTitle !== productName) {
       onChange('seoTitle', productName);
     }
   }, [productName, autoFilledTitle, seoTitle, onChange]);
 
   useEffect(() => {
     // אכלוס תיאור SEO מתיאור המוצר (אם לא מולא ידנית)
-    if (autoFilledDescription && productDescription && !seoDescription) {
+    if (autoFilledDescription && productDescription) {
       const shortDesc = truncateText(productDescription.replace(/\n/g, ' '), 160);
-      onChange('seoDescription', shortDesc);
+      if (seoDescription !== shortDesc) {
+        onChange('seoDescription', shortDesc);
+      }
     }
   }, [productDescription, autoFilledDescription, seoDescription, onChange]);
 
   useEffect(() => {
     // אכלוס slug משם המוצר (אם לא מולא ידנית)
-    if (autoFilledSlug && productName && !slug) {
-      onChange('slug', generateSlug(productName));
+    if (autoFilledSlug && productName) {
+      const newSlug = generateSlug(productName);
+      if (slug !== newSlug) {
+        onChange('slug', newSlug);
+      }
     }
   }, [productName, autoFilledSlug, slug, onChange]);
 

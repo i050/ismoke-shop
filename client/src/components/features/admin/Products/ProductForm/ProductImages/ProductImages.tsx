@@ -24,6 +24,10 @@ interface ProductImagesProps {
    * פונקציה לניווט לטאב הוריאנטים (SKUs)
    */
   onNavigateToVariants?: () => void;
+  /**
+   * האם למוצר יש גרסאות/וריאנטים
+   */
+  hasVariants?: boolean;
 }
 
 /**
@@ -37,6 +41,7 @@ const ProductImages: React.FC<ProductImagesProps> = ({
   maxImages = 10,
   errors,
   onNavigateToVariants,
+  hasVariants = false,
 }) => {
   const { showToast } = useToast();
   
@@ -54,20 +59,23 @@ const ProductImages: React.FC<ProductImagesProps> = ({
       {/* כותרת והסבר מקצועי - תמונות כלליות בלבד */}
       <div className={styles.header}>
         <h3 className={styles.title}>תמונות מוצר</h3>
-        <div className={styles.subtitle}>
-          {/* הסבר בעברית על מטרת התמונות */}
-          <span>
-            התמונות כאן הן <strong>תמונות כלליות</strong> של המוצר. אם יש לך תמונה של וריאנט מסוים (SKU), יש להעלות אותה בחלק של
-          </span>
-          {/* קישור אינטראקטיבי לניווט לטאב הוריאנטים */}
-          <button
-            type="button"
-            className={styles.variantsLink}
-            onClick={handleNavigateToVariants}
-          >
-            וריאנטים
-          </button>
-        </div>
+        {/* הסבר על וריאנטים - רק למוצרים עם גרסאות */}
+        {hasVariants && (
+          <div className={styles.subtitle}>
+            {/* הסבר בעברית על מטרת התמונות */}
+            <span>
+              התמונות כאן הן <strong>תמונות כלליות</strong> של המוצר. אם יש לך תמונה של צבע מסוים, יש להעלות אותה בחלק של
+            </span>
+            {/* קישור אינטראקטיבי לניווט לטאב תמונות צבע */}
+            <button
+              type="button"
+              className={styles.variantsLink}
+              onClick={handleNavigateToVariants}
+            >
+              תמונות צבע
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ImageGalleryManager במצב inline */}

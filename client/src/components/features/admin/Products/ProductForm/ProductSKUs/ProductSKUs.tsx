@@ -1406,7 +1406,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
               onClick={handleAddMoreVariants}
             >
               <Icon name="Settings" size={18} />
-              <span>ניהול וריאנטים</span>
+              <span>ניהול גירסאות</span>
             </button>
           </div>
         )}

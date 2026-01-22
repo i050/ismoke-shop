@@ -227,58 +227,12 @@ const SKURow: React.FC<SKURowProps> = ({
   if (!isEditing) {
     return (
       <>
-      {/* כרטיס SKU אופקי */}
+      {/* כרטיס SKU מינימלי */}
       <div className={styles.skuCard}>
-        {/* אזור גלריית תמונות */}
-        <div className={styles.skuImages}>
-          {sku.images && sku.images.length > 0 ? (
-            <>
-              {sku.images.slice(0, 3).map((img, idx) => (
-                <img
-                  key={idx}
-                  src={typeof img === 'string' ? img : ((img as any)?.thumbnail || (img as any)?.medium || (img as any)?.url)}
-                  alt={`${sku.name} - תמונה ${idx + 1}`}
-                  className={styles.imageThumbnail}
-                  onClick={() => setShowImageManager(true)}
-                />
-              ))}
-              {sku.images.length > 3 && (
-                <div 
-                  className={styles.moreImages}
-                  onClick={() => setShowImageManager(true)}
-                >
-                  +{sku.images.length - 3}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className={styles.noImagesPlaceholder}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-              </svg>
-              <span>אין תמונות</span>
-            </div>
-          )}
-        </div>
-
-        {/* תוכן הכרטיס */}
         <div className={styles.skuContent}>
           <div className={styles.skuName}>{sku.name}</div>
-          <div className={styles.skuCode}>{sku.sku}</div>
-
-          {/* פרטי SKU */}
+          
+          {/* פרטי SKU - מינימלי */}
           <div className={styles.skuDetails}>
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>מחיר:</span>
@@ -290,71 +244,10 @@ const SKURow: React.FC<SKURowProps> = ({
             </div>
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>מלאי:</span>
-              <span 
-                className={`${styles.stockBadge} ${
-                  sku.stockQuantity === 0
-                    ? styles.stockOut
-                    : sku.stockQuantity < 10
-                    ? styles.lowStock
-                    : styles.inStock
-                }`}
-              >
-                {sku.stockQuantity === 0 
-                  ? '❌ אזל מהמלאי' 
-                  : sku.stockQuantity < 10
-                  ? `⚠️ מלאי נמוך (${sku.stockQuantity})`
-                  : `✓ במלאי (${sku.stockQuantity})`}
+              <span className={styles.detailValue}>
+                {sku.stockQuantity}
               </span>
             </div>
-            {/* תצוגת צבע הוריאנט - משבצת צבע + שם בעברית */}
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>צבע:</span>
-              <div className={styles.colorDisplay}>
-                {/* משבצת צבע שמציגה את הצבע הנבחר או placeholder אם אין צבע */}
-                <div
-                  className={styles.colorSwatch}
-                  style={{ 
-                    backgroundColor: sku.color || '#ffffff',
-                    opacity: sku.color ? 1 : 0.3
-                  }}
-                  title={sku.color ? `${getColorNameHebrew(sku.color)} (${sku.color})` : 'אין צבע נבחר'}
-                />
-                {/* שם הצבע בעברית + קוד hex */}
-                <span className={styles.colorText}>
-                  {sku.color ? (
-                    <>
-                      <strong>{getColorNameHebrew(sku.color)}</strong>
-                      <small style={{ marginRight: '6px', opacity: 0.7 }}>({sku.color})</small>
-                    </>
-                  ) : (
-                    'ללא צבע'
-                  )}
-                </span>
-              </div>
-            </div>
-            {sku.attributes?.size && (
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>מידה:</span>
-                <span className={styles.detailValue}>{sku.attributes.size}</span>
-              </div>
-            )}
-
-            {/* אזהרות מאפיינים חסרים (מוצגות גם במצב תצוגה) */}
-            {(filterAttributes.length > 0 || isAttributeMissingInCurrentSku('color')) && (
-              <div className={styles.missingWarningsList}>
-                {filterAttributes
-                  .filter(attr => isAttributeMissingInCurrentSku(attr.key))
-                  .map((attr) => (
-                    <div key={attr.key} className={styles.missingWarningBlock}>
-                      חסר {attr.name}
-                    </div>
-                  ))}
-                {/* טיפול במקרה color כמאפיין אם filterAttributes לא מכיל אותו */}
-                {filterAttributes.findIndex(a => a.key === 'color') === -1 && isAttributeMissingInCurrentSku('color') && (
-                  <div className={styles.missingWarningBlock}>חסר צבע</div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* כפתורי פעולה */}
@@ -362,20 +255,10 @@ const SKURow: React.FC<SKURowProps> = ({
             <button
               type="button"
               className={styles.btnAction}
-              onClick={() => setShowImageManager(true)}
-              title="ערוך תמונות"
-            >
-              <ImageIcon size={16} />
-              <span>תמונות</span>
-            </button>
-            <button
-              type="button"
-              className={styles.btnAction}
               onClick={() => onEdit(index)}
               title="ערוך"
             >
               <Edit2 size={16} />
-              <span>ערוך</span>
             </button>
             <button
               type="button"
@@ -384,7 +267,6 @@ const SKURow: React.FC<SKURowProps> = ({
               title="מחק"
             >
               <Trash2 size={16} />
-              <span>מחק</span>
             </button>
           </div>
         </div>
@@ -411,250 +293,53 @@ const SKURow: React.FC<SKURowProps> = ({
     );
   }
 
-  // מצב עריכה - גם כן בפורמט כרטיס
+  // מצב עריכה - מחיר ומלאי בלבד
   return (
     <>
     <div className={`${styles.skuCard} ${styles.skuCardEditing}`}>
-      {/* אזור תמונות - עם כפתור לניהול תמונות */}
-      <div 
-        className={`${styles.skuImages} ${styles.skuImagesClickable}`}
-        onClick={() => setShowImageManager(true)}
-        title="לחץ לניהול תמונות"
-      >
-        {sku.images && sku.images.length > 0 ? (
-          <>
-            {sku.images.slice(0, 3).map((img, idx) => (
-              <img
-                key={idx}
-                src={typeof img === 'string' ? img : ((img as any)?.thumbnail || (img as any)?.medium || (img as any)?.url)}
-                alt={`${sku.name} - תמונה ${idx + 1}`}
-                className={styles.imageThumbnail}
-              />
-            ))}
-            {sku.images.length > 3 && (
-              <div className={styles.moreImages}>+{sku.images.length - 3}</div>
-            )}
-            <div className={styles.editImagesOverlay}>
-              <span>📷 ערוך תמונות</span>
-            </div>
-          </>
-        ) : (
-          <div className={styles.noImagesPlaceholder}>
-            <span>📷</span>
-            <span>הוסף תמונות</span>
-            <small>לחץ להוספה</small>
-          </div>
-        )}
-      </div>
-
-      {/* תוכן הכרטיס - מצב עריכה */}
       <div className={styles.skuContent}>
-        <div className={styles.editingNote}>מצב עריכה</div>
+        <div className={styles.skuName}>{sku.name}</div>
+        <div className={styles.editingNote}>עריכת מחיר ומלאי</div>
 
-        {/* קוד SKU */}
-        <div className={styles.editField}>
-          <label className={styles.editLabel}>קוד SKU:</label>
-          <input
-            type="text"
-            className={`${styles.input} ${styles.inputSku} ${
-              errors?.sku ? styles.inputError : ''
-            }`}
-            value={sku.sku}
-            onChange={(e) =>
-              onChange(index, 'sku', e.target.value.toUpperCase())
-            }
-            placeholder="SKU-001"
-          />
-          {skuAvailable !== null && (
-            <span className={`${styles.availability} ${
-              skuAvailable ? styles.availabilitySuccess : styles.availabilityError
-            }`}>
-              {skuAvailable ? '✓ זמין' : '✗ תפוס'}
-            </span>
-          )}
-          {errors?.sku && (
-            <div className={styles.error}>
-              {typeof errors.sku === 'string' ? errors.sku : (errors.sku as any)?.message || 'שגיאה בקוד SKU'}
-            </div>
-          )}
-        </div>
-
-        {/* שם */}
-        <div className={styles.editField}>
-          <label className={styles.editLabel}>שם:</label>
-          <input
-            type="text"
-            className={`${styles.input} ${errors?.name ? styles.inputError : ''}`}
-            value={sku.name}
-            onChange={(e) => onChange(index, 'name', e.target.value)}
-            placeholder="שם הוריאנט"
-          />
-          {errors?.name && (
-            <div className={styles.error}>
-              {typeof errors.name === 'string' ? errors.name : (errors.name as any)?.message || 'שגיאה בשם'}
-            </div>
-          )}
-        </div>
-
-        {/* שדה צבע */}
-        <div className={styles.editField}>
-          <label className={styles.editLabel}>צבע:</label>
-          <div className={styles.colorPickerWrapper}>
-            <ColorSelect
-              value={sku.color || ''}
-              onChange={handleColorChange}
-              placeholder="בחר מהרשימה"
-              className={styles.colorDropdown}
-              showCustomPicker
-              allowCustomHex
-              helperText={sku.color ? `צבע נוכחי: ${getColorNameHebrew(sku.color)} (${normalizedColorHex})` : 'ניתן לבחור מהרשימה או לבחור צבע חופשי'}
-            />
-
-            <div className={styles.colorDisplay}>
-              <div
-                className={styles.colorSwatch}
-                style={{ 
-                  backgroundColor: sku.color || '#ffffff',
-                  opacity: sku.color ? 1 : 0.3,
-                }}
-              />
-              <span className={styles.colorText}>
-                {sku.color ? `${getColorNameHebrew(sku.color)} (${normalizedColorHex})` : 'לא נבחר צבע'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 🆕 בנק הצבעים - משפחות + גוונים */}
-        {filterAttributes.find(attr => attr.key === 'color' && attr.valueType === 'color') && (
-          <Collapsible
-            title="צבע לסינון"
-            icon={<Palette size={18} />}
-            defaultOpen={true}
-          >
-            {loadingAttributes ? (
-              <div className={styles.loadingState}>טוען...</div>
-            ) : (
-              <>
-                {/* שורה: מצב זיהוי משפחת צבע - Auto / Manual */}
-                <div className={styles.familyControl}>
-                  <label className={styles.label}>מקור משפחת צבע:</label>
-                  <select
-                    value={(sku as any).colorFamilySource || 'auto'}
-                    onChange={(e) => {
-                      const v = e.target.value as string;
-                      if (v === 'auto') {
-                        onChange(index, 'colorFamilySource', 'auto');
-                      } else {
-                        onChange(index, 'colorFamilySource', 'manual');
-                        onChange(index, 'colorFamily', v);
-                        setSelectedColorFamily(v);
-                        const family = filterAttributes.find(attr => attr.key === 'color')?.colorFamilies?.find(f => f.family === v);
-                        if (family && family.variants && family.variants.length > 0) {
-                          setMatchedColorVariant({ name: family.variants[0].name, hex: family.variants[0].hex });
-                        } else {
-                          setMatchedColorVariant(null);
-                        }
-                      }
-                    }}
-                    className={styles.input}
-                  >
-                    <option value="auto">אוטומטי (Auto)</option>
-                    {filterAttributes
-                      .find(attr => attr.key === 'color')
-                      ?.colorFamilies?.map((f) => (
-                        <option key={f.family} value={f.family}>{f.displayName}</option>
-                      ))}
-                  </select>
-                </div>
-
-                {/* הצגת משפחת הצבע שסופקה אוטומטית לפי צבע הווריאנט */}
-                <div className={styles.colorFamilies}>
-                  <label className={styles.label}>צבע לסינון:</label>
-                  {selectedColorFamily ? (
-                    <div className={styles.selectedFamily}>
-                      <strong>
-                        {filterAttributes
-                          .find(attr => attr.key === 'color')
-                          ?.colorFamilies
-                          ?.find(f => f.family === selectedColorFamily)
-                          ?.displayName || selectedColorFamily}
-                      </strong>
-                      {(sku as any).colorFamilySource === 'manual' && (
-                        <span className={styles.manualTag} title="בחירה ידנית"> (ידני)</span>
-                      )}
-                      {matchedColorVariant && (
-                        <span className={styles.familyVariantInfo}> — {matchedColorVariant.name || matchedColorVariant.hex}</span>
-                      )}
-                    </div>
-                  ) : (
-                    <div className={styles.noFamily}>
-                      <span>לא נמצאה משפחת צבע תואמת</span>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </Collapsible>
-        )}
-
-        {/* שורת מידע - מחיר + מלאי */}
-        <Collapsible
-          title="מחיר ומלאי"
-          icon={<DollarSign size={18} />}
-          defaultOpen={true}
-        >
-          <div className={styles.editRow}>
-            <div className={styles.editFieldHalf}>
-              <label className={styles.editLabel}>מחיר (₪):</label>
-              <input
-                type="number"
-                className={`${styles.input} ${errors?.price ? styles.inputError : ''}`}
-                value={sku.price ?? ''}
-                onChange={(e) =>
-                  onChange(index, 'price', e.target.value ? parseFloat(e.target.value) : null)
-                }
-                placeholder="מחיר"
-                step="0.01"
-                min="0"
-              />
-              {errors?.price && (
-                <div className={styles.error}>
-                  {typeof errors.price === 'string' ? errors.price : (errors.price as any)?.message || 'שגיאה במחיר'}
-                </div>
-              )}
-            </div>
-            <div className={styles.editFieldHalf}>
-              <label className={styles.editLabel}>מלאי:</label>
-              <input
-                type="number"
-                className={`${styles.input} ${errors?.stockQuantity ? styles.inputError : ''}`}
-                value={sku.stockQuantity}
-                onChange={(e) =>
-                  onChange(index, 'stockQuantity', parseInt(e.target.value, 10) || 0)
-                }
-                placeholder="כמות"
-                min="0"
-              />
-              {errors?.stockQuantity && (
-                <div className={styles.error}>
-                  {typeof errors.stockQuantity === 'string' ? errors.stockQuantity : (errors.stockQuantity as any)?.message || 'שגיאה במלאי'}
-                </div>
-              )}
-            </div>
-          </div>
-        </Collapsible>
-
-        {/* סטטוס */}
-        <div className={styles.editField}>
-          <label className={styles.checkbox}>
+        {/* מחיר + מלאי */}
+        <div className={styles.editRow}>
+          <div className={styles.editFieldHalf}>
+            <label className={styles.editLabel}>מחיר (₪):</label>
             <input
-              type="checkbox"
-              checked={sku.isActive}
-              onChange={(e) => onChange(index, 'isActive', e.target.checked)}
+              type="number"
+              className={`${styles.input} ${errors?.price ? styles.inputError : ''}`}
+              value={sku.price ?? ''}
+              onChange={(e) =>
+                onChange(index, 'price', e.target.value ? parseFloat(e.target.value) : null)
+              }
+              placeholder="מחיר"
+              step="0.01"
+              min="0"
             />
-            <span>SKU פעיל</span>
-          </label>
+            {errors?.price && (
+              <div className={styles.error}>
+                {typeof errors.price === 'string' ? errors.price : (errors.price as any)?.message || 'שגיאה במחיר'}
+              </div>
+            )}
+          </div>
+          <div className={styles.editFieldHalf}>
+            <label className={styles.editLabel}>מלאי:</label>
+            <input
+              type="number"
+              className={`${styles.input} ${errors?.stockQuantity ? styles.inputError : ''}`}
+              value={sku.stockQuantity}
+              onChange={(e) =>
+                onChange(index, 'stockQuantity', parseInt(e.target.value, 10) || 0)
+              }
+              placeholder="כמות"
+              min="0"
+            />
+            {errors?.stockQuantity && (
+              <div className={styles.error}>
+                {typeof errors.stockQuantity === 'string' ? errors.stockQuantity : (errors.stockQuantity as any)?.message || 'שגיאה במלאי'}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* כפתורי שמירה/ביטול */}
@@ -677,18 +362,6 @@ const SKURow: React.FC<SKURowProps> = ({
             <X size={16} />
             <span>בטל</span>
           </button>
-          {/* {onCheckAvailability && (
-            <button
-              type="button"
-              className={styles.btnAction}
-              onClick={handleCheckSKU}
-              disabled={!sku.sku || checkingSKU}
-              title="בדוק זמינות SKU"
-            >
-              {checkingSKU ? <span>...</span> : <CheckCircle size={16} />}
-              <span>בדוק</span>
-            </button>
-          )} */}
         </div>
       </div>
     </div>

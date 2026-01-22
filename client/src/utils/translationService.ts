@@ -229,7 +229,7 @@ const HEBREW_TO_ENGLISH_LETTERS: Record<string, string> = {
  * transliterate('סוג בד') // → 'sug_bd'
  * transliterate('עמידות במים') // → 'amidut_bmim'
  */
-function transliterate(text: string): string {
+export function transliterate(text: string): string {
   if (!text) return '';
   
   // המרת תווים עבריים לאנגלית

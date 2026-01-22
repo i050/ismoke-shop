@@ -853,7 +853,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   setActiveSection('skus');
                 }}
               >
-                וריאנטים
+                גירסאות
               </button>
               <button
                 type="button"
@@ -888,7 +888,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </>
           )}
           
-          {/* טאבים קבועים: SEO ושיווק */}
+          {/* טאבים קבועים: SEO ושיווק - מוסתרים לעת עתה */}
+          {/* 
           <button
             type="button"
             className={`${styles.navTab} ${activeSection === 'seo' ? styles.active : ''}`}
@@ -909,6 +910,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           >
             שיווק
           </button>
+          */}
         </div>
 
         {/* Form Sections - כל הקטעים מוצגים בגלילה רציפה */}
@@ -1039,6 +1041,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               errors={errors as any}
               onChange={(images) => setValueWithDirty('images', images)}
               onUpload={handleProductImagesUpload}
+              hasVariants={hasVariants}
               // ניווט מקצועי לטאב הוריאנטים (SKUs) - גלילה חלקה (רק למוצר עם וריאנטים)
               onNavigateToVariants={hasVariants ? () => {
                 document.getElementById('skus-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1160,7 +1163,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </>
           )}
 
-          {/* SEO Section */}
+          {/* SEO Section - מוסתר לעת עתה */}
+          {/* 
           <div id="seo-section" className={styles.section}>
             <ProductSEO
               seoTitle={formValues.seoTitle || ''}
@@ -1171,8 +1175,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               disabled={isSubmitting}
             />
           </div>
+          */}
 
-          {/* Marketing Section */}
+          {/* Marketing Section - מוסתר לעת עתה */}
+          {/* 
           <div id="marketing-section" className={styles.section}>
             <ProductMarketing
               isNew={formValues.isNew || false}
@@ -1183,6 +1189,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               disabled={isSubmitting}
             />
           </div>
+          */}
         </div>
 
         {/* Actions Footer (Sticky) */}
