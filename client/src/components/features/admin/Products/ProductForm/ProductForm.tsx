@@ -416,8 +416,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [isFormDirty, mode, methods]);
 
-  // שחזור draft בטעינה (רק במצב create)
-  useEffect(() => {
+  // שחזור draft בטעינה - מושבת (לא להציג חלון קופץ)
+  {/* useEffect(() => {
     const restoreDraft = async () => {
       if (mode === 'create') {
         const draftKey = 'productFormDraft';
@@ -447,7 +447,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     };
     
     restoreDraft();
-  }, [mode, reset, confirm]);
+  }, [mode, reset, confirm]); */}
 
   // ==========================================
   // Handlers
