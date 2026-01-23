@@ -1,10 +1,9 @@
 // ProductBasicInfo - מידע בסיסי על המוצר
 // מטרת הקומפוננטה: טופס למילוי מידע בסיסי (שם, תיאור, מותג)
-// כולל: מונה תווים לשם המוצר ועורך טקסט עשיר לתיאור
+// כולל: מונה תווים לשם המוצר ו-textarea לתיאור
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { Input } from '../../../../../ui/Input/Input';
-import { RichTextEditor } from '../../../../../ui/RichTextEditor';
 import styles from './ProductBasicInfo.module.css';
 
 // ==========================================
@@ -45,12 +44,8 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
   // מעקב אחרי כמות תווים בשם המוצר
   const nameLength = values.name?.length || 0;
   
-  // מעקב אחרי כמות תווים בתיאור (חישוב מטקסט נקי)
-  const descriptionLength = useMemo(() => {
-    // הסרת תגיות HTML לספירת תווים אמיתית
-    const textOnly = values.description?.replace(/<[^>]*>/g, '') || '';
-    return textOnly.length;
-  }, [values.description]);
+  // מעקב אחרי כמות תווים בתיאור
+  const descriptionLength = values.description?.length || 0;
 
   // צבע מונה תווים לשם המוצר
   const nameCounterClass = useMemo(() => {
@@ -77,10 +72,10 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
     [onChange]
   );
 
-  // טיפול בשינוי תיאור המוצר (עורך עשיר)
+  // טיפול בשינוי תיאור המוצר
   const handleDescriptionChange = useCallback(
-    (htmlValue: string) => {
-      onChange('description', htmlValue);
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onChange('description', e.target.value);
     },
     [onChange]
   );
@@ -155,30 +150,35 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
           />
         </div>
 
-        {/* תיאור המוצר - עורך טקסט עשיר */}
+        {/* תיאור המוצר - textarea פשוט */}
         <div className={styles.formGroup}>
           <label htmlFor="product-description" className={styles.label}>
             תיאור המוצר
             <span className={styles.required}>*</span>
           </label>
           
-          <RichTextEditor
+          <textarea
             id="product-description"
+            name="description"
             value={values.description || ''}
             onChange={handleDescriptionChange}
-            placeholder="תאר את המוצר בפירוט - תכונות, יתרונות, שימושים..."
+            placeholder="תאר את המוצר בפירוט - תכונות, יתרונות, שימושים...&#10;ירידת שורה תישמר ותוצג בדף המוצר"
             disabled={disabled}
             maxLength={5000}
-            minRows={6}
-            error={!!errors.description}
+            rows={6}
+            className={`${styles.textarea} ${error ? styles.textareaError : ''}`}
           />
           
-          {/* הודעת שגיאה */}
-          {errors.description?.message && (
-            <div className={styles.errorText}>
-              {errors.description.message}
-            </div>
-          )}
+          <div className={styles.fieldFooter}>
+            <span className={styles.charCounter}>
+              {descriptionLength}/5000
+            </span>
+            {errors.description?.message && (
+              <span className={styles.errorText}>
+                {errors.description.message}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* מותג */}
