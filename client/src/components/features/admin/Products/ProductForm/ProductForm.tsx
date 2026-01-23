@@ -743,7 +743,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </p>
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar - מוסתר (לא רלוונטי) */}
+          {false && (
           <div className={styles.progressSection}>
             <div className={styles.progressHeader}>
               <span className={styles.progressLabel}>התקדמות</span>
@@ -756,6 +757,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               />
             </div>
           </div>
+          )}
         </div>
 
         {/* Section Navigation Tabs - ניווט עם גלילה חלקה */}
