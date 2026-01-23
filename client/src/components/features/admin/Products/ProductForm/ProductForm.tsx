@@ -418,19 +418,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   // מניעת pull-to-refresh בזמן יצירת מוצר
   useEffect(() => {
-    if (mode === 'create') {
-      // שמירת הערך המקורי
-      const originalOverscrollBehavior = document.body.style.overscrollBehavior;
-      
-      // מניעת pull-to-refresh
-      document.body.style.overscrollBehavior = 'contain';
-      
-      // שחזור כשיוצאים מהקומפוננטה
-      return () => {
-        document.body.style.overscrollBehavior = originalOverscrollBehavior;
-      };
-    }
-  }, [mode]);
+    // הגדרה תמידית - גם ביצירה וגם בעריכה
+    const originalOverscrollBehavior = document.body.style.overscrollBehavior;
+    document.body.style.overscrollBehavior = 'contain';
+    return () => {
+      document.body.style.overscrollBehavior = originalOverscrollBehavior;
+    };
+  }, []);
 
   // שחזור draft בטעינה - מושבת (לא להציג חלון קופץ)
   {/* useEffect(() => {
