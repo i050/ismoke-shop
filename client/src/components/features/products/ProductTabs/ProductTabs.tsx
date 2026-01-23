@@ -40,6 +40,17 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
 
     loadShippingPolicy();
   }, []);
+
+  // בדיקה האם יש תוכן בטאב משלוח והחזרות
+  const hasShippingContent = () => {
+    if (!shippingPolicy) return false;
+    
+    const hasShipping = shippingPolicy.shipping?.enabled && shippingPolicy.shipping.items.length > 0;
+    const hasReturns = shippingPolicy.returns?.enabled && shippingPolicy.returns.items.length > 0;
+    const hasWarranty = shippingPolicy.warranty?.enabled && shippingPolicy.warranty.items.length > 0;
+    
+    return hasShipping || hasReturns || hasWarranty;
+  };
   
   // הגדרת כרטיסיות המידע - בדיוק כמו ב-HTML
   const tabs = [
@@ -229,12 +240,20 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
     }
   ];
 
+  // סינון טאבים - הסרת טאב משלוח אם אין בו תוכן
+  const filteredTabs = tabs.filter(tab => {
+    if (tab.id === 'shipping') {
+      return hasShippingContent();
+    }
+    return true;
+  });
+
   return (
     <div className={styles.tabsContainer}>
       
       {/* כותרות הכרטיסיות */}
       <div className={styles.tabHeaders}>
-        {tabs.map((tab) => (
+        {filteredTabs.map((tab) => (
           <Button
             key={tab.id}
             variant={activeTab === tab.id ? 'primary' : 'ghost'}
@@ -251,7 +270,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
       
       {/* תוכן הכרטיסייה הפעילה */}
       <div className={styles.tabPanel}>
-        {tabs.find(tab => tab.id === activeTab)?.content}
+        {filteredTabs.find(tab => tab.id === activeTab)?.content}
       </div>
     </div>
   );
