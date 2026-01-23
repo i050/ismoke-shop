@@ -374,6 +374,8 @@ const ColorFamilyImages: React.FC<ColorFamilyImagesProps> = ({
         </p>
         
         {/* 🆕 טאבים לבחירת מצב תצוגה */}
+        {/* 🔒 מוסתר זמנית - טאב משפחות צבע */}
+        {false && (
         <div className={styles.viewModeToggle}>
           <button
             type="button"
@@ -392,6 +394,7 @@ const ColorFamilyImages: React.FC<ColorFamilyImagesProps> = ({
             משפחות צבע ({displayedFamilies.length})
           </button>
         </div>
+        )}
       </div>
 
       {/* 🆕 תצוגת צבעים ספציפיים */}
@@ -488,7 +491,8 @@ const ColorFamilyImages: React.FC<ColorFamilyImagesProps> = ({
       )}
 
       {/* תצוגת משפחות צבע (fallback) */}
-      {viewMode === 'families' && (
+      {/* 🔒 מוסתר זמנית - תצוגת משפחות צבע */}
+      {false && viewMode === 'families' && (
         <div className={styles.familiesList}>
           {displayedFamilies.map((family) => {
             const imageCount = getFamilyImageCount(family.family);

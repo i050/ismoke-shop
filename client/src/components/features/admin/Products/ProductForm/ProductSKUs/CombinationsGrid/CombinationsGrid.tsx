@@ -279,7 +279,7 @@ const CombinationsGrid: React.FC<CombinationsGridProps> = ({
         <div className={styles.header}>
           <h4 className={styles.title}>
             <Icon name="List" />
-            <span>בחר וריאנטים זמינים</span>
+            <span>בחר גירסאות זמינות</span>
           </h4>
           
           <div className={styles.stats}>
@@ -364,7 +364,7 @@ const CombinationsGrid: React.FC<CombinationsGridProps> = ({
             </span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>וריאנטים נבחרו:</span>
+            <span className={styles.summaryLabel}>גירסאות נבחרו:</span>
             <span className={styles.summaryValue}>
               <strong>{stats.selected}</strong> מתוך {stats.total}
             </span>

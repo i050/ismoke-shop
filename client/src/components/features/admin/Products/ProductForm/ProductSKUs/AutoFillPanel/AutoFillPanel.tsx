@@ -611,8 +611,8 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
           <Icon name={isEditMode ? 'Edit' : 'Settings'} size={20} />
           <span className={styles.headerTitle}>
             {isEditMode 
-              ? `עריכה מרובה (${matchedExistingSkus.length} וריאנטים מתאימים)`
-              : `הגדרות מחיר ומלאי (${combinations.length} וריאנטים נבחרו)`
+              ? `עריכה מרובה (${matchedExistingSkus.length} גירסאות מתאימות)`
+              : `הגדרות מחיר ומלאי (${combinations.length} גירסאות נבחרו)`
             }
           </span>
         </div>
@@ -673,7 +673,8 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
           )}
 
           {/* תבנית SKU - רק במצב יצירה */}
-          {!isEditMode && (
+          {/* 🔒 מוסתר זמנית - תבנית אוטומטית */}
+          {false && !isEditMode && (
             <div className={styles.section}>
               <h4 className={styles.sectionTitle}>
                 <Icon name="Code" size={16} />
@@ -985,7 +986,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
             <div className={styles.previewSection}>
               <h4 className={styles.sectionTitle}>
                 <Icon name="Eye" size={16} />
-                וריאנטים שייפגעו מהעדכון ({matchedExistingSkus.length})
+                גירסאות שייפגעו מהעדכון ({matchedExistingSkus.length})
               </h4>
               <div className={styles.previewTableWrapper}>
                 <table className={styles.previewTable}>
@@ -1121,7 +1122,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                 disabled={!isValid}
               >
                 <Icon name="Check" size={18} />
-                עדכן {matchedExistingSkus.length} וריאנטים
+                עדכן {matchedExistingSkus.length} גירסאות
               </button>
             ) : (
               <button
@@ -1131,7 +1132,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                 disabled={!isValid}
               >
                 <Icon name="Plus" size={18} />
-                צור {combinations.length} וריאנטים
+                צור {combinations.length} גירסאות
               </button>
             )}
           </div>

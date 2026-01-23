@@ -583,7 +583,7 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
         <div className={styles.headerContent}>
           <h3 className={styles.title}>
             <Icon name="Layers" size={20} />
-            {primaryVariantLabel || 'וריאנטים'} ({stats.totalVariants})
+            {primaryVariantLabel || 'גירסאות'} ({stats.totalVariants})
           </h3>
           <p className={styles.subtitle}>
             {stats.totalSkus} SKUs | סה״כ {stats.totalStock} יחידות במלאי
@@ -626,9 +626,9 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
           <div className={styles.emptyStateIcon}>
             <Icon name="Layers" size={48} />
           </div>
-          <h4 className={styles.emptyStateTitle}>אין וריאנטים עדיין</h4>
+          <h4 className={styles.emptyStateTitle}>אין גירסאות עדיין</h4>
           <p className={styles.emptyStateText}>
-            לחץ על "הוסף {primaryVariantLabel || 'וריאנט'}" כדי להתחיל להוסיף וריאנטים למוצר
+            לחץ על "הוסף {primaryVariantLabel || 'גירסא'}" כדי להתחיל להוסיף גירסאות למוצר
           </p>
           <button
             type="button"
@@ -681,7 +681,7 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
                         handleDeleteVariant(group.variantName);
                       }}
                       disabled={disabled}
-                      title="מחק וריאנט"
+                      title="מחק גירסא"
                     >
                       <Icon name="Trash2" size={16} />
                     </button>
@@ -775,8 +775,8 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
           ============================================ */}
       <ConfirmDialog
         isOpen={showDeleteAllConfirm}
-        title="מחיקת כל הוריאנטים"
-        message={`⚠️ האם אתה בטוח שברצונך למחוק את כל ${variantGroups.length} הוריאנטים וכל ה-${value.length} SKUs?
+        title="מחיקת כל הגירסאות"
+        message={`⚠️ האם אתה בטוח שברצונך למחוק את כל ${variantGroups.length} הגירסאות וכל ה-${value.length} SKUs?
         
 פעולה זו תחזיר את המוצר למצב ללא וריאנטים ותאפשר לך להגדיר מחדש את שם הוריאנט.`}
         confirmText="כן, מחק הכל"

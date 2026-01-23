@@ -76,7 +76,7 @@ export const ProductTypeDialog: React.FC<ProductTypeDialogProps> = ({
               <Palette size={32} />
             </div>
             <div className={styles.optionContent}>
-              <h3 className={styles.optionTitle}>מוצר עם וריאנטים</h3>
+              <h3 className={styles.optionTitle}>מוצר עם גירסאות</h3>
               <p className={styles.optionDescription}>
                 מוצר עם מספר אפשרויות כמו צבעים או מידות.
                 <br />

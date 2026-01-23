@@ -214,7 +214,7 @@ export const ProductRow: React.FC<ProductRowProps> = ({
               {isSkuPopoverOpen && (
                 <div ref={skuPopoverRef} className={styles.skuPopover}>
                   <div className={styles.skuPopoverHeader}>
-                    <span>פירוט מלאי ({product.skus!.length} וריאנטים)</span>
+                    <span>פירוט מלאי ({product.skus!.length} גירסאות)</span>
                   </div>
                   <ul className={styles.skuList}>
                     {product.skus!.map((sku) => {

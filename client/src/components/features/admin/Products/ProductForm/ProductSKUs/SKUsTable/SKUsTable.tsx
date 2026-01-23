@@ -218,8 +218,8 @@ const SKUsTable: React.FC<SKUsTableProps> = ({
     return (
       <div className={styles.empty}>
         <Icon name="Package" size={48} />
-        <p>אין וריאנטים עדיין</p>
-        <span>השתמש בכפתור "הוסף וריאנטים" למעלה</span>
+        <p>אין גירסאות עדיין</p>
+        <span>השתמש בכפתור "הוסף גירסאות" למעלה</span>
       </div>
     );
   }
@@ -230,7 +230,7 @@ const SKUsTable: React.FC<SKUsTableProps> = ({
       {selectedIndices.size > 0 && (
         <div className={styles.bulkActions}>
           <span className={styles.bulkCount}>
-            ✓ {selectedIndices.size} וריאנטים נבחרו
+            ✓ {selectedIndices.size} גירסאות נבחרו
           </span>
           
           <div className={styles.bulkButtons}>

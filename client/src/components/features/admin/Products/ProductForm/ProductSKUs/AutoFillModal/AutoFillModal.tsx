@@ -319,6 +319,8 @@ const AutoFillModal: React.FC<AutoFillModalProps> = ({
         </div>
 
         {/* תבנית SKU */}
+        {/* 🔒 מוסתר זמנית - תבנית אוטומטית */}
+        {false && (
         <div className={styles.section}>
           <h4 className={styles.sectionTitle}>
             <Icon name="Code" />
@@ -344,6 +346,7 @@ const AutoFillModal: React.FC<AutoFillModalProps> = ({
             )}</strong>
           </p>
         </div>
+        )}
 
         {/* מחיר */}
         <div className={styles.section}>

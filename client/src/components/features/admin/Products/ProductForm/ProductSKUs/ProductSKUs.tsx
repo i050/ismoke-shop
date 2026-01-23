@@ -192,6 +192,9 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   
   /** 🆕 מצב Accordion של AutoFill (פתוח/סגור) */
   const [isAutoFillOpen, setIsAutoFillOpen] = useState(false);
+  
+  /** 🔧 מעקב אחרי סגירה ידנית - מונע פתיחה אוטומטית לאחר שהמשתמש סגר */
+  const userClosedAutoFill = useRef(false);
 
   // ============================================================================
   // 🆕 Bulk Edit - עריכה מרובה
@@ -205,6 +208,9 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   
   /** האם פאנל Bulk Edit פתוח */
   const [isBulkEditPanelOpen, setIsBulkEditPanelOpen] = useState(false);
+  
+  /** 🔧 מעקב אחרי סגירה ידנית של Bulk Edit - מונע פתיחה אוטומטית לאחר שהמשתמש סגר */
+  const userClosedBulkEdit = useRef(false);
 
   // ============================================================================
   // 🆕 הסרת ערך וריאנט קיים - Dialog אישור
@@ -630,16 +636,28 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
 
   /**
    * 🆕 פתיחה אוטומטית של AutoFill כשיש וריאנטים נבחרים
+   * 🔧 אבל רק אם המשתמש לא סגר באופן ידני
    */
   useEffect(() => {
-    if (selectedCombinations.length > 0 && !isAutoFillOpen) {
+    if (selectedCombinations.length > 0 && !isAutoFillOpen && !userClosedAutoFill.current) {
       setIsAutoFillOpen(true);
+    }
+    // אם אין שילובים נבחרים - איפוס הדגל של סגירה ידנית
+    if (selectedCombinations.length === 0) {
+      userClosedAutoFill.current = false;
     }
   }, [selectedCombinations.length, isAutoFillOpen]);
 
   /** Toggle של Accordion */
   const handleToggleAutoFill = useCallback(() => {
-    setIsAutoFillOpen(prev => !prev);
+    setIsAutoFillOpen(prev => {
+      const newState = !prev;
+      // 🔧 אם סוגרים - סמן שהמשתמש סגר ידנית
+      if (!newState) {
+        userClosedAutoFill.current = true;
+      }
+      return newState;
+    });
   }, []);
 
   /**
@@ -756,6 +774,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     setSelectedVariantAttributes([]);
     setSelectedCombinations([]);
     setIsAutoFillOpen(false);
+    // 🔧 איפוס דגל הסגירה הידנית
+    userClosedAutoFill.current = false;
   }, [value, onChange, selectedVariantAttributes, onVariantTypeChange, onPrimaryVariantLabelChange, onSecondaryVariantLabelChange]);
 
   // ============================================================================
@@ -852,6 +872,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     setIsBulkEditMode(true);
     setBulkEditCombinations([]);
     setIsBulkEditPanelOpen(false);
+    // 🔧 איפוס דגל הסגירה הידנית
+    userClosedBulkEdit.current = false;
   }, []);
 
   /**
@@ -861,6 +883,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     setIsBulkEditMode(false);
     setBulkEditCombinations([]);
     setIsBulkEditPanelOpen(false);
+    // 🔧 איפוס דגל הסגירה הידנית
+    userClosedBulkEdit.current = false;
   }, []);
 
   /**
@@ -868,9 +892,13 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
    */
   const handleBulkEditCombinationsChange = useCallback((newCombinations: Combination[]) => {
     setBulkEditCombinations(newCombinations);
-    // פתיחה אוטומטית של הפאנל כשיש בחירה
-    if (newCombinations.length > 0 && !isBulkEditPanelOpen) {
+    // פתיחה אוטומטית של הפאנל כשיש בחירה - אבל רק אם המשתמש לא סגר ידנית
+    if (newCombinations.length > 0 && !isBulkEditPanelOpen && !userClosedBulkEdit.current) {
       setIsBulkEditPanelOpen(true);
+    }
+    // אם אין שילובים נבחרים - איפוס הדגל של סגירה ידנית
+    if (newCombinations.length === 0) {
+      userClosedBulkEdit.current = false;
     }
   }, [isBulkEditPanelOpen]);
 
@@ -878,7 +906,14 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
    * Toggle של פאנל Bulk Edit
    */
   const handleToggleBulkEditPanel = useCallback(() => {
-    setIsBulkEditPanelOpen(prev => !prev);
+    setIsBulkEditPanelOpen(prev => {
+      const newState = !prev;
+      // 🔧 אם סוגרים - סמן שהמשתמש סגר ידנית
+      if (!newState) {
+        userClosedBulkEdit.current = true;
+      }
+      return newState;
+    });
   }, []);
 
   /**
@@ -1242,12 +1277,16 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       setSelectedVariantAttributes(existingAttributes);
       setSelectedCombinations([]); // נאפס את הקומבינציות - המשתמש יבחר חדשות
       setIsAutoFillOpen(false);
+      // 🔧 איפוס דגל הסגירה הידנית
+      userClosedAutoFill.current = false;
       setVariantFlowStep('create'); // חזרה לשלב create, אבל עם מבנה קיים!
     } else {
       // אין SKUs - התחלה מאפס
       setSelectedVariantAttributes([]);
       setSelectedCombinations([]);
       setIsAutoFillOpen(false);
+      // 🔧 איפוס דגל הסגירה הידנית
+      userClosedAutoFill.current = false;
       setVariantFlowStep('create');
     }
   }, [value, primaryVariantLabel, secondaryVariantLabel]);
@@ -1388,12 +1427,12 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h3 className={styles.title}>
-            גרסאות ({value.length})
+            גירסאות ({value.length})
           </h3>
           <p className={styles.subtitle}>
-            {variantFlowStep === 'create' && 'בחר את סוגי הגרסאות הזמינים למכירה'}
-            {variantFlowStep === 'manage' && !isBulkEditMode && 'נהל את הגרסאות השונים של המוצר'}
-            {variantFlowStep === 'manage' && isBulkEditMode && 'בחר גרסאות לעריכה מרובה'}
+            {variantFlowStep === 'create' && 'בחר את סוגי הגירסאות הזמינים למכירה'}
+            {variantFlowStep === 'manage' && !isBulkEditMode && 'נהל את הגירסאות השונים של המוצר'}
+            {variantFlowStep === 'manage' && isBulkEditMode && 'בחר גירסאות לעריכה מרובה'}
           </p>
         </div>
 

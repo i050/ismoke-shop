@@ -146,7 +146,7 @@ export const ProductFormActions: React.FC<ProductFormActionsProps> = ({
                 <li>❌ קטגוריה: {validationErrors.categoryId}</li>
               )}
               {typeof validationErrors.skus === 'string' && validationErrors.skus && (
-                <li>❌ גרסאות (SKUs): {validationErrors.skus}</li>
+                <li>❌ גירסאות (SKUs): {validationErrors.skus}</li>
               )}
             </ul>
           </div>

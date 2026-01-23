@@ -435,7 +435,7 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                   <p>אין ערכים זמינים במאפיין <strong>{selectedFilterAttribute}</strong></p>
                   <p className={styles.emptyValuesHint}>
                     {existingVariants.length > 0 
-                      ? 'כל הערכים כבר נוספו כוריאנטים' 
+                      ? 'כל הערכים כבר נוספו כגירסאות' 
                       : 'הוסף ערכים למאפיין הסינון בהגדרות'}
                   </p>
                 </div>

@@ -738,7 +738,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </h2>
             <p className={styles.subtitle}>
               {mode === 'create'
-                ? 'מלא את פרטי המוצר ובחר האם יש לו גרסאות'
+                ? 'מלא את פרטי המוצר ובחר האם יש לו גירסאות'
                 : 'ערוך את פרטי המוצר ושמור את השינויים'}
             </p>
           </div>
@@ -933,12 +933,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               disabled={isSubmitting}
             />
             
-            {/* 🆕 שאלה "האם למוצר יש גרסאות?" - בתוך הטופס במקום בדיאלוג */}
+            {/* 🆕 שאלה "האם למוצר יש גירסאות?" - בתוך הטופס במקום בדיאלוג */}
             {mode === 'create' && (
               <div className={styles.variantQuestion}>
                 <div className={styles.variantQuestionHeader}>
                   <Icon name="HelpCircle" size={20} />
-                  <span>האם למוצר הזה יש גרסאות שונות?</span>
+                  <span>האם למוצר הזה יש גירסאות שונות?</span>
                 </div>
                 <p className={styles.variantQuestionSubtext}>
                   (כמו מידות, צבעים, חומרים וכו')
@@ -988,14 +988,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <div className={styles.variantOptionContent}>
                       <Icon name="Palette" size={24} />
                       <div>
-                        <strong>כן - למוצר יש גרסאות</strong>
+                        <strong>כן - למוצר יש גירסאות</strong>
                         <span>מוצר עם צבעים, מידות או וריאציות אחרות</span>
                       </div>
                     </div>
                   </label>
                 </div>
                 <p className={styles.variantQuestionTip}>
-                  💡 לדוגמה: ספר הוא מוצר פשוט, חולצה עם מידות היא מוצר עם גרסאות
+                  💡 לדוגמה: ספר הוא מוצר פשוט, חולצה עם מידות היא מוצר עם גירסאות
                 </p>
               </div>
             )}

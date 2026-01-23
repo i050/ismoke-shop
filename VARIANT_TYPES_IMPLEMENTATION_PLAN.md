@@ -484,7 +484,7 @@ client/src/
   {/* טבלת וריאנטים */}
   <section className={styles.variants}>
     <div className={styles.header}>
-      <h3>גרסאות ({variants.length})</h3>
+      <h3>גירסאות ({variants.length})</h3>
       <Button onClick={openAddModal}>
         <Icon name="Plus" />
         הוסף גירסא

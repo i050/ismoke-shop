@@ -395,7 +395,7 @@ export const productSchema = yup.object({
     .default([])
     .test(
       'has-valid-variants',
-      'מוצר עם וריאנטים חייב להכיל לפחות וריאנט אחד עם צבע או שם',
+      'מוצר עם גירסאות חייב להכיל לפחות גירסא אחת עם צבע או שם',
       function (value) {
         const { hasVariants } = this.parent;
         

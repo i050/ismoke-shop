@@ -25,7 +25,7 @@ interface ProductImagesProps {
    */
   onNavigateToVariants?: () => void;
   /**
-   * האם למוצר יש גרסאות/וריאנטים
+   * האם למוצר יש גירסאות/וריאנטים
    */
   hasVariants?: boolean;
 }
@@ -59,12 +59,12 @@ const ProductImages: React.FC<ProductImagesProps> = ({
       {/* כותרת והסבר מקצועי - תמונות כלליות בלבד */}
       <div className={styles.header}>
         <h3 className={styles.title}>תמונות מוצר</h3>
-        {/* הסבר על וריאנטים - רק למוצרים עם גרסאות */}
+        {/* הסבר על וריאנטים - רק למוצרים עם גירסאות */}
         {hasVariants && (
           <div className={styles.subtitle}>
             {/* הסבר בעברית על מטרת התמונות */}
             <span>
-              התמונות כאן הן <strong>תמונות כלליות</strong> של המוצר. אם יש לך תמונה של צבע מסוים, יש להעלות אותה בחלק של
+              התמונות כאן הן <strong>תמונות כלליות</strong>  תמונות צבע לאחר בחירת של המוצר. אם יש לך תמונה של צבע מסוים, יש להעלות אותה בחלק של
             </span>
             {/* קישור אינטראקטיבי לניווט לטאב תמונות צבע */}
             <button
@@ -72,7 +72,7 @@ const ProductImages: React.FC<ProductImagesProps> = ({
               className={styles.variantsLink}
               onClick={handleNavigateToVariants}
             >
-              תמונות צבע
+              גירסאות 
             </button>
           </div>
         )}
