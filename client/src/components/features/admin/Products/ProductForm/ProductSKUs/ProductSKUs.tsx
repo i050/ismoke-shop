@@ -1388,12 +1388,12 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h3 className={styles.title}>
-            וריאנטים ({value.length})
+            גרסאות ({value.length})
           </h3>
           <p className={styles.subtitle}>
-            {variantFlowStep === 'create' && 'בחר את סוגי הוריאנטים הזמינים למכירה'}
-            {variantFlowStep === 'manage' && !isBulkEditMode && 'נהל את הוריאנטים השונים של המוצר'}
-            {variantFlowStep === 'manage' && isBulkEditMode && 'בחר וריאנטים לעריכה מרובה'}
+            {variantFlowStep === 'create' && 'בחר את סוגי הגרסאות הזמינים למכירה'}
+            {variantFlowStep === 'manage' && !isBulkEditMode && 'נהל את הגרסאות השונים של המוצר'}
+            {variantFlowStep === 'manage' && isBulkEditMode && 'בחר גרסאות לעריכה מרובה'}
           </p>
         </div>
 
