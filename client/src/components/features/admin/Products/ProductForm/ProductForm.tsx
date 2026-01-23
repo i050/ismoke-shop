@@ -481,13 +481,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       );
 
       // לפני השליחה לשרת: אם יש SKUs עם price == null, נחליף אותם במחיר הבסיס
+      // במוצר פשוט (בלי וריאנטים) - אם ה-SKU ריק (name ריק), נשים את שם המוצר
       const payload = {
         ...data,
         specifications: filteredSpecifications,
         hasVariants, // 🆕 שליחת hasVariants לשרת לפי הבחירה בדיאלוג
         skus: (data.skus || []).map(sku => ({
           ...sku,
+          // אם price ריק, נשתמש במחיר הבסיס
           price: sku.price == null ? data.basePrice ?? null : sku.price,
+          // אם name ריק ומדובר במוצר פשוט, נשתמש בשם המוצר
+          name: (!sku.name || sku.name.trim() === '') && !hasVariants ? data.name : sku.name,
         })),
       } as ProductFormData;
 
