@@ -818,7 +818,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </button>
           
           {/* מוצר פשוט: מאפייני סינון אחרי קטגוריות */}
-          {!hasVariants && (
+          {/* 🔒 מוסתר זמנית - מאפייני סינון */}
+          {false && !hasVariants && (
             <button
               type="button"
               className={`${styles.navTab} ${activeSection === 'attributes' ? styles.active : ''}`}
@@ -875,6 +876,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               >
                 מלאי
               </button>
+              {/* 🔒 מוסתר זמנית - מאפייני סינון */}
+              {false && (
               <button
                 type="button"
                 className={`${styles.navTab} ${activeSection === 'attributes' ? styles.active : ''}`}
@@ -885,6 +888,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               >
                 מאפייני סינון
               </button>
+              )}
             </>
           )}
           
@@ -1063,7 +1067,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </div>
 
           {/* 🆕 מוצר פשוט: מאפייני סינון אחרי קטגוריות */}
-          {!hasVariants && (
+          {/* 🔒 מוסתר זמנית - מאפייני סינון */}
+          {false && !hasVariants && (
             <div id="attributes-section" className={styles.section}>
               <ProductFilterAttributes
                 skus={formValues.skus || []}
@@ -1152,6 +1157,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </div>
 
               {/* Filter Attributes Section - מאפייני סינון */}
+              {/* 🔒 מוסתר זמנית - מאפייני סינון */}
+              {false && (
               <div id="attributes-section" className={styles.section}>
                 <ProductFilterAttributes
                   skus={formValues.skus || []}
@@ -1160,6 +1167,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   isSimpleProduct={false}
                 />
               </div>
+              )}
             </>
           )}
 
