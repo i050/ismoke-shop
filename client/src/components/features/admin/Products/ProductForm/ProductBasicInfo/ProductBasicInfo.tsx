@@ -166,7 +166,7 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
             disabled={disabled}
             maxLength={5000}
             rows={6}
-            className={`${styles.textarea} ${error ? styles.textareaError : ''}`}
+            className={`${styles.textarea} ${errors.description ? styles.textareaError : ''}`}
           />
           
           <div className={styles.fieldFooter}>
