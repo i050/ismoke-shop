@@ -193,10 +193,15 @@ const AttributeModal: React.FC<AttributeModalProps> = ({
 
   /**
    * עדכון ערך ברשימה
+   * כאשר מעדכנים displayName, מעתיקים אוטומטית גם ל-value
    */
   const handleValueChange = (index: number, field: 'value' | 'displayName', newValue: string) => {
     const newValues = [...values];
     newValues[index][field] = newValue;
+    // אם מעדכנים את displayName, מעתיקים אוטומטית גם ל-value
+    if (field === 'displayName') {
+      newValues[index]['value'] = newValue;
+    }
     setValues(newValues);
   };
 
@@ -348,15 +353,11 @@ const AttributeModal: React.FC<AttributeModalProps> = ({
             <div className={styles.valuesList}>
               {values.map((val, index) => (
                 <div key={index} className={styles.valueRow}>
-                  <Input
-                    value={val.value}
-                    onChange={(e) => handleValueChange(index, 'value', e.target.value)}
-                    placeholder="ערך (למשל: red)"
-                  />
+                  {/* שדה אחד בלבד - ערך בעברית (נשמר גם ל-value וגם ל-displayName) */}
                   <Input
                     value={val.displayName}
                     onChange={(e) => handleValueChange(index, 'displayName', e.target.value)}
-                    placeholder="שם תצוגה (למשל: אדום)"
+                    placeholder="שם הערך (למשל: אדום, גדול, כותנה)"
                   />
                   <button
                     type="button"

@@ -137,9 +137,10 @@
   gap: 0.75rem;
 }
 
+/* שורת ערך - שדה אחד (בעברית) + כפתור הסרה */
 .valueRow {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 0.75rem;
   align-items: center;
 }

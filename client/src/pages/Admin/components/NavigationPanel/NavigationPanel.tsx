@@ -46,7 +46,7 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({ isOpen = true, onClos
     },
     {
       path: '/admin/filter-attributes',
-      label: 'מאפייני סינון',
+      label: 'מאפייני מוצרים',
       icon: 'Filter',
     },
     // {
