@@ -542,7 +542,7 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
               {loadingAttributes ? (
                 <div className={styles.loadingSelect}>
                   <Icon name="Loader2" size={16} className={styles.spinner} />
-                  <span>טוען מאפייני סינון...</span>
+                  <span>טוען מאפיינים...</span>
                 </div>
               ) : (
                 <select

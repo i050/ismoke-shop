@@ -64,6 +64,11 @@ const AttributeCard: React.FC<AttributeCardProps> = ({
     return 0;
   };
 
+  /**
+   * בדיקה האם זה מאפיין צבע מערכתי (מוגן ממחיקה/עריכה)
+   */
+  const isColorAttribute = attribute.key === 'color' && attribute.valueType === 'color';
+
   return (
     <div className={styles.card}>
       {/* כותרת הכרטיס */}
@@ -173,24 +178,34 @@ const AttributeCard: React.FC<AttributeCardProps> = ({
 
       {/* כפתורי פעולה */}
       <div className={styles.actions}>
-        <Button
-          variant="outline"
-          size="sm"
-          icon={<Icon name="Edit" size={16} />}
-          onClick={() => onEdit(attribute)}
-          aria-label={`ערוך ${attribute.name}`}
-        >
-          עריכה
-        </Button>
-        <Button
-          variant="danger"
-          size="sm"
-          icon={<Icon name="Trash2" size={16} />}
-          onClick={() => onDelete(attribute)}
-          aria-label={`מחק ${attribute.name}`}
-        >
-          מחיקה
-        </Button>
+        {isColorAttribute ? (
+          /* מאפיין צבע מערכתי - מוגן ממחיקה ועריכה */
+          <div className={styles.protectedBadge}>
+            <Icon name="Lock" size={16} />
+            <span>מאפיין מערכת מוגן</span>
+          </div>
+        ) : (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Icon name="Edit" size={16} />}
+              onClick={() => onEdit(attribute)}
+              aria-label={`ערוך ${attribute.name}`}
+            >
+              עריכה
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              icon={<Icon name="Trash2" size={16} />}
+              onClick={() => onDelete(attribute)}
+              aria-label={`מחק ${attribute.name}`}
+            >
+              מחיקה
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

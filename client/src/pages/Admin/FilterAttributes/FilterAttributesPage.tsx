@@ -191,7 +191,7 @@ const FilterAttributesPage: React.FC = () => {
       <div className={styles.container}>
         <div className={styles.loading}>
           <Icon name="Clock" size={48} />
-          <p>טוען מאפייני סינון...</p>
+          <p>טוען מאפיינים...</p>
         </div>
       </div>
     );
@@ -217,9 +217,9 @@ const FilterAttributesPage: React.FC = () => {
     <div className={styles.container}>
       {/* כותרת ותיאור */}
       <div className={styles.header}>
-        <TitleWithIcon icon="Filter" title="מאפייני סינון" />
+        <TitleWithIcon icon="Filter" title="מאפייני מוצרים" />
         <p className={styles.subtitle}>
-          ניהול מאפיינים גלובליים שלקוחות יכולים לסנן לפיהם בחנות
+          ניהול מאפייני מוצרים שלקוחות יכולים לסנן לפיהם בחנות
         </p>
       </div>
 
@@ -257,7 +257,7 @@ const FilterAttributesPage: React.FC = () => {
       ) : (
         <div className={styles.empty}>
           <Icon name="Package" size={64} />
-          <h3>אין מאפייני סינון עדיין</h3>
+          <h3>אין מאפייני מוצרים עדיין</h3>
           <p>
             צור מאפיינים כמו צבע, גודל, חומר וכו' שיוכלו להיות מסוננים בחנות
           </p>

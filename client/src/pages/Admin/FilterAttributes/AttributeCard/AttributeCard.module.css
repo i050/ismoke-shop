@@ -207,6 +207,26 @@
   flex: 1;
 }
 
+/* תג מאפיין מוגן */
+.protectedBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 0.5rem;
+  color: #a16207;
+  font-size: 0.875rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.protectedBadge svg {
+  flex-shrink: 0;
+}
+
 /* ============================================================================
    Responsive
    ============================================================================ */
