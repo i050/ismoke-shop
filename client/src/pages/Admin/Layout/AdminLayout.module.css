@@ -188,14 +188,14 @@
      any remaining local centering rules that use module-scoped classes or inline styles. */
   [data-scroll-container="admin-main"] * {
     max-width: none !important;
-    margin: 0 !important;
-    width: auto !important;
+    /* margin: 0 removed - let components maintain their spacing */
     box-sizing: border-box !important; /* keep padding inside width */
   }
 
   /* Ensure top-level direct children occupy full width */
   [data-scroll-container="admin-main"] > * {
     width: 100% !important;
+    max-width: none !important;
   }
 
   /* Specific fix: the global `.app-container` sets `max-width` and `margin: 0 auto` which
