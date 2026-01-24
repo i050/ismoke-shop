@@ -22,7 +22,7 @@ const AdminDashboard: React.FC = () => {
       <HeroSection />
 
       {/* התראות אי-עקביות במוצרים */}
-      <InconsistencyAlertWidget />
+      {/* <InconsistencyAlertWidget /> */}
 
       {/* מקטע משימות */}
       {/* <TasksSection /> */}
