@@ -117,6 +117,14 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
   // מציאת הקטגוריה הנבחרת
   const selectedCategory = flatCategories.find((cat) => cat.id === values.categoryId);
 
+  // חילוץ טקסטי שגיאה
+  const categoryError = errors?.categoryId 
+    ? (typeof errors.categoryId === 'string' ? errors.categoryId : (errors.categoryId as any)?.message || 'שגיאה בקטגוריה')
+    : null;
+  const tagsError = errors?.tags 
+    ? (typeof errors.tags === 'string' ? errors.tags : (errors.tags as any)?.message || 'שגיאה בתגיות')
+    : null;
+
   /**
    * בחירת קטגוריה
    */
@@ -317,16 +325,15 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
           )}
         </div>
 
-        {errors?.categoryId && (
+        {categoryError && (
           <div className={styles.error}>
-            {typeof errors.categoryId === 'string' 
-              ? errors.categoryId 
-              : (errors.categoryId as any)?.message || 'שגיאה בקטגוריה'}
+            {categoryError}
           </div>
         )}
       </div>
 
       {/* תגיות */}
+      {false && (
       <div className={styles.section}>
         <label className={styles.label}>
           תגיות ({values.tags.length}/{maxTags})
@@ -385,11 +392,9 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
           </button>
         </div>
 
-        {errors?.tags && (
+        {tagsError && (
           <div className={styles.error}>
-            {typeof errors.tags === 'string' 
-              ? errors.tags 
-              : (errors.tags as any)?.message || 'שגיאה בתגיות'}
+            {tagsError}
           </div>
         )}
 
@@ -398,6 +403,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
           המוצר בחיפוש.
         </p>
       </div>
+      )}
 
       {/* טיפים */}
       {/* <div className={styles.tips}>
