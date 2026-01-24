@@ -2,6 +2,8 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: var(--spacing-xl) var(--spacing-lg);
+  overflow-x: hidden; /* מונע scroll אופקי */
+  width: 100%; /* מבטיח שהקונטיינר לא יחרוג מהמסך */
 }
 
 .loadingContainer,
@@ -69,6 +71,10 @@
 
 @media (max-width: 768px) {
   .homePage {
-    padding: var(--spacing-md);
+    padding: var(--spacing-md) 0; /* אפס padding בצדדים במובייל */
+  }
+  
+  .linksContainer {
+    padding: var(--spacing-xl) var(--spacing-md); /* padding פנימי לכפתורים */
   }
 }

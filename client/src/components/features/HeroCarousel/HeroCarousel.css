@@ -5,11 +5,13 @@
 .hero-carousel {
   position: relative;
   width: 100%;
+  max-width: 100%; /* מבטיח שלא יחרוג מהרוחב הזמין */
   height: 600px;
   overflow: hidden;
   background: #1a1a1a;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box; /* כולל padding ו-border בחישוב הרוחב */
 }
 
 /* Loading State */
@@ -347,6 +349,7 @@
   .hero-carousel {
     height: 400px;
     border-radius: 0;
+    box-shadow: none; /* הסרת shadow שיכול ליצור overflow */
   }
 
   .slide-content {

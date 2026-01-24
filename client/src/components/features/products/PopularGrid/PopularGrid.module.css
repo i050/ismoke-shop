@@ -22,7 +22,9 @@
   grid-template-columns: repeat(5, 1fr);
   gap: var(--spacing-lg);
   width: 100%;
+  max-width: 100%; /* מבטיח שלא יחרוג מהקונטיינר */
   direction: rtl;
+  box-sizing: border-box;
 }
 
 /* קונטיינר לכפתור "טען עוד" */
@@ -132,7 +134,7 @@
   
   .gridSection {
     margin: var(--spacing-2xl) 0;
-    padding: var(--spacing-md) 0;
+    padding: var(--spacing-md) var(--spacing-md); /* padding בצדדים במובייל */
   }
   
   .gridTitle {
