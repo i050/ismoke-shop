@@ -611,6 +611,7 @@ export const getInventorySkus = async (
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
     stockFilter?: 'all' | 'low' | 'out' | 'in';
+    categoryId?: string;
   } = {}
 ): Promise<{
   skus: LeanSkuWithProduct[];
@@ -626,6 +627,7 @@ export const getInventorySkus = async (
       sortBy = 'sku',
       sortOrder = 'asc',
       stockFilter = 'all',
+      categoryId,
     } = options;
 
     const skip = (page - 1) * limit;
@@ -659,19 +661,72 @@ export const getInventorySkus = async (
       ];
     }
 
-    // מיון
-    const sortStage: any = {};
-    sortStage[sortBy] = sortOrder === 'asc' ? 1 : -1;
+    // סינון לפי קטגוריה - אם נבחרה קטגוריה, משתמש ב-aggregation pipeline
+    // כדי לסנן SKUs שהמוצר שלהם שייך לקטגוריה זו
+    let skus: LeanSkuWithProduct[];
+    let total: number;
 
-    // שליפה עם populate - כולל סף מלאי נמוך מהמוצר
-    const skus = await Sku.find(matchStage)
-      .sort(sortStage)
-      .skip(skip)
-      .limit(limit)
-      .populate('productId', 'name category slug images lowStockThreshold')
-      .lean<LeanSkuWithProduct[]>();
+    if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
+      // שימוש ב-aggregation pipeline לסינון לפי קטגוריה של המוצר
+      const pipeline: PipelineStage[] = [
+        { $match: matchStage },
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'productId',
+            foreignField: '_id',
+            as: 'productData'
+          }
+        },
+        { $unwind: '$productData' },
+        {
+          $match: {
+            'productData.categoryId': new mongoose.Types.ObjectId(categoryId)
+          }
+        },
+        {
+          $addFields: {
+            productId: {
+              _id: '$productData._id',
+              name: '$productData.name',
+              category: '$productData.category',
+              slug: '$productData.slug',
+              images: '$productData.images',
+              lowStockThreshold: '$productData.lowStockThreshold'
+            }
+          }
+        },
+        { $project: { productData: 0 } }
+      ];
 
-    const total = await Sku.countDocuments(matchStage);
+      // ספירה כוללת
+      const countPipeline = [...pipeline, { $count: 'total' }];
+      const countResult = await Sku.aggregate(countPipeline);
+      total = countResult[0]?.total || 0;
+
+      // מיון ופגינציה
+      const sortStage: any = {};
+      sortStage[sortBy] = sortOrder === 'asc' ? 1 : -1;
+      
+      pipeline.push({ $sort: sortStage });
+      pipeline.push({ $skip: skip });
+      pipeline.push({ $limit: limit });
+
+      skus = await Sku.aggregate(pipeline);
+    } else {
+      // אם אין סינון לפי קטגוריה - שימוש בשאילתה רגילה
+      const sortStage: any = {};
+      sortStage[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+      skus = await Sku.find(matchStage)
+        .sort(sortStage)
+        .skip(skip)
+        .limit(limit)
+        .populate('productId', 'name category slug images lowStockThreshold')
+        .lean<LeanSkuWithProduct[]>();
+
+      total = await Sku.countDocuments(matchStage);
+    }
 
     return {
       skus,

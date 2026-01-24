@@ -1,12 +1,15 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Icon, Card, Button } from '../../../components/ui';
+import { Icon, Card, Button, NativeSelect } from '../../../components/ui';
 import inventoryService, {
   type InventorySku,
   type InventoryFilters,
   type InventoryPagination,
 } from '../../../services/inventoryService';
 import { getAllSettings } from '../../../services/settingsService';
+import { useAppDispatch, useAppSelector } from '../../../hooks/reduxHooks';
+import { fetchCategoriesTree } from '../../../store/slices/categoriesSlice';
+import type { CategoryTreeNodeClient } from '../../../services/categoryService';
 import styles from './InventoryManagementPage.module.css';
 
 /**
@@ -21,7 +24,45 @@ interface EditingState {
   value: string;
 }
 
+/**
+ * שיטוח עץ קטגוריות לרשימה שטוחה עם אינדנטציה
+ * מאפשר הצגה היררכית בתוך select נייטיבי
+ */
+const flattenCategoryTree = (
+  nodes: CategoryTreeNodeClient[],
+  depth = 0
+): Array<{ value: string; label: string; depth: number }> => {
+  const result: Array<{ value: string; label: string; depth: number }> = [];
+  
+  for (const node of nodes) {
+    // הוספת הקטגוריה עם אינדנטציה ויזואלית
+    const indent = depth > 0 ? '—'.repeat(depth) + ' ' : '';
+    result.push({
+      value: node._id,
+      label: `${indent}${node.name}`,
+      depth,
+    });
+    
+    // רקורסיה לילדים
+    if (node.children && node.children.length > 0) {
+      result.push(...flattenCategoryTree(node.children, depth + 1));
+    }
+  }
+  
+  return result;
+};
+
 const InventoryManagementPage: React.FC = () => {
+  // ============================================
+  // Redux
+  // ============================================
+
+  const dispatch = useAppDispatch();
+
+  // קבלת קטגוריות מ-Redux
+  const { tree: categories, loading: categoriesLoading } = useAppSelector(
+    (state) => state.categories
+  );
   // ============================================
   // State - מצב הקומפוננטה
   // ============================================
@@ -73,8 +114,31 @@ const InventoryManagementPage: React.FC = () => {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ============================================
+  // Memoized Values
+  // ============================================
+
+  // שיטוח עץ הקטגוריות לרשימה היררכית עם אינדנטציה
+  const categoryOptions = useMemo(() => {
+    const flatCategories = flattenCategoryTree(categories);
+    return [
+      { value: 'all', label: 'כל הקטגוריות' },
+      ...flatCategories.map((cat) => ({
+        value: cat.value,
+        label: cat.label,
+      })),
+    ];
+  }, [categories]);
+
+  // ============================================
   // טעינת נתונים
   // ============================================
+
+  // טעינת קטגוריות בעת טעינת הקומפוננטה
+  useEffect(() => {
+    if (categories.length === 0) {
+      dispatch(fetchCategoriesTree());
+    }
+  }, [dispatch, categories.length]);
 
   // טעינת הגדרות גלובליות (סף מלאי נמוך)
   useEffect(() => {
@@ -174,6 +238,17 @@ const InventoryManagementPage: React.FC = () => {
     setFilters((prev) => ({
       ...prev,
       stockFilter: value,
+      page: 1,
+    }));
+  };
+
+  /**
+   * טיפול בשינוי פילטר קטגוריה
+   */
+  const handleCategoryChange = (value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      categoryId: value === 'all' ? undefined : value,
       page: 1,
     }));
   };
@@ -397,6 +472,22 @@ const InventoryManagementPage: React.FC = () => {
                 defaultValue={filters.search}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className={styles.searchInput}
+              />
+            </div>
+
+            {/* פילטר קטגוריה */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Icon name="FolderTree" size={16} />
+                קטגוריה
+              </label>
+              <NativeSelect
+                options={categoryOptions}
+                value={filters.categoryId || 'all'}
+                onChange={handleCategoryChange}
+                disabled={categoriesLoading}
+                standalone
+                className={styles.categorySelect}
               />
             </div>
 

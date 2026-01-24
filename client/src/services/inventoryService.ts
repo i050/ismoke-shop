@@ -57,6 +57,8 @@ export interface InventoryFilters {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   stockFilter?: 'all' | 'low' | 'out' | 'in';
+  /** סינון לפי קטגוריה - ID של הקטגוריה */
+  categoryId?: string;
 }
 
 class InventoryService {
@@ -126,6 +128,10 @@ class InventoryService {
     }
     if (filters.stockFilter) {
       searchParams.set('stockFilter', filters.stockFilter);
+    }
+    // הוספת פילטר קטגוריה
+    if (filters.categoryId) {
+      searchParams.set('categoryId', filters.categoryId);
     }
 
     const queryString = searchParams.toString();

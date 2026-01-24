@@ -360,7 +360,7 @@ export const searchSkus = async (req: Request, res: Response) => {
 
 /**
  * קבלת SKUs לניהול מלאי (Admin) - עם פגינציה, חיפוש ומיון
- * GET /api/skus/inventory?page=1&limit=50&search=xxx&sortBy=stockQuantity&sortOrder=asc&stockFilter=low
+ * GET /api/skus/inventory?page=1&limit=50&search=xxx&sortBy=stockQuantity&sortOrder=asc&stockFilter=low&categoryId=xxx
  */
 export const getInventorySkus = async (req: Request, res: Response) => {
   try {
@@ -370,6 +370,7 @@ export const getInventorySkus = async (req: Request, res: Response) => {
     const sortBy = (req.query.sortBy as string) || 'sku';
     const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'asc';
     const stockFilter = (req.query.stockFilter as 'all' | 'low' | 'out' | 'in') || 'all';
+    const categoryId = (req.query.categoryId as string) || undefined; // סינון לפי קטגוריה
 
     const result = await skuService.getInventorySkus({
       page,
@@ -378,6 +379,7 @@ export const getInventorySkus = async (req: Request, res: Response) => {
       sortBy,
       sortOrder,
       stockFilter,
+      categoryId, // העברת פילטר קטגוריה
     });
 
     res.json({

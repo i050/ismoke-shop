@@ -197,6 +197,13 @@
   font-size: var(--font-size-sm, 0.875rem);
   color: var(--color-text-secondary, #666);
   font-weight: var(--font-weight-medium, 500);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.categorySelect {
+  min-width: 200px;
 }
 
 .filterButtons {
