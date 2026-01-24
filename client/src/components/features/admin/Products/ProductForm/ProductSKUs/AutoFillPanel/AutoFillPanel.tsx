@@ -18,20 +18,27 @@ import { Input } from '../../../../../../ui/Input';
 import { Icon } from '../../../../../../ui/Icon';
 import type { SKUFormData } from '../../../../../../../schemas/productFormSchema';
 import type { Combination } from '../CombinationsGrid';
+import { API_BASE_URL } from '../../../../../../../config/api';
+import { getToken } from '../../../../../../../utils/tokenUtils';
 import styles from './AutoFillPanel.module.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 /**
  * פונקציה לבקשת מספרים סידוריים מהשרת
  */
 async function reserveSkuSequences(count: number): Promise<number[]> {
   try {
-    const response = await fetch(`${API_URL}/products/reserve-sequences`, {
+    const token = getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/products/reserve-sequences`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ count }),
     });
 
