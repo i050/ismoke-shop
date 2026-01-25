@@ -14,39 +14,66 @@
 
 ## שינויים בצד השרת (Backend)
 
-### 1. **skuService.ts** - שירות SKU
+### 1. **productService.ts** - ייצוא פונקציית עזר
+**קובץ**: `server/src/services/productService.ts`
+
+#### שינויים:
+- ייצוא הפונקציה `collectCategoryAndDescendantIds` כ-`export` כדי שתהיה נגישה משירותים אחרים
+- הפונקציה אוספת קטגוריה + כל הצאצאים שלה באופן רקורסיבי (BFS)
+
+```typescript
+export async function collectCategoryAndDescendantIds(
+  rootId: mongoose.Types.ObjectId,
+  includeInactive: boolean = false
+): Promise<mongoose.Types.ObjectId[]>
+```
+
+### 2. **skuService.ts** - שירות SKU
 **קובץ**: `server/src/services/skuService.ts`
 
 #### שינויים:
-- הוספת פרמטר `categoryId?: string` לפונקציה `getInventorySkus`
-- הוספת לוגיקת סינון לפי קטגוריה באמצעות MongoDB Aggregation Pipeline
+- ייבוא `collectCategoryAndDescendantIds` מ-productService
+- שינוי אלגוריתם הסינון מ-aggregation pipeline ל-שאילתה פשוטה עם `$in`
 - הפונקציה כעת:
-  - אם `categoryId` לא נשלח - עובדת כרגיל עם `populate`
-  - אם `categoryId` נשלח - משתמשת ב-aggregation pipeline לסינון לפי `productId.categoryId`
+  1. אוספת את הקטגוריה + כל הצאצאים שלה
+  2. מוצאת את כל המוצרים בקטגוריות אלו
+  3. מסננת SKUs לפי המוצרים שנמצאו
+  4. משתמשת ב-`populate` רגיל (יותר יעיל מ-aggregation)
 
 ```typescript
-export const getInventorySkus = async (
-  options: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-    stockFilter?: 'all' | 'low' | 'out' | 'in';
-    categoryId?: string; // ✨ חדש
-  } = {}
-)
+import { collectCategoryAndDescendantIds } from './productService';
+
+// בתוך getInventorySkus:
+if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
+  // איסוף הקטגוריה + צאצאים
+  const categoryObjectId = new mongoose.Types.ObjectId(categoryId);
+  const allCategoryIds = await collectCategoryAndDescendantIds(categoryObjectId);
+
+  // שליפת מוצרים בקטגוריות אלו
+  const productsInCategories = await Product.find({
+    categoryId: { $in: allCategoryIds }
+  }).select('_id').lean();
+
+  const productIds = productsInCategories.map(p => p._id);
+
+  // סינון SKUs לפי המוצרים
+  matchStage.productId = { $in: productIds };
+  
+  // שאילתה רגילה עם populate (יותר יעיל)
+  skus = await Sku.find(matchStage)
+    .sort(sortStage)
+    .skip(skip)
+    .limit(limit)
+    .populate('productId', 'name category slug images lowStockThreshold')
+    .lean();
+}
 ```
 
-**Pipeline Logic**:
-1. `$match` - פילטור ראשוני של SKUs (מלאי, חיפוש טקסט)
-2. `$lookup` - חיבור לטבלת Products
-3. `$unwind` - פירוק המערך
-4. `$match` - סינון לפי `productData.categoryId`
-5. `$addFields` - יצירת מבנה זהה ל-populate
-6. `$sort`, `$skip`, `$limit` - מיון ופגינציה
-
-### 2. **skuController.ts** - בקר SKU
+**למה זה יותר טוב:**
+- ✅ **עקביות**: שימוש באותה לוגיקה כמו ניהול מוצרים
+- ✅ **ביצועים**: `find` + `populate` מהיר יותר מ-aggregation pipeline במקרה זה
+- ✅ **תחזוקה**: קוד פשוט יותר, קל לקריאה ולתחזוקה
+- ✅ **DRY**: אין כפילות קוד - משתמשים בפונקציה קיימת
 **קובץ**: `server/src/controllers/skuController.ts`
 
 #### שינויים:
@@ -225,10 +252,11 @@ const handleCategoryChange = (value: string) => {
 ## מה הפיצ'ר עושה?
 
 1. **בחירת קטגוריה**: המשתמש יכול לבחור קטגוריה מרשימה נפתחת היררכית
-2. **סינון אוטומטי**: ברגע שקטגוריה נבחרת, הרשימה מסתננת רק ל-SKUs של מוצרים מאותה קטגוריה
+2. **סינון היררכי**: ברגע שקטגוריה נבחרת, הרשימה מסתננת ל-SKUs של מוצרים מהקטגוריה **וגם מכל הקטגוריות הבנות שלה**
 3. **חזרה לעמוד ראשון**: כל שינוי בקטגוריה מחזיר לעמוד 1 (כמו בחיפוש)
 4. **תצוגה היררכית**: קטגוריות משנה מוצגות עם אינדנטציה (`—`)
 5. **שילוב עם פילטרים אחרים**: הסינון עובד יחד עם חיפוש, סינון מלאי, ומיון
+6. **עקביות מלאה**: התנהגות זהה לדף ניהול מוצרים - בחירת "ביגוד" תציג גם חולצות, מכנסיים וכל מה שתחת ביגוד
 
 ---
 
@@ -237,17 +265,17 @@ const handleCategoryChange = (value: string) => {
 ### דוגמה 1: צפייה במלאי של קטגוריה ספציפית
 1. המשתמש נכנס לדף ניהול מלאי
 2. בוחר "בגדים" מתפריט הקטגוריות
-3. רואה רק SKUs של מוצרים מקטגוריית בגדים
+3. רואה SKUs של מוצרים מקטגוריית בגדים **וגם** מכל הקטגוריות הבנות (חולצות, מכנסיים וכו')
 
 ### דוגמה 2: שילוב עם סינון מלאי
 1. בוחר קטגוריה "נעליים"
 2. לוחץ על "מלאי נמוך"
-3. רואה רק נעליים עם מלאי נמוך
+3. רואה **כל** הנעליים (כולל סוגי משנה) עם מלאי נמוך
 
 ### דוגמה 3: חיפוש בקטגוריה
 1. בוחר "אלקטרוניקה"
 2. מקליד "iPhone" בחיפוש
-3. רואה רק SKUs של iPhone מקטגוריית אלקטרוניקה
+3. רואה רק SKUs של iPhone מקטגוריית אלקטרוניקה **וכל תתי הקטגוריות שלה**
 
 ---
 
@@ -264,16 +292,18 @@ const handleCategoryChange = (value: string) => {
 
 ### Backend
 - [ ] לקרוא ל-`GET /api/skus/inventory` ללא `categoryId` - צריך להחזיר את כל ה-SKUs
-- [ ] לקרוא עם `categoryId` תקין - צריך להחזיר רק SKUs מהקטגוריה
+- [ ] לקרוא עם `categoryId` של קטגורית אב - צריך להחזיר SKUs של הקטגוריה **וכל הצאצאים**
+- [ ] לקרוא עם `categoryId` של קטגורית עלה (ללא צאצאים) - צריך להחזיר רק SKUs מקטגוריה זו
 - [ ] לקרוא עם `categoryId` שלא קיים - צריך להחזיר רשימה ריקה
 - [ ] לקרוא עם `categoryId` לא תקין (לא ObjectId) - צריך להחזיר את כל ה-SKUs (fallback)
 
 ### Frontend
 - [ ] לבדוק שהתפריט נפתח ומציג את כל הקטגוריות
-- [ ] לבחור קטגוריה ולוודא שהרשימה מסתננת
+- [ ] לבחור קטגורית אב ולוודא שהרשימה מסתננת **כולל צאצאים**
+- [ ] לבחור קטגורית עלה ולוודא שרואים רק ממנה
 - [ ] לבחור "כל הקטגוריות" ולוודא שמוצגים כל ה-SKUs
 - [ ] לשלב עם חיפוש וסינון מלאי
-- [ ] לבדוק שהקטגוריה נשמרת בניווט קדימה-אחורה (אם רלוונטי)
+- [ ] לוודא שהספירה (total) נכונה גם עם סינון קטגוריה
 
 ---
 
@@ -281,8 +311,9 @@ const handleCategoryChange = (value: string) => {
 
 הפיצ'ר הושלם בהצלחה! ✨
 
-- **Backend**: עודכן ב-3 קבצים (skuService, skuController, inventoryService)
+- **Backend**: עודכן ב-2 קבצים (productService - ייצוא פונקציה, skuService - שינוי אלגוריתם)
 - **Frontend**: עודכן ב-2 קבצים (InventoryManagementPage, CSS)
-- **תאימות**: מלאה עם קוד קיים
-- **ביצועים**: אופטימלי באמצעות aggregation pipeline
-- **חוויית משתמש**: עקבית עם דף ניהול מוצרים
+- **תאימות**: מלאה עם קוד קיים - שימוש בפונקציה קיימת (DRY)
+- **ביצועים**: יותר יעיל - `find` + `populate` במקום aggregation pipeline
+- **חוויית משתמש**: עקבית עם דף ניהול מוצרים - **סינון היררכי מלא**
+- **תחזוקה**: קוד פשוט יותר וקל לתחזוקה

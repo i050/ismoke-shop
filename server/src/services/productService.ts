@@ -109,7 +109,7 @@ export function invalidateTotalProductsCache(): void {
  * משמשת למערכת ה-Admin שעובדת עם IDs במקום slugs
  * מחזירה רק קטגוריות פעילות (isActive=true)
  */
-async function collectCategoryAndDescendantIds(
+export async function collectCategoryAndDescendantIds(
   rootId: mongoose.Types.ObjectId,
   includeInactive: boolean = false
 ): Promise<mongoose.Types.ObjectId[]> {

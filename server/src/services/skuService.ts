@@ -5,6 +5,7 @@ import StoreSettings from '../models/StoreSettings';
 import { clearAttributesCache } from './filterAttributeService';
 import { triggerStockAlerts } from './stockAlertService';
 import { detectColorFamily } from '../utils/colorFamilyDetector';
+import { collectCategoryAndDescendantIds } from './productService';
 
 type LeanSku = ISku & { _id: mongoose.Types.ObjectId };
 type PopulatedProductSummary = {
@@ -661,58 +662,40 @@ export const getInventorySkus = async (
       ];
     }
 
-    // סינון לפי קטגוריה - אם נבחרה קטגוריה, משתמש ב-aggregation pipeline
-    // כדי לסנן SKUs שהמוצר שלהם שייך לקטגוריה זו
+    // סינון לפי קטגוריה - אם נבחרה קטגוריה, אוסף את הקטגוריה + כל הצאצאים שלה
+    // זה מבטיח התנהגות עקבית עם דף ניהול המוצרים (היררכית)
     let skus: LeanSkuWithProduct[];
     let total: number;
 
     if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
-      // שימוש ב-aggregation pipeline לסינון לפי קטגוריה של המוצר
-      const pipeline: PipelineStage[] = [
-        { $match: matchStage },
-        {
-          $lookup: {
-            from: 'products',
-            localField: 'productId',
-            foreignField: '_id',
-            as: 'productData'
-          }
-        },
-        { $unwind: '$productData' },
-        {
-          $match: {
-            'productData.categoryId': new mongoose.Types.ObjectId(categoryId)
-          }
-        },
-        {
-          $addFields: {
-            productId: {
-              _id: '$productData._id',
-              name: '$productData.name',
-              category: '$productData.category',
-              slug: '$productData.slug',
-              images: '$productData.images',
-              lowStockThreshold: '$productData.lowStockThreshold'
-            }
-          }
-        },
-        { $project: { productData: 0 } }
-      ];
+      // איסוף הקטגוריה הנבחרת + כל הצאצאים שלה (רקורסיבי)
+      const categoryObjectId = new mongoose.Types.ObjectId(categoryId);
+      const allCategoryIds = await collectCategoryAndDescendantIds(categoryObjectId);
 
-      // ספירה כוללת
-      const countPipeline = [...pipeline, { $count: 'total' }];
-      const countResult = await Sku.aggregate(countPipeline);
-      total = countResult[0]?.total || 0;
+      console.log(`📦 [getInventorySkus] Filtering by category ${categoryId} + ${allCategoryIds.length - 1} descendants`);
 
-      // מיון ופגינציה
+      // שליפת כל המוצרים שנמצאים באחת מהקטגוריות (הקטגוריה + צאצאים)
+      const productsInCategories = await Product.find({
+        categoryId: { $in: allCategoryIds }
+      }).select('_id').lean<Array<{ _id: mongoose.Types.ObjectId }>>();
+
+      const productIds = productsInCategories.map(p => p._id);
+
+      // סינון SKUs לפי המוצרים שמצאנו
+      matchStage.productId = { $in: productIds };
+
+      // שאילתה רגילה עם populate
       const sortStage: any = {};
       sortStage[sortBy] = sortOrder === 'asc' ? 1 : -1;
-      
-      pipeline.push({ $sort: sortStage });
-      pipeline.push({ $skip: skip });
-      pipeline.push({ $limit: limit });
 
-      skus = await Sku.aggregate(pipeline);
+      skus = await Sku.find(matchStage)
+        .sort(sortStage)
+        .skip(skip)
+        .limit(limit)
+        .populate('productId', 'name category slug images lowStockThreshold')
+        .lean<LeanSkuWithProduct[]>();
+
+      total = await Sku.countDocuments(matchStage);
     } else {
       // אם אין סינון לפי קטגוריה - שימוש בשאילתה רגילה
       const sortStage: any = {};
