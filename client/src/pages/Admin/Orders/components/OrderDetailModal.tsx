@@ -30,9 +30,10 @@ import {
   Printer,
   FileDown
 } from 'lucide-react';
+import domtoimage from 'dom-to-image-more';
+import { jsPDF } from 'jspdf';
 import { Button, Input } from '../../../../components/ui';
 import type { Order, OrderStatus, ShippingDetails } from '../../../../services/orderService';
-import { exportToPdf } from '../../../../utils/pdfExportHebrew';
 import styles from './OrderDetailModal.module.css';
 
 // ============================================================================
@@ -125,55 +126,54 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 
   /**
    * שמירת ההזמנה כ-PDF
-   * יוצר מסמך PDF מקצועי עם כל פרטי ההזמנה
+   * צולם את המודאל כולו (בלי אלמנטי עדכון) ושומר כ-PDF
    */
   const handleExportPdf = async () => {
     try {
-      // הכנת נתונים לטבלה
-      const headers = [
-        { key: 'image', label: 'תמונה' },
-        { key: 'productName', label: 'מוצר' },
-        { key: 'sku', label: 'מק"ט' },
-        { key: 'attributes', label: 'מאפיינים' },
-        { key: 'quantity', label: 'כמות' },
-        { key: 'price', label: 'מחיר יחידה' },
-        { key: 'subtotal', label: 'סה"כ' }
-      ];
+      const modalElement = document.querySelector(`.${styles.modal}`) as HTMLElement;
+      if (!modalElement) {
+        alert('לא נמצא אלמנט המודאל');
+        return;
+      }
 
-      const itemsData = order.items?.map(item => ({
-        image: '📦',
-        productName: item.productName,
-        sku: item.skuCode || '-',
-        attributes: item.attributes ? 
-          Object.entries(item.attributes)
-            .map(([key, val]) => `${key}: ${val}`)
-            .join(', ') : '-',
-        quantity: item.quantity,
-        price: formatCurrency(item.price),
-        subtotal: formatCurrency(item.subtotal)
-      })) || [];
+      // הסתרת אלמנטים שלא צריכים להיות ב-PDF
+      const noPrintElements = modalElement.querySelectorAll('.no-print');
+      noPrintElements.forEach(el => (el as HTMLElement).style.display = 'none');
 
-      // בניית תיאור מפורט
-      const customerInfo = `לקוח: ${order.shippingAddress?.fullName}\n` +
-        `טלפון: ${order.shippingAddress?.phone}\n` +
-        (order.guestEmail ? `אימייל: ${order.guestEmail}\n` : '') +
-        `כתובת: ${order.shippingAddress?.street}, ${order.shippingAddress?.city}\n` +
-        `\nסטטוס: ${STATUS_OPTIONS.find(s => s.value === order.status)?.label}\n` +
-        `תשלום: ${PAYMENT_STATUS_LABELS[order.payment?.status || 'pending']}\n` +
-        `\nסכום ביניים: ${formatCurrency(order.subtotal)}\n` +
-        `מע"ם: ${formatCurrency(order.tax)}\n` +
-        `משלוח: ${order.shippingCost === 0 ? 'חינם' : formatCurrency(order.shippingCost)}\n` +
-        (order.discount > 0 ? `הנחה: -${formatCurrency(order.discount)}\n` : '') +
-        `\nסה"כ לתשלום: ${formatCurrency(order.total)}`;
+      // המתנה קצרה לעיבוד ה-DOM
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      await exportToPdf({
-        title: `הזמנה ${order.orderNumber}`,
-        subtitle: customerInfo,
-        headers,
-        data: itemsData,
-        filename: `order-${order.orderNumber}`,
-        generatedDate: formatDate(order.createdAt)
+      // צילום המודאל
+      // @ts-ignore - dom-to-image-more doesn't have TypeScript definitions
+      const dataUrl = await domtoimage.toPng(modalElement, {
+        quality: 0.95,
+        bgcolor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top right'
+        }
       });
+
+      // החזרת האלמנטים המוסתרים
+      noPrintElements.forEach(el => (el as HTMLElement).style.display = '');
+
+      // יצירת PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; // רוחב A4
+      const imgHeight = (modalElement.offsetHeight * imgWidth) / modalElement.offsetWidth;
+      
+      // אם התמונה ארוכה מדי, נקטין אותה
+      let finalWidth = imgWidth;
+      let finalHeight = imgHeight;
+      const maxHeight = 297; // גובה A4
+      
+      if (imgHeight > maxHeight) {
+        finalHeight = maxHeight;
+        finalWidth = (modalElement.offsetWidth * maxHeight) / modalElement.offsetHeight;
+      }
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, finalWidth, finalHeight);
+      pdf.save(`order-${order.orderNumber}.pdf`);
     } catch (err) {
       console.error('Error exporting PDF:', err);
       alert('שגיאה ביצירת PDF');
@@ -356,7 +356,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value as OrderStatus)}
-                  className={styles.statusSelect}
+                  className={`${styles.statusSelect} no-print`}
                   aria-label="בחר סטטוס"
                   title="בחר סטטוס להזמנה"
                 >
