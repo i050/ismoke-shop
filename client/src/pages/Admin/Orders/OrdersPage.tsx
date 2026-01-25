@@ -451,14 +451,14 @@ const OrdersPage: React.FC = () => {
                       {formatCurrency(order.total)}
                     </td>
                     <td>
-                      {/* <div className={styles.statusCell}> */}
+                      <div className={styles.statusCell}>
                         <span className={`${styles.badge} ${styles[`badge${STATUS_COLORS[order.status]}`]}`}>
                           {STATUS_ICONS[order.status]}
                           {STATUS_LABELS[order.status]}
                         </span>
                         
                         {/* Quick status update */}
-                        {/* <select
+                        <select
                           value={order.status}
                           onChange={(e) => handleStatusUpdate(order._id, e.target.value as OrderStatus)}
                           className={styles.statusSelect}
@@ -471,8 +471,8 @@ const OrdersPage: React.FC = () => {
                               {opt.label}
                             </option>
                           ))}
-                        </select> */}
-                      {/* </div> */}
+                        </select>
+                      </div>
                     </td>
                     <td>
                       <span className={`${styles.badge} ${

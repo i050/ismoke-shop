@@ -438,10 +438,94 @@
 /* Footer */
 .footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-lg) var(--spacing-xl);
   border-top: 1px solid var(--color-border);
+}
+
+.footerActions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Print Styles */
+@media print {
+  /* הסתרת overlay ורקע המודאל */
+  .overlay {
+    background: white;
+    position: static;
+    padding: 0;
+  }
+
+  .modal {
+    box-shadow: none;
+    max-width: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  /* הסתרת כל האלמנטים עם class no-print */
+  .no-print,
+  :global(.no-print) {
+    display: none !important;
+  }
+
+  /* הסתרת כפתור הסגירה */
+  .closeButton {
+    display: none !important;
+  }
+
+  /* הסתרת footer בהדפסה */
+  .footer {
+    display: none !important;
+  }
+
+  /* עיצוב מותאם להדפסה */
+  .content {
+    overflow: visible;
+    padding: var(--spacing-md);
+  }
+
+  .header {
+    padding: var(--spacing-md);
+    border-bottom: 2px solid #000;
+  }
+
+  .title {
+    font-size: 18pt;
+    color: #000;
+  }
+
+  .date {
+    font-size: 10pt;
+    color: #666;
+  }
+
+  /* שמירת צבעים בהדפסה */
+  .badge {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* עיצוב טבלה מותאם */
+  .orderItem {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* הבטחת קריאות */
+  body {
+    font-size: 10pt;
+  }
+
+  .sectionTitle {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #000;
+    margin-top: var(--spacing-md);
+  }
 }
 
 /* Responsive */

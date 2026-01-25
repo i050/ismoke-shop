@@ -903,13 +903,63 @@
   }
 
   /* Highlight states */
-  .table tbody tr.savingRow,
-  .table tbody tr.highlightedRowCritical,
-  .table tbody tr.highlightedRowHigh,
-  .table tbody tr.highlightedRowMedium {
+  .table tbody tr.savingRow {
     animation: none;
     background: rgba(249, 250, 251, 0.9);
     border-color: var(--color-border-light, #e5e7eb);
+  }
+
+  /* אנימציות הבהוב במובייל - מותאמות לפורמט כרטיס */
+  .table tbody tr.highlightedRowCritical {
+    animation: highlightPulseCriticalMobile 0.8s ease-in-out 3;
+  }
+
+  .table tbody tr.highlightedRowHigh {
+    animation: highlightPulseHighMobile 0.8s ease-in-out 3;
+  }
+
+  .table tbody tr.highlightedRowMedium {
+    animation: highlightPulseMediumMobile 0.8s ease-in-out 3;
+  }
+
+  /* אנימציות הבהוב מותאמות למובייל */
+  @keyframes highlightPulseCriticalMobile {
+    0%, 100% {
+      background: rgba(249, 250, 251, 0.9);
+      border-color: var(--color-border-light, #e5e7eb);
+      box-shadow: none;
+    }
+    50% {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  @keyframes highlightPulseHighMobile {
+    0%, 100% {
+      background: rgba(249, 250, 251, 0.9);
+      border-color: var(--color-border-light, #e5e7eb);
+      box-shadow: none;
+    }
+    50% {
+      background: rgba(249, 115, 22, 0.15);
+      border-color: rgba(249, 115, 22, 0.5);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+  }
+
+  @keyframes highlightPulseMediumMobile {
+    0%, 100% {
+      background: rgba(249, 250, 251, 0.9);
+      border-color: var(--color-border-light, #e5e7eb);
+      box-shadow: none;
+    }
+    50% {
+      background: rgba(234, 179, 8, 0.15);
+      border-color: rgba(234, 179, 8, 0.5);
+      box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.1);
+    }
   }
 
   .table tbody tr:hover {
