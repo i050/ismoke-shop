@@ -127,23 +127,38 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   /**
    * שמירת ההזמנה כ-PDF
    * צולם את המודאל כולו (בלי אלמנטי עדכון) ושומר כ-PDF
+   * מטפל בגלילה על ידי שינוי זמני של overflow לפני הצילום
    */
   const handleExportPdf = async () => {
     try {
       const modalElement = document.querySelector(`.${styles.modal}`) as HTMLElement;
-      if (!modalElement) {
+      const contentElement = modalElement?.querySelector(`.${styles.content}`) as HTMLElement;
+      
+      if (!modalElement || !contentElement) {
         alert('לא נמצא אלמנט המודאל');
         return;
       }
+
+      // שמירת הסגנונות המקוריים לפני השינוי
+      const originalModalMaxHeight = modalElement.style.maxHeight;
+      const originalModalOverflow = modalElement.style.overflow;
+      const originalContentMaxHeight = contentElement.style.maxHeight;
+      const originalContentOverflow = contentElement.style.overflow;
 
       // הסתרת אלמנטים שלא צריכים להיות ב-PDF
       const noPrintElements = modalElement.querySelectorAll('.no-print');
       noPrintElements.forEach(el => (el as HTMLElement).style.display = 'none');
 
-      // המתנה קצרה לעיבוד ה-DOM
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // שינוי זמני - הצגת כל התוכן בלי גלילה לצורך הצילום
+      modalElement.style.maxHeight = 'none';
+      modalElement.style.overflow = 'visible';
+      contentElement.style.maxHeight = 'none';
+      contentElement.style.overflow = 'visible';
 
-      // צילום המודאל
+      // המתנה קצרה לעיבוד ה-DOM אחרי השינויים
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // צילום המודאל המלא
       // @ts-ignore - dom-to-image-more doesn't have TypeScript definitions
       const dataUrl = await domtoimage.toPng(modalElement, {
         quality: 0.95,
@@ -154,25 +169,42 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
         }
       });
 
+      // החזרת הסגנונות המקוריים
+      modalElement.style.maxHeight = originalModalMaxHeight;
+      modalElement.style.overflow = originalModalOverflow;
+      contentElement.style.maxHeight = originalContentMaxHeight;
+      contentElement.style.overflow = originalContentOverflow;
+
       // החזרת האלמנטים המוסתרים
       noPrintElements.forEach(el => (el as HTMLElement).style.display = '');
 
-      // יצירת PDF
+      // יצירת PDF - עכשיו עם כל התוכן
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210; // רוחב A4
-      const imgHeight = (modalElement.offsetHeight * imgWidth) / modalElement.offsetWidth;
+      const imgWidth = 210; // רוחב A4 במ"מ
+      const pageHeight = 297; // גובה A4 במ"מ
+      const imgHeight = (modalElement.scrollHeight * imgWidth) / modalElement.offsetWidth;
       
-      // אם התמונה ארוכה מדי, נקטין אותה
-      let finalWidth = imgWidth;
-      let finalHeight = imgHeight;
-      const maxHeight = 297; // גובה A4
-      
-      if (imgHeight > maxHeight) {
-        finalHeight = maxHeight;
-        finalWidth = (modalElement.offsetWidth * maxHeight) / modalElement.offsetHeight;
+      // אם התמונה גבוהה מדף אחד, נחלק למספר עמודים
+      if (imgHeight > pageHeight) {
+        let yPosition = 0;
+        let heightLeft = imgHeight;
+        
+        // עמוד ראשון
+        pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // עמודים נוספים אם צריך
+        while (heightLeft > 0) {
+          yPosition = heightLeft - imgHeight; // מיקום שלילי כדי "לזוז" למעלה בתמונה
+          pdf.addPage();
+          pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      } else {
+        // אם זה נכנס בעמוד אחד
+        pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
       }
 
-      pdf.addImage(dataUrl, 'PNG', 0, 0, finalWidth, finalHeight);
       pdf.save(`order-${order.orderNumber}.pdf`);
     } catch (err) {
       console.error('Error exporting PDF:', err);
