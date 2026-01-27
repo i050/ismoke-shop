@@ -560,7 +560,7 @@ const CheckoutPage = () => {
                     className={`${styles.input} ${validationErrors.fullName ? styles.inputError : ''}`}
                     value={shippingData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    placeholder="ישראל ישראלי"
+                    placeholder=" "
                   />
                   {validationErrors.fullName && (
                     <span className={styles.fieldError}>{validationErrors.fullName}</span>
@@ -578,7 +578,7 @@ const CheckoutPage = () => {
                     className={`${styles.input} ${validationErrors.phone ? styles.inputError : ''}`}
                     value={shippingData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="050-1234567"
+                    placeholder=" "
                     dir="ltr"
                   />
                   {validationErrors.phone && (
@@ -597,7 +597,7 @@ const CheckoutPage = () => {
                     className={`${styles.input} ${validationErrors.street ? styles.inputError : ''}`}
                     value={shippingData.street}
                     onChange={(e) => handleInputChange('street', e.target.value)}
-                    placeholder="רחוב הרצל 123, דירה 4"
+                    placeholder=" "
                   />
                   {validationErrors.street && (
                     <span className={styles.fieldError}>{validationErrors.street}</span>
@@ -616,7 +616,7 @@ const CheckoutPage = () => {
                       className={`${styles.input} ${validationErrors.city ? styles.inputError : ''}`}
                       value={shippingData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      placeholder="תל אביב"
+                      placeholder=" "
                     />
                     {validationErrors.city && (
                       <span className={styles.fieldError}>{validationErrors.city}</span>
@@ -633,7 +633,7 @@ const CheckoutPage = () => {
                       className={`${styles.input} ${validationErrors.postalCode ? styles.inputError : ''}`}
                       value={shippingData.postalCode}
                       onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                      placeholder="1234567 (אופציונלי)"
+                      placeholder=" "
                       dir="ltr"
                     />
                     {validationErrors.postalCode && (
@@ -652,7 +652,7 @@ const CheckoutPage = () => {
                     className={styles.textarea}
                     value={shippingData.notes || ''}
                     onChange={(e) => handleInputChange('notes', e.target.value)}
-                    placeholder="הערות מיוחדות לשליח (אופציונלי)"
+                    placeholder=" "
                     rows={3}
                   />
                 </div>

@@ -65,25 +65,41 @@ const HomePage = () => {
     }
   }, []);
 
-  // שמירת מיקום גלילה לפני שעוזבים את הדף
+  // 💾 שמירת מיקום גלילה כל הזמן (כדי שיישמר גם אם עוזבים פתאום)
   useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
+    
     const handleScroll = () => {
-      sessionStorage.setItem('homePageScrollPosition', window.scrollY.toString());
+      // שמור את המיקום הנוכחי - לא סופר חשוב אם עדיין לא גללנו
+      const currentScroll = window.scrollY;
+      sessionStorage.setItem('homePageScrollPosition', currentScroll.toString());
     };
 
-    // שמירה בעת גלילה (עם throttle קל)
-    let scrollTimeout: NodeJS.Timeout;
+    // שמירה בעת גלילה (עם throttle של 150ms)
     const throttledHandleScroll = () => {
       if (scrollTimeout) clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScroll, 100);
+      scrollTimeout = setTimeout(handleScroll, 150);
     };
 
-    window.addEventListener('scroll', throttledHandleScroll);
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
     
-    // שמירה גם לפני unmount
+    // שמירה גם בעזיבת הדף
+    const handleBeforeUnload = () => {
+      const currentScroll = window.scrollY;
+      sessionStorage.setItem('homePageScrollPosition', currentScroll.toString());
+      console.log('💾 שמירת גלילה לפני עזיבה:', currentScroll);
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+    
     return () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
       window.removeEventListener('scroll', throttledHandleScroll);
-      handleScroll(); // שמירה אחרונה
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+      // שמירה אחרונה במיקום הנוכחי (לא אחרי שהדף כבר עלה!)
+      handleBeforeUnload();
     };
   }, []);
 
