@@ -94,7 +94,7 @@ html, body {
   padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  overflow-x: hidden; /* מונע גלילה אופקית בכל האתר */
+  overflow-x: clip; /* שינוי מ-hidden ל-clip כדי לאפשר sticky */
 }
 
 body {

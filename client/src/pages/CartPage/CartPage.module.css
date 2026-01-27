@@ -34,7 +34,7 @@
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 2rem;
-  align-items: start;
+  align-items: stretch; /* מותח את העמודות לכל הגובה כדי שהסיכום יוכל לצוף בתוכן */
 }
 
 /* ==========================
@@ -169,8 +169,11 @@
 ========================== */
 
 .summaryPanel {
+  position: -webkit-sticky; /* Safari support */
   position: sticky;
-  top: 80px; /* מרחק מהראש */
+  top: 90px; /* מרחק מה-Header */
+  align-self: start; /* חיוני כדי שה-sticky יעבוד בתוך grid */
+  z-index: 10;
 }
 
 .summaryCard {
@@ -416,6 +419,10 @@
     gap: 1.5rem;
   }
 
+  .summaryPanel {
+    width: 320px; /* רוחב מותאם לטאבלט */
+  }
+
   .summaryCard {
     padding: 1.25rem;
   }
@@ -444,6 +451,13 @@
   .content {
     grid-template-columns: 1fr;
     gap: 2rem;
+    min-height: auto; /* במובייל לא צריך min-height */
+  }
+
+  /* ביטול sticky במובייל - חזרה לזרימה רגילה */
+  .summaryPanel {
+    position: static;
+    order: 2;
   }
 
   .summaryPanel {

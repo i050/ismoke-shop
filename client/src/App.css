@@ -10,7 +10,7 @@ html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  overflow-x: hidden; /* מונע גלילה אופקית */
+  overflow-x: clip; /* מונע גלילה אופקית ומאפשר sticky */
 }
 
 .app {
@@ -20,7 +20,7 @@ html, body {
   direction: rtl;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 100vw; /* מונע חריגה */
-  overflow-x: hidden;
+  overflow-x: clip; /* מונע גלילה אופקית ומאפשר sticky */
 }
 
 /* ======================================
@@ -60,7 +60,7 @@ html, body {
   flex: 1; /* --- IGNORE --- */
   width: 100%; /* שימוש בכל הרוחב עד למקסימום */
   gap: 2rem; /* רווח בין העמודות */
-  
+  overflow: visible; /* חיוני כדי שsticky יעבוד */
 }
 
 .main-content {
@@ -237,6 +237,7 @@ html, body {
   box-sizing: border-box; /* חישוב נכון של רוחב עם padding */
   direction: rtl; /* יישור מימין לשמאל לעברית */
   text-align: right; /* יישור טקסט לימין */
+  overflow: visible; /* חיוני כדי שsticky יעבוד */
 }
 
 /* רספונסיבי - פחות padding בנייד */

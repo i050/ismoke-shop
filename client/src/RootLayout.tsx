@@ -97,8 +97,17 @@ const RootLayout = () => {
         - שומרת מיקום גלילה לכל דף
         - משחזרת מיקום בעת לחיצה על back/forward
         - מגלילה לראש הדף בעת ניווט חדש (PUSH)
+        
+        ⚠️ עבור HomePage - השבתנו את ScrollRestoration כי יש לוגיקה מותאמת אישית
+        שמטפלת בשחזור הגלילה + שמירת cache של המוצרים
       */}
-      <ScrollRestoration />
+      <ScrollRestoration 
+        getKey={(location) => {
+          // עבור HomePage - החזר מזהה קבוע כדי שReact Router לא ישמור/ישחזר גלילה
+          // הלוגיקה המותאמת ב-HomePage תטפל בזה
+          return location.pathname === '/' ? 'homepage-manual' : location.key;
+        }}
+      />
     </>
   );
 };

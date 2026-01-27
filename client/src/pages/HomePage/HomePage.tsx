@@ -65,26 +65,28 @@ const HomePage = () => {
     }
   }, []);
 
-  // 💾 שמירת מיקום גלילה כשלוחצים על קישור (לא כל הזמן)
+  // 💾 שמירת מיקום גלילה - בזמן אמת עם debounce
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      // בדוק אם לחצו על קישור
-      const target = e.target as HTMLElement;
-      const link = target.closest('a');
+    let timeoutId: NodeJS.Timeout;
+    
+    const handleScroll = () => {
+      // ביטול timeout קודם
+      clearTimeout(timeoutId);
       
-      if (link) {
-        // שמור את מיקום הגלילה הנוכחי לפני המעבר
+      // המתנה של 150ms אחרי סיום הגלילה לפני שמירה (debounce)
+      timeoutId = setTimeout(() => {
         const currentScroll = window.scrollY;
         sessionStorage.setItem('homePageScrollPosition', currentScroll.toString());
-        console.log('💾 שמירת גלילה בלחיצה על קישור:', currentScroll);
-      }
+        console.log('💾 שמירת גלילה בזמן אמת:', currentScroll);
+      }, 150);
     };
-
-    // האזן ללחיצות על הדף
-    document.addEventListener('click', handleClick, true); // capture phase
+    
+    // האזנה לאירוע גלילה
+    window.addEventListener('scroll', handleScroll, { passive: true });
     
     return () => {
-      document.removeEventListener('click', handleClick, true);
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
