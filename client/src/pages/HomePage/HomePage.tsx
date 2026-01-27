@@ -17,28 +17,46 @@ const HomePage = () => {
   // ניווט - קריאת hook במקום מובטח (לפני כל return) כדי לשמור על סדר ה-Hooks
   const navigate = useNavigate()
 
+  // ✅ ניקוי cache בריענון (F5), שמירה בניווט חזרה (Back)
+  useEffect(() => {
+    const navigationType = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming)?.type;
+    
+    if (navigationType === 'reload') {
+      // 🔄 ריענון (F5) - נקה את כל ה-cache
+      console.log('🔄 זוהה ריענון - מנקה cache');
+      sessionStorage.removeItem('recentlyAddedState');
+      sessionStorage.removeItem('popularState');
+      sessionStorage.removeItem('homePageScrollPosition');
+    }
+  }, []);
+
   // ✅ שחזור גלילה כשחוזרים לדף (לא בריענון)
   useEffect(() => {
     const savedScrollPosition = sessionStorage.getItem('homePageScrollPosition');
     if (savedScrollPosition) {
-      // השתמש בסדרה של callbacks כדי להמתין שה-DOM יהיה זמין לחלוטין
-      const scrollPosition = parseInt(savedScrollPosition, 10);
+      const targetScroll = parseInt(savedScrollPosition, 10);
+      const maxAttempts = 60; // 60 * 16ms ≈ 1 שנייה
+      let attempts = 0;
       
-      // ניסיון ראשון - after rendering
-      setTimeout(() => {
-        if (document.readyState === 'complete') {
-          window.scrollTo(0, scrollPosition);
-          console.log('🎯 גלילה למיקום שמור (rendering complete):', scrollPosition);
+      // 🎯 חכה שהקומפוננטות יסיימו לטעון מ-sessionStorage לפני גלילה
+      const waitForContentLoad = () => {
+        attempts++;
+        const currentHeight = document.documentElement.scrollHeight;
+        
+        // אם הדף גבוה מספיק (יש תוכן), בצע גלילה
+        if (currentHeight > targetScroll || currentHeight > 2000) {
+          window.scrollTo(0, targetScroll);
+          console.log('🎯 גלילה למיקום שמור:', targetScroll, 'גובה דף:', currentHeight);
+        } else if (attempts < maxAttempts) {
+          // אחרת, המשך לנסות עד שנייה אחת
+          requestAnimationFrame(waitForContentLoad);
         } else {
-          // אם עדיין טוען, חכה עוד
-          window.addEventListener('load', () => {
-            requestAnimationFrame(() => {
-              window.scrollTo(0, scrollPosition);
-              console.log('🎯 גלילה למיקום שמור (after load):', scrollPosition);
-            });
-          }, { once: true });
+          console.log('⏱️ timeout - מבטל שחזור גלילה');
         }
-      }, 100);
+      };
+      
+      // התחל לנסות אחרי 100ms (תן לריאקט להתחיל לרנדר)
+      setTimeout(waitForContentLoad, 100);
     }
   }, []);
 
