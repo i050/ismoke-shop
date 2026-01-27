@@ -9,6 +9,7 @@ import { Icon, Button } from '@/components/ui';
 import { FilterAccordion } from '../FilterAccordion/FilterAccordion';
 import type { FiltersState } from '../../types/filters';
 import { FilterAttributeService, type FilterAttribute, type ColorFamily, type AttributeValue } from '@/services/filterAttributeService';
+import { BrandService, type BrandForSelect } from '@/services/brandService';
 import type { IconName } from '@/components/ui/Icon/Icon';
 import styles from './MobileFilterDrawer.module.css';
 
@@ -25,6 +26,8 @@ interface MobileFilterDrawerProps {
   toggleCategory: (categoryId: string) => void;
   toggleAttribute: (attributeKey: string, value: string) => void;
   clearAttribute: (attributeKey: string) => void;
+  toggleBrand: (brand: string) => void;
+  clearBrands: () => void;
   reset: () => void;
   onClearPriceFilter: () => void;
   /** עץ הקטגוריות */
@@ -44,10 +47,33 @@ export const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
   toggleCategory,
   toggleAttribute,
   clearAttribute,
+  toggleBrand,
+  clearBrands,
   reset,
   onClearPriceFilter,
   categoriesTree
 }) => {
+  // טעינת מותגים מה-API
+  const [brands, setBrands] = useState<BrandForSelect[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState(false);
+  
+  useEffect(() => {
+    const loadBrands = async () => {
+      setBrandsLoading(true);
+      try {
+        const data = await BrandService.getBrandsForSelect();
+        setBrands(data);
+      } catch (error) {
+        console.error('שגיאה בטעינת מותגים:', error);
+        setBrands([]);
+      } finally {
+        setBrandsLoading(false);
+      }
+    };
+
+    loadBrands();
+  }, []);
+
   // טעינת מאפיינים דינמיים מה-API
   const [dynamicAttributes, setDynamicAttributes] = useState<Array<{ attribute: FilterAttribute; usageCount: number }>>([]);
   const [attributesLoading, setAttributesLoading] = useState(false);
@@ -240,6 +266,34 @@ export const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
               />
             </div>
           </FilterAccordion>
+
+          {/* מותגים */}
+          {!brandsLoading && brands.length > 0 && (
+            <FilterAccordion
+              title="מותגים"
+              icon="Award"
+              defaultOpen={state.brands ? state.brands.length > 0 : false}
+              activeCount={state.brands ? state.brands.length : 0}
+              onClear={clearBrands}
+            >
+              <div className={styles.checkboxList}>
+                {brands.map((brand) => {
+                  const isSelected = state.brands && state.brands.includes(brand.name);
+                  return (
+                    <label key={brand._id} className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleBrand(brand.name)}
+                        className={styles.checkbox}
+                      />
+                      <span className={styles.checkboxText}>{brand.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </FilterAccordion>
+          )}
 
           {/* מאפיינים דינמיים */}
           {!attributesLoading && dynamicAttributes.map(({ attribute }: { attribute: FilterAttribute }) => {

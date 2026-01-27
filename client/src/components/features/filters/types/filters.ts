@@ -35,7 +35,7 @@ export interface AttributesState {
 /**
  * FiltersState
  * האובייקט המרכזי שמתאר את כל מצב הפילטרים בעמוד.
- * כולל מחיר, מיון, קטגוריות ומאפיינים דינמיים (צבע, גודל, חומר וכו')
+ * כולל מחיר, מיון, קטגוריות, מאפיינים דינמיים ומותגים
  */
 export interface FiltersState {
   /** טווח המחיר שהוגדר */
@@ -46,6 +46,8 @@ export interface FiltersState {
   categoryIds: string[];
   /** מאפיינים דינמיים נבחרים (צבע, גודל, חומר וכו') */
   attributes: AttributesState;
+  /** מותגים נבחרים לסינון */
+  brands: string[];
   /** חיפוש טקסט חופשי (autocomplete מה-Header) */
   search: string;
   /** עמוד נוכחי (1 מבוסס) */
@@ -63,6 +65,7 @@ export const defaultFiltersState: FiltersState = {
   sort: 'recent',
   categoryIds: [],
   attributes: {}, // מאפיינים ריקים בהתחלה
+  brands: [], // מותגים ריקים בהתחלה
   search: '', // חיפוש ריק בהתחלה
   page: 1,
   pageSize: 20

@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui';
 import { Button } from '@ui';
 import { FilterAttributeService } from '@/services/filterAttributeService';
 import type { FilterAttribute } from '@/services/filterAttributeService';
+import { BrandService, type BrandForSelect } from '@/services/brandService';
 import CategoriesTree from '../CategoriesTree/CategoriesTree';
 
 interface FilterPanelProps {
@@ -18,11 +19,13 @@ interface FilterPanelProps {
   toggleCategory: (categoryId: string) => void;
   toggleAttribute: (attributeKey: string, value: string) => void;
   clearAttribute: (attributeKey: string) => void;
+  toggleBrand: (brand: string) => void;
+  clearBrands: () => void;
   reset: () => void;
   onClearPriceFilter: () => void;
 }
 
-// פאנל סינון נשלט (Controlled) – מציג רק פקדי קלט + מאפיינים דינמיים
+// פאנל סינון נשלט (Controlled) – מציג רק פקדי קלט + מאפיינים דינמיים + מותגים
 const FilterPanel: React.FC<FilterPanelProps> = ({ 
   state, 
   setSort, 
@@ -31,6 +34,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   toggleCategory, 
   toggleAttribute,
   clearAttribute,
+  toggleBrand,
+  clearBrands,
   reset, 
   onClearPriceFilter 
 }) => {
@@ -38,12 +43,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const [priceMaxInput, setPriceMaxInput] = useState('');
   const [dynamicAttributes, setDynamicAttributes] = useState<Array<{ attribute: FilterAttribute; usageCount: number }>>([]);
   const [attributesLoading, setAttributesLoading] = useState(false);
+  const [brands, setBrands] = useState<BrandForSelect[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState(false);
   
   // ניהול מצב פתוח/סגור לכל סקשן (כברירת מחדל: כל הסקשנים סגורים)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     categories: false,
     sort: false,
     price: false,
+    brands: false,
     // מאפיינים דינמיים יתווספו כאן
   });
   
@@ -87,6 +95,24 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       dispatch(fetchCategoriesTree());
     }
   }, [categoriesTree, dispatch]);
+
+  // טעינת מותגים מהשרת
+  useEffect(() => {
+    const loadBrands = async () => {
+      setBrandsLoading(true);
+      try {
+        const data = await BrandService.getBrandsForSelect();
+        setBrands(data);
+      } catch (error) {
+        console.error('שגיאה בטעינת מותגים:', error);
+        setBrands([]);
+      } finally {
+        setBrandsLoading(false);
+      }
+    };
+
+    loadBrands();
+  }, []);
 
   // טעינת מאפייני סינון דינמיים מהשרת
   useEffect(() => {
@@ -222,6 +248,64 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
         </div>
       </div>
+
+      {/* מותגים */}
+      {!brandsLoading && brands.length > 0 && (
+        <div className={styles.section}>
+          <div className={styles.attributeHeader}>
+            <button 
+              className={styles.sectionHeader}
+              onClick={() => toggleSection('brands')}
+              type="button"
+            >
+              <span className={styles.labelWithIcon}>
+                <span className={styles.attributeIcon}></span>
+                <span className={styles.label}>מותגים</span>
+              </span>
+              <div className={styles.headerActions}>
+                {state.brands && state.brands.length > 0 && (
+                  <button
+                    className={styles.clearAttributeBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearBrands();
+                    }}
+                    title="נקה מותגים"
+                    type="button"
+                  >
+                    <Icon name="X" size={12} />
+                  </button>
+                )}
+                <Icon name={openSections.brands ? "ChevronUp" : "ChevronDown"} size={16} />
+              </div>
+            </button>
+          </div>
+
+          <div className={`${styles.sectionContent} ${openSections.brands ? styles.open : ''}`}>
+            <div className={styles.valuesList}>
+              {brands.map((brand) => {
+                const isSelected = state.brands && state.brands.includes(brand.name);
+                
+                return (
+                  <label
+                    key={brand._id}
+                    className={`${styles.valueOption} ${isSelected ? styles.selected : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleBrand(brand.name)}
+                      className={styles.hiddenCheckbox}
+                    />
+                    <span className={styles.checkmark}></span>
+                    <span className={styles.valueName}>{brand.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* מאפיינים דינמיים (צבע, גודל, חומר וכו') */}
       {!attributesLoading && dynamicAttributes.length > 0 && dynamicAttributes.map(({ attribute }) => (

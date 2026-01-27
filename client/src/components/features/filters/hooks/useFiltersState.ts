@@ -7,7 +7,7 @@ import { buildCategoryDescendantsMap, getDescendantsFromMap } from '@/services/c
 import { useAppSelector } from '../../../../hooks/reduxHooks';
 import { selectCategoriesTree } from '../../../../store/slices/categoriesSlice';
 
-// פעולות אפשריות (Actions) – כולל גם מאפיינים דינמיים
+// פעולות אפשריות (Actions) – כולל גם מאפיינים דינמיים ומותגים
 export type FiltersAction =
   { type: 'SET_SORT'; sort: SortKey }
   | { type: 'SET_PRICE_MIN'; value: number | null }
@@ -16,6 +16,8 @@ export type FiltersAction =
   | { type: 'TOGGLE_ATTRIBUTE'; attributeKey: string; value: string }
   | { type: 'CLEAR_ATTRIBUTE'; attributeKey: string }
   | { type: 'CLEAR_ALL_ATTRIBUTES' }
+  | { type: 'TOGGLE_BRAND'; brand: string }
+  | { type: 'CLEAR_BRANDS' }
   | { type: 'SET_SEARCH'; search: string }
   | { type: 'SET_PAGE'; page: number }
   | { type: 'SET_PAGE_SIZE'; pageSize: number }
@@ -60,6 +62,21 @@ function reducer(state: FiltersState, action: FiltersAction): FiltersState {
     // ניקוי כל המאפיינים
     case 'CLEAR_ALL_ATTRIBUTES':
       return { ...state, attributes: {}, page: 1 };
+    
+    // ניהול מותגים - הוספה/הסרה של מותג
+    case 'TOGGLE_BRAND': {
+      const currentBrands = state.brands || [];
+      const exists = currentBrands.includes(action.brand);
+      const newBrands = exists
+        ? currentBrands.filter(b => b !== action.brand) // הסרת מותג
+        : [...currentBrands, action.brand]; // הוספת מותג
+      
+      return { ...state, brands: newBrands, page: 1 }; // איפוס עמוד בשינוי סינון
+    }
+    
+    // ניקוי כל המותגים
+    case 'CLEAR_BRANDS':
+      return { ...state, brands: [], page: 1 };
     
     // עדכון חיפוש טקסט
     case 'SET_SEARCH':
@@ -160,6 +177,18 @@ export function useFiltersState(initial: FiltersState = defaultFiltersState) {
   const clearAllAttributes = useCallback(() => {
     dispatch({ type: 'CLEAR_ALL_ATTRIBUTES' });
   }, [dispatch]);
+
+  // פונקציות לניהול מותגים
+  const toggleBrand = useCallback(
+    (brand: string) => {
+      dispatch({ type: 'TOGGLE_BRAND', brand });
+    },
+    [dispatch]
+  );
+
+  const clearBrands = useCallback(() => {
+    dispatch({ type: 'CLEAR_BRANDS' });
+  }, [dispatch]);
   
   const reset = useCallback(() => dispatch({ type: 'RESET' }), [dispatch]);
 
@@ -174,6 +203,8 @@ export function useFiltersState(initial: FiltersState = defaultFiltersState) {
     toggleAttribute,
     clearAttribute,
     clearAllAttributes,
+    toggleBrand,
+    clearBrands,
     setSearch,
     setPage,
     setPageSize,

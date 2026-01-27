@@ -182,6 +182,70 @@
    Responsive Design
    =============================================== */
 
+/* ===============================================
+   טאבים
+   =============================================== */
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color, #e5e7eb);
+  padding-bottom: 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--primary-color, #3b82f6);
+  background: var(--hover-color, #f3f4f6);
+}
+
+.tabActive {
+  color: var(--primary-color, #3b82f6);
+  border-bottom-color: var(--primary-color, #3b82f6);
+}
+
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--border-color, #e5e7eb);
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tabActive .tabBadge {
+  background: var(--primary-color, #3b82f6);
+  color: white;
+}
+
+/* רשימת מותגים */
+.brandsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1rem;

@@ -140,6 +140,11 @@ export function useFilteredProducts(filters: FiltersState): UseFilteredProductsR
       }
     }
 
+    // הוספת מותגים לסינון
+    if (filters.brands && filters.brands.length > 0) {
+      params.brands = [...filters.brands];
+    }
+
     if (invalidateCache) {
       // ניקוי מטמון קיים עבור אותו פילטר כדי להבטיח רענון מלא מהשרת
       ProductService.invalidateFilteredProductsCache(params);
