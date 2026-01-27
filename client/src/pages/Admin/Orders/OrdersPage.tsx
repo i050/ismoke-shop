@@ -134,6 +134,10 @@ const OrdersPage: React.FC = () => {
     total: 0,
     pages: 0,
   });
+  
+  // Highlight - הזמנה שצריכה להבהב (מגיע מקישור במייל)
+  const [highlightOrderId, setHighlightOrderId] = useState<string | null>(null);
+  
   const { showToast } = useToast();
 
   // ==========================================================================
@@ -203,6 +207,37 @@ const OrdersPage: React.FC = () => {
         // מנקה את ה-parameter מה-URL אחרי פתיחה
         searchParams.delete('orderId');
         setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [orders, loading, searchParams, setSearchParams]);
+
+  // ==========================================================================
+  // Highlight Effect - הבהוב שורת הזמנה (מקישור במייל)
+  // ==========================================================================
+  
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight');
+    if (highlightId && orders.length > 0 && !loading) {
+      // מחפש את ההזמנה ברשימה
+      const orderToHighlight = orders.find(o => o._id === highlightId || o.orderNumber === highlightId);
+      if (orderToHighlight) {
+        setHighlightOrderId(orderToHighlight._id);
+        // מנקה את ה-parameter מה-URL
+        searchParams.delete('highlight');
+        setSearchParams(searchParams, { replace: true });
+        
+        // גלילה לשורה
+        setTimeout(() => {
+          const row = document.getElementById(`order-row-${orderToHighlight._id}`);
+          if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+        
+        // הסרת ההבהוב אחרי 3 שניות (3 הבהובים)
+        setTimeout(() => {
+          setHighlightOrderId(null);
+        }, 3000);
       }
     }
   }, [orders, loading, searchParams, setSearchParams]);
@@ -430,7 +465,11 @@ const OrdersPage: React.FC = () => {
               </thead>
               <tbody>
                 {orders.map(order => (
-                  <tr key={order._id}>
+                  <tr 
+                    key={order._id}
+                    id={`order-row-${order._id}`}
+                    className={highlightOrderId === order._id ? styles.highlightRow : ''}
+                  >
                     <td className={styles.orderNumber}>
                       {order.orderNumber}
                     </td>

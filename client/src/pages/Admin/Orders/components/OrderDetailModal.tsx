@@ -117,11 +117,144 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   // ==========================================================================
 
   /**
-   * הדפסת ההזמנה - פותח חלון הדפסה
-   * CSS של @media print מסתיר את החלקים שלא רלוונטיים
+   * הדפסת ההזמנה - צולם את המודאל ופותח חלון הדפסה
+   * משתמש באותה לוגיקה של שמירת PDF אבל במקום שמירה - מדפיס
    */
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    try {
+      const modalElement = document.querySelector(`.${styles.modal}`) as HTMLElement;
+      const contentElement = modalElement?.querySelector(`.${styles.content}`) as HTMLElement;
+      
+      if (!modalElement || !contentElement) {
+        alert('לא נמצא אלמנט המודאל');
+        return;
+      }
+
+      // שמירת הסגנונות המקוריים לפני השינוי
+      const originalModalMaxHeight = modalElement.style.maxHeight;
+      const originalModalOverflow = modalElement.style.overflow;
+      const originalContentMaxHeight = contentElement.style.maxHeight;
+      const originalContentOverflow = contentElement.style.overflow;
+
+      // הסתרת אלמנטים שלא צריכים להיות בהדפסה
+      const noPrintElements = modalElement.querySelectorAll('.no-print');
+      noPrintElements.forEach(el => (el as HTMLElement).style.display = 'none');
+
+      // שינוי זמני - הצגת כל התוכן בלי גלילה לצורך הצילום
+      modalElement.style.maxHeight = 'none';
+      modalElement.style.overflow = 'visible';
+      contentElement.style.maxHeight = 'none';
+      contentElement.style.overflow = 'visible';
+
+      // המתנה קצרה לעיבוד ה-DOM אחרי השינויים
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // צילום המודאל המלא
+      // @ts-ignore - dom-to-image-more doesn't have TypeScript definitions
+      const dataUrl = await domtoimage.toPng(modalElement, {
+        quality: 0.95,
+        bgcolor: '#ffffff',
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top right'
+        }
+      });
+
+      // החזרת הסגנונות המקוריים
+      modalElement.style.maxHeight = originalModalMaxHeight;
+      modalElement.style.overflow = originalModalOverflow;
+      contentElement.style.maxHeight = originalContentMaxHeight;
+      contentElement.style.overflow = originalContentOverflow;
+
+      // החזרת האלמנטים המוסתרים
+      noPrintElements.forEach(el => (el as HTMLElement).style.display = '');
+
+      // יצירת חלון חדש עם התמונה להדפסה
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('לא ניתן לפתוח חלון הדפסה. אנא בדוק חוסם חלונות קופצים.');
+        return;
+      }
+
+      // כתיבת HTML עם התמונה לחלון החדש
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+          <title>הדפסת הזמנה ${order.orderNumber}</title>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            body {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              background: white;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              display: block;
+            }
+            @media print {
+              body {
+                margin: 0;
+              }
+              img {
+                max-width: 100%;
+                page-break-inside: avoid;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${dataUrl}" alt="הזמנה ${order.orderNumber}" />
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+
+      // המתנה לטעינת התמונה ופתיחת חלון ההדפסה
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          
+          // מנגנון סגירה משולב לאמינות מקסימלית
+          let isClosed = false;
+          
+          const closeWindow = () => {
+            if (!isClosed) {
+              isClosed = true;
+              try {
+                printWindow.close();
+              } catch (e) {
+                // אם נכשל - ננסה שוב אחרי רגע
+                setTimeout(() => printWindow.close(), 100);
+              }
+            }
+          };
+          
+          // אסטרטגיה 1: onafterprint (תומך ברוב הדפדפנים המודרניים)
+          printWindow.onafterprint = closeWindow;
+          
+          // אסטרטגיה 2: focus event - כשהחלון מקבל פוקוס חזרה אחרי ההדפסה
+          printWindow.onblur = () => {
+            setTimeout(closeWindow, 500);
+          };
+          
+          // אסטרטגיה 3: fallback timeout למקרה שהאירועים האחרים לא עבדו
+          setTimeout(closeWindow, 3000);
+          
+        }, 250);
+      };
+    } catch (err) {
+      console.error('Error printing order:', err);
+      alert('שגיאה בהדפסת ההזמנה');
+    }
   };
 
   /**
@@ -570,16 +703,17 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                     )}
                   </div>
                   <div className={styles.itemDetails}>
-                    <span className={styles.itemName}>{item.productName}</span>
-                    {item.skuCode && <span className={styles.itemSku}>מק"ט: {item.skuCode}</span>}
+                    <span className={styles.itemName}>
+                      {item.productName || (item as any).name}{item.skuName ? ` - ${item.skuName}` : ''}
+                    </span>
+                    {item.skuCode && <span className={styles.itemSku}>SKU: {item.skuCode}</span>}
                     {item.attributes && Object.keys(item.attributes).length > 0 && (
                       <div className={styles.itemAttributes}>
-                        {item.attributes.color && (
-                          <span className={styles.attribute}>צבע: {item.attributes.color}</span>
-                        )}
-                        {item.attributes.size && (
-                          <span className={styles.attribute}>מידה: {item.attributes.size}</span>
-                        )}
+                        {Object.entries(item.attributes).map(([key, value]) => (
+                          <span key={key} className={styles.attribute}>
+                            {key}: {value}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>

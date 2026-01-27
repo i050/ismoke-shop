@@ -687,3 +687,18 @@
     padding: 4px 8px;
   }
 }
+
+/* Highlight Animation - הבהוב שורת הזמנה (מקישור במייל) */
+@keyframes highlightFlash {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(220, 38, 38, 0.2);
+  }
+}
+
+.highlightRow {
+  animation: highlightFlash 1s ease-in-out 3;
+  background-color: rgba(220, 38, 38, 0.1);
+}

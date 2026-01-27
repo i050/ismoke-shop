@@ -380,6 +380,7 @@ class OrderService {
           productId: new mongoose.Types.ObjectId(item.productId),
           skuId: sku ? sku._id : undefined,
           name: product.name,
+          skuName: sku ? sku.name : undefined, // שם ה-SKU הספציפי (למשל: "אמבר", "כחול M")
           sku: skuCode,
           price: pricingResult.finalPrice,
           originalPrice: pricingResult.hasDiscount ? pricingResult.originalPrice : undefined,
@@ -478,22 +479,23 @@ class OrderService {
       // שלב 6: שליחת מייל אישור הזמנה
       // =====================================
       // מבוצע מחוץ ל-transaction כדי לא לחסום את התהליך
-      try {
-        // קבלת אימייל המשתמש
-        let customerEmail: string | undefined;
-        let customerName: string = 'לקוח/ה יקר/ה';
-        
-        if (order.isGuest && order.guestEmail) {
-          customerEmail = order.guestEmail;
-          customerName = order.shippingAddress.fullName;
-        } else {
-          const user = await User.findById(data.userId).select('email firstName lastName').lean() as any;
-          if (user) {
-            customerEmail = user.email;
-            customerName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : order.shippingAddress.fullName;
-          }
+      
+      // קבלת אימייל המשתמש (מחוץ ל-try כדי לשמש גם בשלב 6.5)
+      let customerEmail: string | undefined;
+      let customerName: string = 'לקוח/ה יקר/ה';
+      
+      if (order.isGuest && order.guestEmail) {
+        customerEmail = order.guestEmail;
+        customerName = order.shippingAddress.fullName;
+      } else {
+        const user = await User.findById(data.userId).select('email firstName lastName').lean() as any;
+        if (user) {
+          customerEmail = user.email;
+          customerName = user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : order.shippingAddress.fullName;
         }
-        
+      }
+      
+      try {
         if (customerEmail) {
           await addEmailJob({
             type: 'order_confirmation',
@@ -554,23 +556,28 @@ class OrderService {
         if (adminEmails.length > 0) {
           // הכנת פריטי ההזמנה עם תמונות
           const itemsForEmail = orderItems.map(item => ({
-            name: item.productName,
+            name: item.name,              // שם המוצר
+            skuName: item.skuName,        // שם ה-SKU הספציפי
+            sku: item.sku,                // קוד SKU
             quantity: item.quantity,
-            price: item.unitPrice,
+            price: item.price,
             image: item.imageUrl || ''
           }));
+          
+          // קבלת שם הלקוח מכתובת המשלוח או מהמייל
+          const orderCustomerName = order.shippingAddress?.fullName || customerName;
+          const orderCustomerEmail = customerEmail || order.guestEmail || 'לא צוין';
           
           // שליחת מייל לכל מנהל
           for (const adminEmail of adminEmails) {
             await addEmailJob({
+              type: 'admin_new_order',
               to: adminEmail,
-              subject: `הזמנה חדשה #${order.orderNumber} - ${order.customerName}`,
-              template: 'admin_new_order',
               data: {
                 orderNumber: order.orderNumber,
                 orderId: String(order._id),
-                customerName: order.customerName,
-                customerEmail: order.customerEmail || 'לא צוין',
+                customerName: orderCustomerName,
+                customerEmail: orderCustomerEmail,
                 items: itemsForEmail,
                 total: order.total,
                 createdAt: order.createdAt

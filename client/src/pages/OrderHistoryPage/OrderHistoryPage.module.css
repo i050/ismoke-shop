@@ -455,6 +455,14 @@
   display: block;
 }
 
+/* קוד SKU במודאל */
+.modalItemSku {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  display: block;
+  margin-top: 0.25rem;
+}
+
 .modalItemPrice {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
@@ -550,11 +558,25 @@
 /* כפתורי פעולה במודאל */
 .modalActions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--spacing-md);
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-lg);
   border-top: 1px solid var(--border);
+}
+
+/* קבוצת כפתורים */
+.actionGroup {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.actionGroup button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
 /* =====================================

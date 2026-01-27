@@ -22,6 +22,7 @@ export interface IOrderItem {
   productId: mongoose.Types.ObjectId;   // reference למוצר המקורי
   skuId?: mongoose.Types.ObjectId;      // reference ל-SKU ספציפי (אופציונלי)
   name: string;                         // שם המוצר בזמן ההזמנה
+  skuName?: string;                     // שם ה-SKU הספציפי (למשל: "אמבר", "כחול", וכו')
   sku: string;                          // מק"ט
   price: number;                        // מחיר ביחידה בזמן ההזמנה (אחרי הנחת קבוצה אם יש)
   originalPrice?: number;               // מחיר מקורי לפני הנחת קבוצה

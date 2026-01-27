@@ -3,7 +3,7 @@
  * מציג את כל ההזמנות של המשתמש המחובר עם אפשרות לסינון וצפייה בפרטים
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/reduxHooks';
 import { 
@@ -17,6 +17,9 @@ import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import Modal from '../../components/ui/Modal/Modal';
 import { useToast } from '../../hooks/useToast';
+import { Printer, FileDown } from 'lucide-react';
+import domtoimage from 'dom-to-image-more';
+import { jsPDF } from 'jspdf';
 import styles from './OrderHistoryPage.module.css';
 
 // =====================================
@@ -78,6 +81,7 @@ const OrderHistoryPage = () => {
   // מודאל פרטי הזמנה
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
   
   // מודאל ביטול
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
@@ -178,6 +182,164 @@ const OrderHistoryPage = () => {
   const handleCloseModal = () => {
     setSelectedOrder(null);
     setIsModalOpen(false);
+  };
+
+  // פונקציה להדפסת ההזמנה
+  const handlePrint = async () => {
+    if (!modalRef.current || !selectedOrder) return;
+
+    try {
+      // הסתרת אלמנטים שלא צריכים להיות בהדפסה
+      const noPrintElements = modalRef.current.querySelectorAll('.no-print');
+      noPrintElements.forEach((el) => {
+        (el as HTMLElement).style.display = 'none';
+      });
+
+      // שמירת overflow המקורי
+      const originalOverflow = modalRef.current.style.overflow;
+      modalRef.current.style.overflow = 'visible';
+
+      // המרה לתמונה
+      const dataUrl = await domtoimage.toPng(modalRef.current, {
+        quality: 0.95,
+        bgcolor: '#ffffff',
+      });
+
+      // החזרת overflow המקורי
+      modalRef.current.style.overflow = originalOverflow;
+
+      // החזרת אלמנטים מוסתרים
+      noPrintElements.forEach((el) => {
+        (el as HTMLElement).style.display = '';
+      });
+
+      // פתיחת חלון הדפסה חדש
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('אנא אפשר חלונות קופצים כדי להדפיס');
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>הזמנה ${selectedOrder.orderNumber}</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 20px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              display: block;
+            }
+            @media print {
+              body {
+                margin: 0;
+              }
+              img {
+                max-width: 100%;
+                page-break-inside: avoid;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${dataUrl}" alt="הזמנה ${selectedOrder.orderNumber}" />
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+
+      // המתנה לטעינת התמונה ופתיחת חלון ההדפסה
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          
+          // מנגנון סגירה משולב לאמינות מקסימלית
+          let isClosed = false;
+          
+          const closeWindow = () => {
+            if (!isClosed) {
+              isClosed = true;
+              try {
+                printWindow.close();
+              } catch (e) {
+                // אם נכשל - ננסה שוב אחרי רגע
+                setTimeout(() => printWindow.close(), 100);
+              }
+            }
+          };
+          
+          // אסטרטגיה 1: onafterprint (תומך ברוב הדפדפנים המודרניים)
+          printWindow.onafterprint = closeWindow;
+          
+          // אסטרטגיה 2: focus event - כשהחלון מקבל פוקוס חזרה אחרי ההדפסה
+          printWindow.onblur = () => {
+            setTimeout(closeWindow, 500);
+          };
+          
+          // אסטרטגיה 3: fallback timeout למקרה שהאירועים האחרים לא עבדו
+          setTimeout(closeWindow, 3000);
+          
+        }, 250);
+      };
+    } catch (err) {
+      console.error('Error printing order:', err);
+      alert('שגיאה בהדפסת ההזמנה');
+    }
+  };
+
+  // פונקציה לשמירת ההזמנה כ-PDF
+  const handleExportPdf = async () => {
+    if (!modalRef.current || !selectedOrder) return;
+
+    try {
+      // הסתרת אלמנטים שלא צריכים להיות ב-PDF
+      const noPrintElements = modalRef.current.querySelectorAll('.no-print');
+      noPrintElements.forEach((el) => {
+        (el as HTMLElement).style.display = 'none';
+      });
+
+      // שמירת overflow המקורי
+      const originalOverflow = modalRef.current.style.overflow;
+      modalRef.current.style.overflow = 'visible';
+
+      // המרה לתמונה
+      const dataUrl = await domtoimage.toPng(modalRef.current, {
+        quality: 0.95,
+        bgcolor: '#ffffff',
+      });
+
+      // החזרת overflow המקורי
+      modalRef.current.style.overflow = originalOverflow;
+
+      // החזרת אלמנטים מוסתרים
+      noPrintElements.forEach((el) => {
+        (el as HTMLElement).style.display = '';
+      });
+
+      // יצירת PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // חישוב גודל התמונה ב-PDF
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (modalRef.current.offsetHeight * imgWidth) / modalRef.current.offsetWidth;
+
+      pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`הזמנה-${selectedOrder.orderNumber}.pdf`);
+    } catch (err) {
+      console.error('Error exporting PDF:', err);
+      alert('שגיאה בשמירת PDF');
+    }
   };
 
   // פתיחת מודאל ביטול
@@ -441,7 +603,7 @@ const OrderHistoryPage = () => {
           title={`הזמנה #${selectedOrder.orderNumber}`}
           size="large"
         >
-          <div className={styles.orderDetailModal}>
+          <div ref={modalRef} className={styles.orderDetailModal}>
             {/* כותרת עם סטטוס */}
             <div className={styles.modalHeader}>
               <div className={styles.modalOrderInfo}>
@@ -471,7 +633,14 @@ const OrderHistoryPage = () => {
                       <span className={styles.modalItemQty}>{item.quantity}</span>
                     </div>
                     <div className={styles.modalItemDetails}>
-                      <h5 className={styles.modalItemName}>{item.productName}</h5>
+                      <h5 className={styles.modalItemName}>
+                        {item.productName || (item as any).name}{item.skuName ? ` - ${item.skuName}` : ''}
+                      </h5>
+                      {item.sku && (
+                        <span className={styles.modalItemSku}>
+                          SKU: {item.sku}
+                        </span>
+                      )}
                       {item.attributes && Object.entries(item.attributes).map(([key, value]) => (
                         <span key={key} className={styles.modalItemAttr}>
                           {key}: {value}
@@ -549,21 +718,41 @@ const OrderHistoryPage = () => {
 
             {/* כפתורי פעולה */}
             <div className={styles.modalActions}>
-              <Button variant="outline" onClick={handleCloseModal}>
-                סגור
-              </Button>
-              {canCancel(selectedOrder) && (
+              <div className={styles.actionGroup}>
                 <Button 
-                  variant="ghost" 
-                  onClick={() => {
-                    handleCloseModal();
-                    handleOpenCancelModal(selectedOrder._id);
-                  }}
-                  className={styles.cancelBtn}
+                  variant="outline" 
+                  onClick={handlePrint}
+                  className="no-print"
                 >
-                  בטל הזמנה
+                  <Printer size={16} />
+                  הדפס
                 </Button>
-              )}
+                <Button 
+                  variant="outline" 
+                  onClick={handleExportPdf}
+                  className="no-print"
+                >
+                  <FileDown size={16} />
+                  שמור PDF
+                </Button>
+              </div>
+              <div className={styles.actionGroup}>
+                <Button variant="outline" onClick={handleCloseModal} className="no-print">
+                  סגור
+                </Button>
+                {canCancel(selectedOrder) && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                      handleCloseModal();
+                      handleOpenCancelModal(selectedOrder._id);
+                    }}
+                    className={`${styles.cancelBtn} no-print`}
+                  >
+                    בטל הזמנה
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </Modal>

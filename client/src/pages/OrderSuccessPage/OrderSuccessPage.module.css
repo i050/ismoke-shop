@@ -223,6 +223,14 @@
   margin-left: var(--spacing-xs);
 }
 
+/* קוד SKU */
+.itemSku {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  display: block;
+  margin-top: 0.25rem;
+}
+
 .itemPrice {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);

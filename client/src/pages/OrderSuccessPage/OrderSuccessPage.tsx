@@ -123,7 +123,14 @@ const OrderSuccessPage = () => {
                     <span className={styles.itemQuantity}>{item.quantity}</span>
                   </div>
                   <div className={styles.itemDetails}>
-                    <h4 className={styles.itemName}>{item.productName}</h4>
+                    <h4 className={styles.itemName}>
+                      {item.productName}{item.skuName ? ` - ${item.skuName}` : ''}
+                    </h4>
+                    {item.sku && (
+                      <span className={styles.itemSku}>
+                        SKU: {item.sku}
+                      </span>
+                    )}
                     {item.attributes && Object.entries(item.attributes).map(([key, value]) => (
                       <span key={key} className={styles.itemAttribute}>
                         {key}: {value}
