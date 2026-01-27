@@ -19,14 +19,19 @@ const HomePage = () => {
 
   // ✅ ניקוי cache בריענון (F5), שמירה בניווט חזרה (Back)
   useEffect(() => {
-    const navigationType = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming)?.type;
+    // בדוק אם זה הביקור הראשון בטאב או ניווט חזרה
+    const isNavigatingBack = sessionStorage.getItem('homePageVisited') === 'true';
     
-    if (navigationType === 'reload') {
-      // 🔄 ריענון (F5) - נקה את כל ה-cache
-      console.log('🔄 זוהה ריענון - מנקה cache');
+    if (!isNavigatingBack) {
+      // 🔄 ביקור ראשון בטאב (F5 או כניסה חדשה) - נקה cache ישן
+      console.log('🔄 ביקור ראשון - מנקה cache ישן');
       sessionStorage.removeItem('recentlyAddedState');
       sessionStorage.removeItem('popularState');
       sessionStorage.removeItem('homePageScrollPosition');
+      // סמן שביקרנו בדף
+      sessionStorage.setItem('homePageVisited', 'true');
+    } else {
+      console.log('⬅️ ניווט חזרה - שומר cache');
     }
   }, []);
 
