@@ -65,41 +65,26 @@ const HomePage = () => {
     }
   }, []);
 
-  // 💾 שמירת מיקום גלילה כל הזמן (כדי שיישמר גם אם עוזבים פתאום)
+  // 💾 שמירת מיקום גלילה כשלוחצים על קישור (לא כל הזמן)
   useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
-    
-    const handleScroll = () => {
-      // שמור את המיקום הנוכחי - לא סופר חשוב אם עדיין לא גללנו
-      const currentScroll = window.scrollY;
-      sessionStorage.setItem('homePageScrollPosition', currentScroll.toString());
+    const handleClick = (e: MouseEvent) => {
+      // בדוק אם לחצו על קישור
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+      
+      if (link) {
+        // שמור את מיקום הגלילה הנוכחי לפני המעבר
+        const currentScroll = window.scrollY;
+        sessionStorage.setItem('homePageScrollPosition', currentScroll.toString());
+        console.log('💾 שמירת גלילה בלחיצה על קישור:', currentScroll);
+      }
     };
 
-    // שמירה בעת גלילה (עם throttle של 150ms)
-    const throttledHandleScroll = () => {
-      if (scrollTimeout) clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScroll, 150);
-    };
-
-    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
-    
-    // שמירה גם בעזיבת הדף
-    const handleBeforeUnload = () => {
-      const currentScroll = window.scrollY;
-      sessionStorage.setItem('homePageScrollPosition', currentScroll.toString());
-      console.log('💾 שמירת גלילה לפני עזיבה:', currentScroll);
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handleBeforeUnload);
+    // האזן ללחיצות על הדף
+    document.addEventListener('click', handleClick, true); // capture phase
     
     return () => {
-      if (scrollTimeout) clearTimeout(scrollTimeout);
-      window.removeEventListener('scroll', throttledHandleScroll);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handleBeforeUnload);
-      // שמירה אחרונה במיקום הנוכחי (לא אחרי שהדף כבר עלה!)
-      handleBeforeUnload();
+      document.removeEventListener('click', handleClick, true);
     };
   }, []);
 
