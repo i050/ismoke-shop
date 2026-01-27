@@ -178,32 +178,35 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       // החזרת האלמנטים המוסתרים
       noPrintElements.forEach(el => (el as HTMLElement).style.display = '');
 
-      // יצירת PDF - עכשיו עם כל התוכן
+      // יצירת PDF עם שמירה על aspect ratio מדויק
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210; // רוחב A4 במ"מ
-      const pageHeight = 297; // גובה A4 במ"מ
-      const imgHeight = (modalElement.scrollHeight * imgWidth) / modalElement.offsetWidth;
+      const pdfWidth = 210; // רוחב A4 במ"מ
+      const pdfHeight = 297; // גובה A4 במ"מ
+      const margin = 10; // שוליים סביב התוכן
       
-      // אם התמונה גבוהה מדף אחד, נחלק למספר עמודים
-      if (imgHeight > pageHeight) {
-        let yPosition = 0;
-        let heightLeft = imgHeight;
-        
-        // עמוד ראשון
-        pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-        
-        // עמודים נוספים אם צריך
-        while (heightLeft > 0) {
-          yPosition = heightLeft - imgHeight; // מיקום שלילי כדי "לזוז" למעלה בתמונה
-          pdf.addPage();
-          pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-      } else {
-        // אם זה נכנס בעמוד אחד
-        pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+      // שטח זמין בתוך השוליים
+      const availableWidth = pdfWidth - (margin * 2);
+      const availableHeight = pdfHeight - (margin * 2);
+      
+      // חישוב יחס רוחב-גובה המדויק של התמונה
+      const imageAspectRatio = modalElement.offsetWidth / modalElement.scrollHeight;
+      
+      // חישוב גודל התמונה כך שתיכנס בשטח הזמין תוך שמירה על aspect ratio
+      let imgWidth = availableWidth;
+      let imgHeight = imgWidth / imageAspectRatio;
+      
+      // אם התמונה יוצאת מהגובה הזמין, נכווץ לפי גובה
+      if (imgHeight > availableHeight) {
+        imgHeight = availableHeight;
+        imgWidth = imgHeight * imageAspectRatio;
       }
+      
+      // מרכוז התמונה בדף (אופקית ואנכית)
+      const xPosition = (pdfWidth - imgWidth) / 2;
+      const yPosition = (pdfHeight - imgHeight) / 2;
+      
+      // הוספת התמונה ל-PDF
+      pdf.addImage(dataUrl, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
 
       pdf.save(`order-${order.orderNumber}.pdf`);
     } catch (err) {

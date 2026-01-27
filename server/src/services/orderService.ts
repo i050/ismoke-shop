@@ -13,6 +13,7 @@ import Order, { IOrder, IOrderItem, OrderStatus } from '../models/Order';
 import Product from '../models/Product';
 import Sku from '../models/Sku';
 import User from '../models/User';
+import StoreSettings from '../models/StoreSettings';
 import { logger } from '../utils/logger';
 import { addEmailJob } from '../queues';
 import { incrementProductSalesCount } from './productService';
@@ -540,6 +541,53 @@ class OrderService {
         logger.error('ORDER_CONFIRMATION_EMAIL_FAILED', {
           orderId: String(order._id),
           error: emailError.message
+        });
+      }
+      
+      // =====================================
+      // שלב 6.5: שליחת מייל התראה למנהלים (Admin New Order Notification)
+      // =====================================
+      try {
+        const storeSettings = await StoreSettings.getSettings();
+        const adminEmails = storeSettings.notifications?.adminNewOrderEmails || [];
+        
+        if (adminEmails.length > 0) {
+          // הכנת פריטי ההזמנה עם תמונות
+          const itemsForEmail = orderItems.map(item => ({
+            name: item.productName,
+            quantity: item.quantity,
+            price: item.unitPrice,
+            image: item.imageUrl || ''
+          }));
+          
+          // שליחת מייל לכל מנהל
+          for (const adminEmail of adminEmails) {
+            await addEmailJob({
+              to: adminEmail,
+              subject: `הזמנה חדשה #${order.orderNumber} - ${order.customerName}`,
+              template: 'admin_new_order',
+              data: {
+                orderNumber: order.orderNumber,
+                orderId: String(order._id),
+                customerName: order.customerName,
+                customerEmail: order.customerEmail || 'לא צוין',
+                items: itemsForEmail,
+                total: order.total,
+                createdAt: order.createdAt
+              }
+            });
+          }
+          
+          logger.info('ADMIN_ORDER_NOTIFICATION_SENT', {
+            orderId: String(order._id),
+            adminEmailCount: adminEmails.length
+          });
+        }
+      } catch (adminEmailError: any) {
+        // לא מכשילים את ההזמנה בגלל כישלון מייל למנהל
+        logger.error('ADMIN_ORDER_NOTIFICATION_FAILED', {
+          orderId: String(order._id),
+          error: adminEmailError.message
         });
       }
       

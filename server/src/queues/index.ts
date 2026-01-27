@@ -106,7 +106,8 @@ export type EmailJobType =
   | 'refund_processed'
   | 'password_reset'
   | 'welcome'
-  | 'stock_alert'; // התראת חזרה למלאי
+  | 'stock_alert' // התראת חזרה למלאי
+  | 'admin_new_order'; // התראת הזמנה חדשה למנהל
 
 export type InventoryJobType =
   | 'reserve_stock'

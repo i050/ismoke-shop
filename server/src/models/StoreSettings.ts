@@ -69,6 +69,14 @@ export interface IInventorySettings {
 }
 
 /**
+ * הגדרות התראות למנהל
+ * שליחת מיילים אוטומטיים למנהלים בעת אירועים חשובים
+ */
+export interface INotificationSettings {
+  adminNewOrderEmails: string[];  // כתובות מייל לקבלת התראה על הזמנה חדשה
+}
+
+/**
  * הגדרות הנחת סף (Threshold Discount)
  * הנחה אוטומטית כשהזמנה עוברת סכום מסוים
  */
@@ -112,6 +120,7 @@ export interface IStoreSettings extends Document {
   payment: IPaymentSettings;
   maintenance: IMaintenanceSettings;
   inventory: IInventorySettings;
+  notifications: INotificationSettings;                // הגדרות התראות למנהל
   thresholdDiscount: IThresholdDiscountSettings; // הנחת סף
   shippingPolicy: IShippingPolicySettings;       // מדיניות משלוח והחזרות
   ui: IUISettings;                               // הגדרות ממשק משתמש
@@ -220,6 +229,14 @@ const storeSettingsSchema = new Schema<IStoreSettings>(
       }
     },
     
+    // הגדרות התראות למנהל
+    notifications: {
+      adminNewOrderEmails: {
+        type: [String],
+        default: []
+      }
+    },
+    
     // הגדרות הנחת סף - הנחה אוטומטית מעל סכום מסוים
     thresholdDiscount: {
       enabled: {
@@ -320,6 +337,9 @@ storeSettingsSchema.statics.getSettings = async function(): Promise<IStoreSettin
       inventory: {
         defaultLowStockThreshold: 5
       },
+      notifications: {
+        adminNewOrderEmails: []
+      },
       thresholdDiscount: {
         enabled: false,
         minimumAmount: 500,
@@ -388,6 +408,9 @@ storeSettingsSchema.statics.updateSettings = async function(
       inventory: {
         defaultLowStockThreshold: 5
       },
+      notifications: {
+        adminNewOrderEmails: []
+      },
       thresholdDiscount: {
         enabled: false,
         minimumAmount: 500,
@@ -423,6 +446,13 @@ storeSettingsSchema.statics.updateSettings = async function(
       (settings as any).inventory = { defaultLowStockThreshold: 5 };
     }
     Object.assign(settings.inventory, updates.inventory);
+  }
+  if ((updates as any).notifications) {
+    // וידוא שאובייקט notifications קיים
+    if (!settings.notifications) {
+      (settings as any).notifications = { adminNewOrderEmails: [] };
+    }
+    Object.assign(settings.notifications, (updates as any).notifications);
   }
   if (updates.thresholdDiscount) {
     // וידוא שאובייקט thresholdDiscount קיים
@@ -475,6 +505,7 @@ interface StoreSettingsModel extends mongoose.Model<IStoreSettings> {
       payment: Partial<IPaymentSettings>;
       maintenance: Partial<IMaintenanceSettings>;
       inventory: Partial<IInventorySettings>;
+      notifications: Partial<INotificationSettings>;
       thresholdDiscount: Partial<IThresholdDiscountSettings>;
       shippingPolicy: Partial<IShippingPolicySettings>;
     }>,

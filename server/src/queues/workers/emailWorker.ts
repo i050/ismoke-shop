@@ -442,23 +442,107 @@ function getEmailTemplate(type: EmailJobData['type'], data: Record<string, unkno
         </body>
         </html>
       `
-    }
-  };
-  
-  return templates[type];
-}
-
-// =============================================================================
-// פונקציית שליחת מייל
-// =============================================================================
-
-interface SendEmailResult {
-  success: boolean;
-  messageId?: string;
-  error?: string;
-}
-
-async function sendEmail(
+    },
+    
+    // =====================================================
+    // תבנית התראת הזמנה חדשה למנהל - Admin New Order
+    // =====================================================
+    admin_new_order: {
+      subject: `🆕 הזמנה חדשה #${data.orderNumber} - ${data.customerName}`,
+      html: `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="he">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 0 auto; background: white;">
+            
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); padding: 30px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 24px;">🆕 הזמנה חדשה התקבלה!</h1>
+              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">הזמנה #${data.orderNumber}</p>
+            </div>
+            
+            <!-- Main Content -->
+            <div style="padding: 30px;">
+              
+              <!-- פרטי לקוח -->
+              <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 0 0 20px 0;">
+                <h2 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">👤 פרטי לקוח</h2>
+                <table style="width: 100%; font-size: 14px;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">שם:</td>
+                    <td style="padding: 8px 0; text-align: left;"><strong>${data.customerName}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">אימייל:</td>
+                    <td style="padding: 8px 0; text-align: left;">${data.customerEmail}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #666;">תאריך הזמנה:</td>
+                    <td style="padding: 8px 0; text-align: left;">${formatDate(data.createdAt as string)}</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <!-- פריטי ההזמנה -->
+              <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 0 0 20px 0;">
+                <h2 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">📦 פריטי ההזמנה</h2>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <thead>
+                    <tr style="background: #e9ecef;">
+                      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">תמונה</th>
+                      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">מוצר</th>
+                      <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">כמות</th>
+                      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">מחיר</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${((data.items as any[]) || []).map((item: any) => `
+                      <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee;">
+                          ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` : '<span style="color: #999;">-</span>'}
+                        </td>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.name}</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: left;">${formatCurrency(item.price)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- סיכום -->
+              <div style="background: #d4edda; border-radius: 8px; padding: 20px; text-align: center;">
+                <h2 style="margin: 0 0 10px 0; font-size: 18px; color: #155724;">סה"כ לתשלום</h2>
+                <p style="font-size: 32px; color: #155724; margin: 0; font-weight: bold;">
+                  ${formatCurrency(data.total as number)}
+                </p>
+              </div>
+              
+              <!-- CTA Button -->
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${frontendUrl}/admin/orders?highlight=${data.orderId}" 
+                   style="display: inline-block; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);">
+                  צפה בהזמנה באזור הניהול 📋
+                </a>
+              </div>
+              
+            </div>
+            
+            <!-- Footer -->
+            <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+              <p style="color: #999; font-size: 12px; margin: 0;">
+                ${storeName} | התראה אוטומטית להזמנה חדשה
+              </p>
+            </div>
+            
+          </div>
+        </body>
+        </html>
+      `
   to: string,
   subject: string,
   html: string
