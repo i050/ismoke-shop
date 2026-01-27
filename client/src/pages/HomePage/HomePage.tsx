@@ -21,11 +21,24 @@ const HomePage = () => {
   useEffect(() => {
     const savedScrollPosition = sessionStorage.getItem('homePageScrollPosition');
     if (savedScrollPosition) {
-      // המתנה ארוכה יותר כדי לתת לקומפוננטות להיטען עם נתונים מ-cache
+      // השתמש בסדרה של callbacks כדי להמתין שה-DOM יהיה זמין לחלוטין
+      const scrollPosition = parseInt(savedScrollPosition, 10);
+      
+      // ניסיון ראשון - after rendering
       setTimeout(() => {
-        window.scrollTo(0, parseInt(savedScrollPosition, 10));
-        console.log('🎯 גלילה למיקום שמור:', savedScrollPosition);
-      }, 300); // הגדלתי מ-100 ל-300ms
+        if (document.readyState === 'complete') {
+          window.scrollTo(0, scrollPosition);
+          console.log('🎯 גלילה למיקום שמור (rendering complete):', scrollPosition);
+        } else {
+          // אם עדיין טוען, חכה עוד
+          window.addEventListener('load', () => {
+            requestAnimationFrame(() => {
+              window.scrollTo(0, scrollPosition);
+              console.log('🎯 גלילה למיקום שמור (after load):', scrollPosition);
+            });
+          }, { once: true });
+        }
+      }, 100);
     }
   }, []);
 
