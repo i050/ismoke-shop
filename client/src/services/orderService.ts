@@ -109,6 +109,8 @@ export interface OrderItem {
   productName: string;
   productSlug: string;
   skuId?: string;
+  skuName?: string;  // שם ה-SKU הספציפי (למשל: "אמבר", "כחול M")
+  sku?: string;      // קוד SKU (מק"ט)
   skuCode?: string;
   imageUrl?: string;
   price: number;

@@ -45,6 +45,7 @@ export interface FilteredProductsRequestParams {
   pageSize?: number;
   categoryIds?: string[];
   attributes?: Record<string, string[]>;
+  brands?: string[]; // סינון לפי מותגים
   search?: string; // חיפוש טקסט חופשי
 }
 
@@ -131,6 +132,7 @@ export class ProductService {
       pageSize: params.pageSize ?? 20,
       categoryIds: params.categoryIds ? [...params.categoryIds].sort() : [],
       attributes: normalizedAttributes,
+      brands: params.brands ? [...params.brands].sort() : [], // מותגים
       search: params.search ?? null, // חיפוש טקסט
     };
     return JSON.stringify(normalized);
@@ -423,6 +425,7 @@ export class ProductService {
     if (params.page) searchParams.set('page', String(params.page))
     if (params.pageSize) searchParams.set('pageSize', String(params.pageSize))
     if (params.categoryIds && params.categoryIds.length > 0) searchParams.set('categoryIds', params.categoryIds.join(','))
+    if (params.brands && params.brands.length > 0) searchParams.set('brands', params.brands.join(','))
     if (params.search && params.search.trim()) searchParams.set('search', params.search.trim())
     if (params.attributes) {
       Object.entries(params.attributes).forEach(([key, values]) => {

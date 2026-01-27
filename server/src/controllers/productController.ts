@@ -66,7 +66,7 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
   const isDev = process.env.NODE_ENV !== 'production';
   
   try {
-    const { priceMin, priceMax, sort, page, pageSize, categoryIds, categories, search, ...attributeParams } = req.query;
+    const { priceMin, priceMax, sort, page, pageSize, categoryIds, categories, brands, search, ...attributeParams } = req.query;
 
     if (isDev) {
       console.log('🔍 [getFilteredProducts] Query params:', req.query);
@@ -85,11 +85,17 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
       parsedCategorySlugs = categories.split(',').map((slug: string) => slug.trim()).filter((slug: string) => slug.length > 0);
     }
 
+    // עיבוד brands - סינון לפי מותגים
+    let parsedBrands: string[] | undefined;
+    if (brands && typeof brands === 'string') {
+      parsedBrands = brands.split(',').map((brand: string) => brand.trim()).filter((brand: string) => brand.length > 0);
+    }
+
     // עיבוד מאפיינים דינמיים (colorFamily, size, material, וכו')
     // כל מאפיין מגיע כ-query param עם ערכים מופרדים בפסיקים
     // לדוגמה: ?colorFamily=red,blue&size=M,L
     const attributeFilters: Record<string, string[]> = {};
-    const knownParams = new Set(['priceMin', 'priceMax', 'sort', 'page', 'pageSize', 'categoryIds', 'categories']);
+    const knownParams = new Set(['priceMin', 'priceMax', 'sort', 'page', 'pageSize', 'categoryIds', 'categories', 'brands']);
     
     Object.keys(attributeParams).forEach(key => {
       if (!knownParams.has(key)) {
@@ -109,6 +115,7 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
       categoryIds: parsedCategoryIds, // לתאימות לאחור
       categorySlugs: parsedCategorySlugs, // החדש שתומך בהיררכיה
       attributeFilters: Object.keys(attributeFilters).length > 0 ? attributeFilters : undefined, // המאפיינים הדינמיים
+      brands: parsedBrands, // מותגים
       search: typeof search === 'string' ? search : undefined, // חיפוש טקסט חופשי
     });
 

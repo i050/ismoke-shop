@@ -189,6 +189,7 @@ export interface ProductQueryOptions {
   categoryIds?: string[]; // סינון לפי קטגוריות מרובות (שמור לתאימות לאחור)
   categorySlugs?: string[]; // סינון לפי slugs של קטגוריות (החדש)
   attributeFilters?: Record<string, string[]>; // סינון לפי מאפיינים דינמיים (למשל: { colorFamily: ['red'], size: ['M', 'L'] })
+  brands?: string[]; // סינון לפי מותגים
   search?: string; // חיפוש טקסט חופשי בשם ותיאור מוצר
 }
 
@@ -255,6 +256,7 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
     categoryIds, // קטגוריות (לתאימות לאחור)
     categorySlugs, // קטגוריות חדש עם היררכיה
     attributeFilters, // מאפיינים דינמיים (colorFamily, size, וכו')
+    brands, // מותגים
     search, // חיפוש טקסט חופשי
   } = options; 
 
@@ -278,6 +280,12 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
     filter.basePrice = {};
     if (safeNumber(priceMin) !== undefined) filter.basePrice.$gte = priceMin; // מחיר מינימלי
     if (safeNumber(priceMax) !== undefined) filter.basePrice.$lte = priceMax; // מחיר מקסימלי 
+  }
+
+  // סינון לפי מותגים
+  if (brands && brands.length > 0) {
+    filter.brand = { $in: brands };
+    if (isDev) console.log('🏷️ [fetchProductsFiltered] Filtering by brands:', brands);
   }
 
   // סינון לפי מאפיינים דינמיים (colorFamily, size, material, וכו')

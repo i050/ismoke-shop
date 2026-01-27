@@ -2,8 +2,9 @@
 // מטרת הקומפוננטה: טופס למילוי מידע בסיסי (שם, תיאור, מותג)
 // כולל: מונה תווים לשם המוצר ו-textarea לתיאור
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Input } from '../../../../../ui/Input/Input';
+import { BrandService, type BrandForSelect } from '../../../../../../services/brandService';
 import styles from './ProductBasicInfo.module.css';
 
 // ==========================================
@@ -41,6 +42,27 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
   onChange,
   disabled = false,
 }) => {
+  // מותגים לבחירה
+  const [brands, setBrands] = useState<BrandForSelect[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+
+  // טעינת מותגים
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        setLoadingBrands(true);
+        const data = await BrandService.getBrandsForSelect();
+        setBrands(data);
+      } catch (error) {
+        console.error('Failed to load brands:', error);
+        setBrands([]);
+      } finally {
+        setLoadingBrands(false);
+      }
+    };
+    fetchBrands();
+  }, []);
+
   // מעקב אחרי כמות תווים בשם המוצר
   const nameLength = values.name?.length || 0;
   
@@ -82,7 +104,7 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
 
   // טיפול בשינוי מותג
   const handleBrandChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
       onChange('brand', e.target.value);
     },
     [onChange]
@@ -182,21 +204,34 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
         </div>
 
         {/* מותג */}
-        {/* <div className={styles.formGroup}>
-          <Input
+        <div className={styles.formGroup}>
+          <label htmlFor="product-brand" className={styles.label}>
+            מותג
+          </label>
+          <select
             id="product-brand"
             name="brand"
-            label="מותג"
-            type="text"
             value={values.brand || ''}
             onChange={handleBrandChange}
-            placeholder="למשל: ASPIRE, SMOK, VAPORESSO"
-            disabled={disabled}
-            error={!!errors.brand}
-            helperText={errors.brand || 'אופציונלי - השאר ריק אם המוצר ללא מותג'}
-            size="medium"
-          />
-        </div> */}
+            disabled={disabled || loadingBrands}
+            className={`${styles.select} ${errors.brand ? styles.selectError : ''}`}
+          >
+            <option value="">
+              {loadingBrands ? 'טוען מותגים...' : 'ללא מותג'}
+            </option>
+            {brands.map((brand) => (
+              <option key={brand._id} value={brand.name}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
+          {errors.brand && (
+            <span className={styles.errorText}>{errors.brand}</span>
+          )}
+          <span className={styles.helperText}>
+            אופציונלי - בחר מותג מהרשימה או השאר ריק
+          </span>
+        </div>
       </div>
 
       {/* טיפים */}

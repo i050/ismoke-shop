@@ -115,17 +115,17 @@ export const getAllSettings = async (req: AuthenticatedRequest, res: Response) =
  */
 export const updateSettings = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { orders, users, shipping, payment, inventory, thresholdDiscount, shippingPolicy } = req.body;
+    const { orders, users, shipping, payment, inventory, notifications, thresholdDiscount, shippingPolicy } = req.body;
     const adminId = req.user?.userId;
     
     const settings = await StoreSettings.updateSettings(
-      { orders, users, shipping, payment, inventory, thresholdDiscount, shippingPolicy } as any,
+      { orders, users, shipping, payment, inventory, notifications, thresholdDiscount, shippingPolicy } as any,
       adminId ? new mongoose.Types.ObjectId(adminId) : undefined
     );
     
     logger.info('SETTINGS_UPDATED', { 
       adminId,
-      updates: { orders, users, shipping, payment, inventory, thresholdDiscount, shippingPolicy: shippingPolicy ? 'updated' : undefined }
+      updates: { orders, users, shipping, payment, inventory, notifications, thresholdDiscount, shippingPolicy: shippingPolicy ? 'updated' : undefined }
     });
     
     res.json({

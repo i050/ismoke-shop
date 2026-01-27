@@ -92,6 +92,10 @@ export interface AllSettings {
     message: string;
     allowedRoles: string[];
   };
+  // התראות מנהל
+  notifications?: {
+    adminNewOrderEmails: string[];
+  };
   // מדיניות משלוח והחזרות
   shippingPolicy?: ShippingPolicy;
   updatedAt?: string;
@@ -307,6 +311,26 @@ export const updateShippingPolicy = async (
     method: 'PATCH',
     headers: getHeaders(),
     body: JSON.stringify({ shippingPolicy: shippingPolicyUpdates })
+  });
+  
+  return handleResponse(response);
+};
+
+/**
+ * עדכון הגדרות התראות מנהל (Admin)
+ * מאפשר לקבוע לאילו כתובות מייל יישלחו התראות על הזמנות חדשות
+ */
+export const updateAdminNotificationEmails = async (
+  emails: string[]
+): Promise<{ success: boolean; data: AllSettings; message: string }> => {
+  const response = await fetch(`${API_BASE_URL}/api/settings`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ 
+      notifications: { 
+        adminNewOrderEmails: emails 
+      } 
+    })
   });
   
   return handleResponse(response);

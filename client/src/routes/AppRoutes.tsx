@@ -26,6 +26,7 @@ const ReportsPage = lazy(() => import('../pages/Admin/Reports'));
 const AdminSettingsPage = lazy(() => import('../pages/Admin/Settings'));
 const BannersPage = lazy(() => import('../pages/Admin/Banners/BannersPage'));
 const InventoryManagementPage = lazy(() => import('../pages/Admin/Inventory'));
+const BrandsManagementPage = lazy(() => import('../pages/Admin/BrandsManagement/BrandsManagementPage'));
 const TestProductsRedux = lazy(() => import('../pages/Admin/TestProductsRedux'));
 
 const AppRoutes = () => {
@@ -80,6 +81,7 @@ const AppRoutes = () => {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="products" element={<ProductsManagementPage />} />
         <Route path="filter-attributes" element={<FilterAttributesPage />} />
+        <Route path="brands" element={<BrandsManagementPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="customer-groups" element={<CustomerGroupsPage />} />
         <Route path="user-management" element={<UserManagementPage />} />

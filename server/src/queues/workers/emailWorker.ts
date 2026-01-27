@@ -94,7 +94,8 @@ function renderOrderItems(items: any[]): string {
         ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.productName}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">` : ''}
       </td>
       <td style="padding: 12px; border-bottom: 1px solid #eee;">
-        <strong>${item.productName}</strong>
+        <strong>${item.productName}${item.skuName ? ` - ${item.skuName}` : ''}</strong>
+        ${item.sku ? `<br><small style="color: #999;">SKU: ${item.sku}</small>` : ''}
         ${item.attributes ? `<br><small style="color: #666;">${Object.entries(item.attributes).map(([k, v]) => `${k}: ${v}`).join(', ')}</small>` : ''}
       </td>
       <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
@@ -505,7 +506,10 @@ function getEmailTemplate(type: EmailJobData['type'], data: Record<string, unkno
                         <td style="padding: 12px; border-bottom: 1px solid #eee;">
                           ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` : '<span style="color: #999;">-</span>'}
                         </td>
-                        <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.name}</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #eee;">
+                          <strong>${item.name}${item.skuName ? ` - ${item.skuName}` : ''}</strong>
+                          ${item.sku ? `<br><small style="color: #999;">SKU: ${item.sku}</small>` : ''}
+                        </td>
                         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
                         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: left;">${formatCurrency(item.price)}</td>
                       </tr>
@@ -543,6 +547,23 @@ function getEmailTemplate(type: EmailJobData['type'], data: Record<string, unkno
         </body>
         </html>
       `
+    }
+  };
+  
+  return templates[type];
+}
+
+// =============================================================================
+// פונקציית שליחת מייל
+// =============================================================================
+
+interface SendEmailResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
+async function sendEmail(
   to: string,
   subject: string,
   html: string
