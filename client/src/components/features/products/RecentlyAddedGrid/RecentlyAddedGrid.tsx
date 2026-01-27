@@ -33,6 +33,9 @@ const RecentlyAddedGrid: React.FC<RecentlyAddedGridProps> = ({
   
   // State לניהול כמות המוצרים המוצגים
   const [displayedCount, setDisplayedCount] = useState(initialCount);
+  
+  // דגל לזיהוי אם נטענו מוצרים מ-cache
+  const [isRestoredFromCache, setIsRestoredFromCache] = useState(false);
 
   // פונקציה להוספת מוצר לסל
   const handleAddToCart = (product: Product, sku?: string, quantity: number = 1) => {
@@ -47,15 +50,39 @@ const RecentlyAddedGrid: React.FC<RecentlyAddedGridProps> = ({
     }));
   };
 
-  // שליפת המוצרים מהשרת
+  // שחזור מצב משמור (אם קיים) או שליפת מוצרים מהשרת
   useEffect(() => {
+    // ניסיון לשחזר מצב שמור מ-sessionStorage
+    const savedState = sessionStorage.getItem('recentlyAddedState');
+    
+    if (savedState) {
+      try {
+        const { products: savedProducts, displayedCount: savedCount, timestamp } = JSON.parse(savedState);
+        const isFresh = Date.now() - timestamp < 5 * 60 * 1000; // 5 דקות
+        
+        if (isFresh && savedProducts?.length > 0) {
+          console.log('🔄 משחזר מוצרים שנוספו לאחרונה מ-cache:', savedProducts.length, 'מוצגים:', savedCount);
+          setProducts(savedProducts);
+          setDisplayedCount(savedCount);
+          setIsRestoredFromCache(true);
+          setLoading(false);
+          return; // לא לבצע fetch
+        }
+      } catch (e) {
+        console.error('⚠️ שגיאה בשחזור state של מוצרים שנוספו לאחרונה:', e);
+      }
+      // אם הגענו לכאן - המידע לא תקין או ישן, נמחק אותו
+      sessionStorage.removeItem('recentlyAddedState');
+    }
+    
+    // fetch רגיל אם אין cache או שהוא לא תקין
     const fetchProducts = async () => {
       setLoading(true);
       setError(null);
       try {
         // שליחת בקשה עם טוקן אימות (אם קיים) לקבלת מחירים מותאמים
         const data = await ProductService.getRecentlyAddedProducts();
-        console.log('RecentlyAddedGrid - received products:', data.length);
+        console.log('📥 RecentlyAddedGrid - received products:', data.length);
         setProducts(data);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
@@ -71,6 +98,22 @@ const RecentlyAddedGrid: React.FC<RecentlyAddedGridProps> = ({
     };
     fetchProducts();
   }, []);
+
+  // שמירת מצב לפני unmount
+  useEffect(() => {
+    return () => {
+      // שמירה רק אם יש מוצרים ולא בטעינה
+      if (products.length > 0 && !loading) {
+        const stateToSave = {
+          products,
+          displayedCount,
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem('recentlyAddedState', JSON.stringify(stateToSave));
+        console.log('💾 שומר מצב של מוצרים שנוספו לאחרונה:', products.length, 'מוצגים:', displayedCount);
+      }
+    };
+  }, [products, displayedCount, loading]);
 
   // פונקציה לטעינת מוצרים נוספים
   const handleLoadMore = () => {

@@ -669,3 +669,37 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Admin Notifications - Email Input Row */
+.notificationEmailsRow {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  margin-top: var(--spacing-sm);
+}
+
+.textInput {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  transition: border-color 0.2s ease;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.textInput:disabled {
+  background: var(--color-bg-secondary);
+  cursor: not-allowed;
+}
+
+.textInput::placeholder {
+  color: var(--color-text-tertiary);
+}

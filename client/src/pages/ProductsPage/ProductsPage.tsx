@@ -75,7 +75,21 @@ const ProductsPage: React.FC = () => {
   }, [dispatch, categoriesTree.length, categoriesLoading]);
   
   const initial = React.useMemo(() => getInitialFiltersFromUrl(), []);
-  const { state, setSort, setPriceMin, setPriceMax, toggleCategory, replaceCategory, toggleAttribute, clearAttribute, setSearch, setPage, reset } = useFiltersState(initial);
+  const { 
+    state, 
+    setSort, 
+    setPriceMin, 
+    setPriceMax, 
+    toggleCategory, 
+    replaceCategory, 
+    toggleAttribute, 
+    clearAttribute, 
+    toggleBrand,
+    clearBrands,
+    setSearch, 
+    setPage, 
+    reset 
+  } = useFiltersState(initial);
   
   // שמירת הערך הקודם של categoryFromUrl כדי לזהות שינוי בניווט
   const prevCategoryFromUrlRef = React.useRef<string | null>(null);
@@ -218,6 +232,8 @@ const ProductsPage: React.FC = () => {
         toggleCategory={(id) => { toggleCategory(id); setPage(1); }}
         toggleAttribute={(key, value) => { toggleAttribute(key, value); setPage(1); }}
         clearAttribute={(key) => { clearAttribute(key); setPage(1); }}
+        toggleBrand={(brand) => { toggleBrand(brand); setPage(1); }}
+        clearBrands={() => { clearBrands(); setPage(1); }}
         reset={handleReset}
         onClearPriceFilter={() => { setPriceMin(null); setPriceMax(null); setPage(1); }}
         categoriesTree={categoriesTree}
@@ -232,6 +248,8 @@ const ProductsPage: React.FC = () => {
           toggleCategory={(id) => { toggleCategory(id); setPage(1); }}
           toggleAttribute={(key, value) => { toggleAttribute(key, value); setPage(1); }}
           clearAttribute={(key) => { clearAttribute(key); setPage(1); }}
+          toggleBrand={(brand) => { toggleBrand(brand); setPage(1); }}
+          clearBrands={() => { clearBrands(); setPage(1); }}
           reset={handleReset}
           onClearPriceFilter={() => { setPriceMin(null); setPriceMax(null); setPage(1); }}
         />

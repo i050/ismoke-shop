@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 // ייבוא Redux Hooks המותאמים שלנו
 // import { useAppSelector } from '../../hooks/reduxHooks'
@@ -16,6 +16,40 @@ const HomePage = () => {
 
   // ניווט - קריאת hook במקום מובטח (לפני כל return) כדי לשמור על סדר ה-Hooks
   const navigate = useNavigate()
+
+  // ✅ שחזור גלילה כשחוזרים לדף (לא בריענון)
+  useEffect(() => {
+    const savedScrollPosition = sessionStorage.getItem('homePageScrollPosition');
+    if (savedScrollPosition) {
+      // המתנה ארוכה יותר כדי לתת לקומפוננטות להיטען עם נתונים מ-cache
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition, 10));
+        console.log('🎯 גלילה למיקום שמור:', savedScrollPosition);
+      }, 300); // הגדלתי מ-100 ל-300ms
+    }
+  }, []);
+
+  // שמירת מיקום גלילה לפני שעוזבים את הדף
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('homePageScrollPosition', window.scrollY.toString());
+    };
+
+    // שמירה בעת גלילה (עם throttle קל)
+    let scrollTimeout: NodeJS.Timeout;
+    const throttledHandleScroll = () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 100);
+    };
+
+    window.addEventListener('scroll', throttledHandleScroll);
+    
+    // שמירה גם לפני unmount
+    return () => {
+      window.removeEventListener('scroll', throttledHandleScroll);
+      handleScroll(); // שמירה אחרונה
+    };
+  }, []);
 
   // האזנה לעדכוני מחירים בזמן אמת
   // useSocket('groupUpdated', () => {

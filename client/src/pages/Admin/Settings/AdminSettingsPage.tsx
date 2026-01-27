@@ -11,6 +11,7 @@ import {
   updateInventorySettings,
   updateThresholdDiscountSettings,
   updateShippingPolicy,
+  updateAdminNotificationEmails,
   getAllSettings,
   type MaintenanceSettings,
   type ShippingPolicy,
@@ -69,6 +70,11 @@ const AdminSettingsPage: React.FC = () => {
     warranty: string;
   }>({ shipping: '', returns: '', warranty: '' });
   
+  // התראות מנהל - הזמנות חדשות
+  const [adminNotificationEmails, setAdminNotificationEmails] = useState<string[]>([]);
+  const [adminNotificationEmailsInput, setAdminNotificationEmailsInput] = useState<string>('');
+  const [notificationSettingsLoading, setNotificationSettingsLoading] = useState<boolean>(false);
+  
   // מצבי עריכה inline של פריטים
   const [editingItemId, setEditingItemId] = useState<string | null>(null); // "section-index" (למשל "shipping-0")
   const [editingItemText, setEditingItemText] = useState<string>(''); // הטקסט המתערך
@@ -121,6 +127,10 @@ const AdminSettingsPage: React.FC = () => {
           // אם אין shippingPolicy בתשובה, נשאיר את ברירת המחדל הקיימת
           console.warn('shippingPolicy לא נמצא בהגדרות');
         }
+        // התראות מנהל
+        const emails = allSettingsResponse.data.notifications?.adminNewOrderEmails || [];
+        setAdminNotificationEmails(emails);
+        setAdminNotificationEmailsInput(emails.join(', '));
       }
     } catch (err) {
       console.error('שגיאה בטעינת הגדרות:', err);
@@ -577,6 +587,43 @@ const AdminSettingsPage: React.FC = () => {
       showToast('error', 'שגיאה בעריכת הפריט');
     } finally {
       setShippingPolicyLoading(false);
+    }
+  };
+
+  // =============== התראות מנהל - Admin Notifications ===============
+  
+  // שמירת כתובות מייל להתראות מנהל
+  const handleSaveAdminNotificationEmails = async () => {
+    // פירסור הקלט - מפריד פסיקים או רווחים
+    const emails = adminNotificationEmailsInput
+      .split(/[,\s]+/)
+      .map(e => e.trim())
+      .filter(e => e.length > 0);
+    
+    // ולידציה בסיסית
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const invalidEmails = emails.filter(e => !emailRegex.test(e));
+    if (invalidEmails.length > 0) {
+      showToast('error', `כתובות לא תקינות: ${invalidEmails.join(', ')}`);
+      return;
+    }
+    
+    try {
+      setNotificationSettingsLoading(true);
+      const response = await updateAdminNotificationEmails(emails);
+      
+      if (response.success) {
+        setAdminNotificationEmails(emails);
+        setAdminNotificationEmailsInput(emails.join(', '));
+        showToast('success', emails.length > 0 
+          ? `נשמרו ${emails.length} כתובות מייל להתראות` 
+          : 'התראות הזמנות חדשות בוטלו');
+      }
+    } catch (err) {
+      console.error('Error saving admin notification emails:', err);
+      showToast('error', 'שגיאה בשמירת הגדרות התראות');
+    } finally {
+      setNotificationSettingsLoading(false);
     }
   };
 
@@ -1409,15 +1456,71 @@ const AdminSettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className={`${styles.settingsCard} ${styles.comingSoon}`}>
+        {/* כרטיס התראות מנהל - הזמנות חדשות */}
+        <div className={styles.settingsCard}>
           <div className={styles.cardHeader}>
             <div className={styles.cardTitleWrapper}>
               <Icon name="Mail" size={24} className={styles.cardIcon} />
               <div>
-                <h3 className={styles.cardTitle}>הגדרות מייל</h3>
-                <p className={styles.cardDescription}>בקרוב...</p>
+                <h3 className={styles.cardTitle}>התראות מנהל</h3>
+                <p className={styles.cardDescription}>
+                  קבלת התראות מייל על הזמנות חדשות
+                </p>
               </div>
             </div>
+          </div>
+          
+          <div className={styles.cardContent}>
+            <div className={styles.settingRow}>
+              <div className={styles.settingInfo}>
+                <span className={styles.settingLabel}>כתובות מייל להתראות</span>
+                <span className={styles.settingHint}>
+                  הפרד כתובות מרובות בפסיק או רווח
+                </span>
+              </div>
+            </div>
+            
+            <div className={styles.notificationEmailsRow}>
+              <input
+                type="text"
+                value={adminNotificationEmailsInput}
+                onChange={(e) => setAdminNotificationEmailsInput(e.target.value)}
+                placeholder="admin@example.com, manager@example.com"
+                disabled={notificationSettingsLoading}
+                className={styles.textInput}
+                style={{ flex: 1 }}
+              />
+              <button
+                onClick={handleSaveAdminNotificationEmails}
+                disabled={notificationSettingsLoading}
+                className={styles.saveButton}
+              >
+                {notificationSettingsLoading ? (
+                  <Icon name="Loader2" size={16} className={styles.spinner} />
+                ) : (
+                  <Icon name="Check" size={16} />
+                )}
+                שמור
+              </button>
+            </div>
+            
+            {adminNotificationEmails.length > 0 && (
+              <div className={styles.successBanner}>
+                <Icon name="Mail" size={16} />
+                <span>
+                  התראות על הזמנות חדשות יישלחו ל-{adminNotificationEmails.length} כתובות
+                </span>
+              </div>
+            )}
+            
+            {adminNotificationEmails.length === 0 && (
+              <div className={styles.warningBanner}>
+                <Icon name="AlertTriangle" size={16} />
+                <span>
+                  לא הוגדרו כתובות - לא יישלחו התראות על הזמנות חדשות
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

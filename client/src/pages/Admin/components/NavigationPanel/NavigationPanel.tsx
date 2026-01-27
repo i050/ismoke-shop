@@ -50,6 +50,11 @@ const NavigationPanel: React.FC<NavigationPanelProps> = ({ isOpen = true, onClos
       icon: 'Filter',
     },
     // {
+    //   path: '/admin/brands',
+    //   label: 'מותגים',
+    //   icon: 'Tag',
+    // },
+    // {
     //   path: '/admin/customers',
     //   label: 'לקוחות',
     //   icon: 'Users',

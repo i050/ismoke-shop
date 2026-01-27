@@ -33,6 +33,9 @@ const PopularGrid: React.FC<PopularGridProps> = ({
   
   // State לניהול כמות המוצרים המוצגים
   const [displayedCount, setDisplayedCount] = useState(initialCount);
+  
+  // דגל לזיהוי אם נטענו מוצרים מ-cache
+  const [isRestoredFromCache, setIsRestoredFromCache] = useState(false);
 
   // פונקציה להוספת מוצר לסל
   const handleAddToCart = (product: Product, sku?: string) => {
@@ -47,15 +50,39 @@ const PopularGrid: React.FC<PopularGridProps> = ({
     }));
   };
 
-  // שליפת המוצרים מהשרת
+  // שחזור מצב משמור (אם קיים) או שליפת מוצרים מהשרת
   useEffect(() => {
+    // ניסיון לשחזר מצב שמור מ-sessionStorage
+    const savedState = sessionStorage.getItem('popularState');
+    
+    if (savedState) {
+      try {
+        const { products: savedProducts, displayedCount: savedCount, timestamp } = JSON.parse(savedState);
+        const isFresh = Date.now() - timestamp < 5 * 60 * 1000; // 5 דקות
+        
+        if (isFresh && savedProducts?.length > 0) {
+          console.log('🔄 משחזר מוצרים פופולריים מ-cache:', savedProducts.length, 'מוצגים:', savedCount);
+          setProducts(savedProducts);
+          setDisplayedCount(savedCount);
+          setIsRestoredFromCache(true);
+          setLoading(false);
+          return; // לא לבצע fetch
+        }
+      } catch (e) {
+        console.error('⚠️ שגיאה בשחזור state של מוצרים פופולריים:', e);
+      }
+      // אם הגענו לכאן - המידע לא תקין או ישן, נמחק אותו
+      sessionStorage.removeItem('popularState');
+    }
+    
+    // fetch רגיל אם אין cache או שהוא לא תקין
     const fetchProducts = async () => {
       setLoading(true);
       setError(null);
       try {
         // שליחת בקשה לקבלת מוצרים פופולריים
         const data = await ProductService.getPopularProducts();
-        console.log('PopularGrid - received products:', data.length);
+        console.log('📥 PopularGrid - received products:', data.length);
         console.log('PopularGrid - first product pricing:', data[0]?.pricing); // הדפס pricing של המוצר הראשון
         setProducts(data);
       } catch (err: unknown) {
@@ -73,6 +100,22 @@ const PopularGrid: React.FC<PopularGridProps> = ({
     };
     fetchProducts();
   }, []);
+
+  // שמירת מצב לפני unmount
+  useEffect(() => {
+    return () => {
+      // שמירה רק אם יש מוצרים ולא בטעינה
+      if (products.length > 0 && !loading) {
+        const stateToSave = {
+          products,
+          displayedCount,
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem('popularState', JSON.stringify(stateToSave));
+        console.log('💾 שומר מצב של מוצרים פופולריים:', products.length, 'מוצגים:', displayedCount);
+      }
+    };
+  }, [products, displayedCount, loading]);
 
   // פונקציה לטעינת מוצרים נוספים
   const handleLoadMore = () => {
