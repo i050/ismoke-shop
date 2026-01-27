@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Sticky</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      font-family: Arial; 
+      overflow-x: clip;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .items {
+      background: #f0f0f0;
+      padding: 2rem;
+      min-height: 150vh;
+    }
+    .summary {
+      position: sticky;
+      top: 20px;
+      background: #fff;
+      border: 2px solid #000;
+      padding: 2rem;
+      height: fit-content;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>בדיקת Sticky</h1>
+    <div class="content">
+      <div class="items">
+        <h2>פריטים</h2>
+        <p>גלול למטה...</p>
+        <div style="height: 2000px;">תוכן ארוך</div>
+      </div>
+      <div class="summary">
+        <h2>סיכום</h2>
+        <p>אני צריך לצוף!</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
