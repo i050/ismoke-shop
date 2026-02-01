@@ -19,6 +19,7 @@ interface VariantSelectorProps {
   onSkuChange: (sku: string) => void;   // פונקציה שתופעל כשבוחרים SKU חדש
   showColorPreview?: boolean;           // האם להציג תצוגה ויזואלית של הצבע
   compactMode?: boolean;                // מצב קומפקטי - מציג רק עיגול צבע קטן
+  cardMode?: boolean;                   // 🆕 מצב כרטיס - מרווחים מינימליים לשימוש בכרטיסיית מוצר
   secondaryVariantAttribute?: string | null; // 🆕 מפתח המאפיין המשני (size/resistance/nicotine)
   secondaryOnly?: boolean;              // 🆕 מצב להצגת רק תת-וריאנט (בלי כפתורי צבע)
   hideSecondaryVariants?: boolean;      // 🆕 הסתרת תת-וריאנטים (לשימוש בכרטיסייה)
@@ -51,6 +52,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   onSkuChange,
   showColorPreview = true,
   compactMode = false,
+  cardMode = false,
   secondaryVariantAttribute = null,
   secondaryOnly = false,
   hideSecondaryVariants = false,
@@ -403,7 +405,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       };
 
       return (
-        <div className={styles.variantSection}>
+        <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
           {/* 🎯 אם הציר המשני הוא צבע - נציג אותו ראשון (UX: צבע תמיד ראשון) */}
           {isSecondaryAxisColor && customSecondaryOptions.length > 0 && (!hideSecondaryVariants || showSecondaryColorsInCompact) && (
             <div className={styles.secondaryVariantSection}>
@@ -593,7 +595,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
 
     // אם יש ציר אחד בלבד → מציג דרופדאון יחיד (התנהגות קודמת)
     return (
-      <div className={styles.variantSection}>
+      <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
         {/* Dropdown לבחירת וריאנט ראשי */}
         <div className={styles.customVariantSelector}>
           <label className={styles.customVariantLabel}>
@@ -659,7 +661,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   // **תצוגה פשוטה (מצב ישן - תאימות לאחור)**
   if (useSimpleMode) {
     return (
-      <div className={styles.variantSection}>
+      <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
         <div className={styles.variantOptions}>
           {skus.map((skuItem, index) => {
             const colorHex = getSkuColor(skuItem); // קוד HEX לתצוגה בכפתור
@@ -910,7 +912,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     };
 
     return (
-      <div className={styles.variantSection}>
+      <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
         {/* דרופדאון 1: ציר ראשי (variantName/name) */}
         <div className={styles.customVariantSelector}>
           <label className={styles.customVariantLabel}>
@@ -1037,7 +1039,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   }
 
   return (
-    <div className={styles.variantSection}>
+    <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
       {/* שלב 1: בחירת צבע - רק אם יש צבע ולא במצב secondaryOnly */}
       {shouldShowColorButtons && !secondaryOnly && (
         <>

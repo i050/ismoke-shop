@@ -161,11 +161,11 @@
 
 /* אזור התוכן */
 .content {
-  padding: 12px 12px 10px 12px;
+  padding: 12px 12px 6px 12px; /* הקטנת padding תחתון מ-10px ל-6px */
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px; /* הקטנת gap להידוק */
 }
 
 /* שם המוצר */
@@ -214,23 +214,8 @@
 /* בורר ווריאנטים - גרסה קומפקטית לכרטיס */
 .variantSelector {
   margin: 0;
-  padding: 4px 0 2px 0;
-  /* border-top: none; */
+  padding: 0; /* הסרת כל padding להידוק מקסימלי */
   border: none;
-}
-
-/* התאמות לגרסה הקומפקטית */
-.variantSelector :global(.variantSection) {
-  margin: 0;
-}
-
-.variantSelector :global(.variantTitle) {
-  font-size: 0.875rem;
-  margin-bottom: 8px;
-}
-
-.variantSelector :global(.variantOptions) {
-  gap: 3px;
 }
 
 .variantSelector :global(.variantButton) {
@@ -242,12 +227,12 @@
 
 /* אזור המחיר והפעולות */
 .footer {
-  margin-top: auto;
+  margin-top: auto; /* דוחף את הfooter לתחתית - חשוב לעקביות בגובה הכרטיסיות */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding-top: 8px;
+  /* padding-top: 0 - הוסר לחלוטין להידוק מקסימלי */
   /* border-top: 1px solid var(--border); */
 }
 

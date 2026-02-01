@@ -4,6 +4,12 @@
   padding: 0;
 }
 
+/* 🆕 מצב cardMode - מרווחים מינימליים לכרטיסיית מוצר */
+.cardMode .variantSection {
+  margin: 0;
+  padding: 0;
+}
+
 .variantTitle {
   margin-bottom: var(--spacing-3, 12px);
   font-size: 14px;
@@ -11,11 +17,20 @@
   color: var(--color-text-primary);
 }
 
+.cardMode .variantTitle {
+  margin-bottom: 4px;
+}
+
 .variantOptions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 15px;
+}
+
+.cardMode .variantOptions {
+  gap: 3px;
+  margin-bottom: 4px;
 }
 
 .variantButton {

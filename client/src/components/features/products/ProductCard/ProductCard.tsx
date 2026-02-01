@@ -376,6 +376,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 selectedSku={selectedSku}
                 onSkuChange={handleSkuChange}
                 compactMode={true}
+                cardMode={true}
                 secondaryVariantAttribute={product.secondaryVariantAttribute}
                 hideSecondaryVariants={true}
                 showSecondaryColorsInCompact={true}
