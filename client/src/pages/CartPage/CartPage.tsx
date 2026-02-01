@@ -310,11 +310,11 @@ const CartPage = () => {
                 </div>
               )}
 
-              {/* Phase 6.0: הנחת סף */}
+              {/* Phase 6.0: הנחת סף - הסבר ברור ללקוח למה הוא מקבל הנחה */}
               {thresholdDiscountAmount > 0 && (
                 <div className={`${styles.summaryRow} ${styles.thresholdDiscount}`}>
                   <span className={styles.summaryLabel}>
-                    <Icon name="Gift" size={16} /> הנחת סף ({thresholdDiscount?.discountPercentage}%):
+                    <Icon name="Gift" size={16} /> הנחה על קנייה מעל ₪{thresholdDiscount?.minimumAmount} ({thresholdDiscount?.discountPercentage}%):
                   </span>
                   <span className={styles.summaryValue}>
                     -₪{thresholdDiscountAmount.toFixed(2)}

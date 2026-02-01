@@ -34,7 +34,7 @@ export type IconName =
   // Auth & Users
   | 'LogIn' | 'LogOut' | 'UserPlus' | 'UserCheck' | 'Lock' | 'Unlock'
   // Additional
-  | 'Heart' | 'Share2' | 'Star' | 'Award'
+  | 'Heart' | 'Share2' | 'Star' | 'Award' | 'Gift'
   // Checkboxes & Selection
   | 'CheckSquare' | 'Square' | 'MinusSquare';
 
