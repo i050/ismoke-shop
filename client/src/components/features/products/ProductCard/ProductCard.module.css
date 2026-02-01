@@ -324,6 +324,12 @@
 
 /* תמיכה רספונסיבית */
 @media (max-width: 768px) {
+  /* במובייל וטאבלט - ביטול aspect-ratio לטובת גובה קבוע למניעת התרחבות */
+  .grid .imageContainer,
+  .carousel .imageContainer {
+    aspect-ratio: auto;
+  }
+  
   .imageContainer {
     height: 180px;
   }
@@ -354,6 +360,12 @@
 }
 
 @media (max-width: 480px) {
+  /* במובייל - ביטול aspect-ratio לטובת גובה קבוע למניעת התרחבות */
+  .grid .imageContainer,
+  .carousel .imageContainer {
+    aspect-ratio: auto;
+  }
+  
   .imageContainer {
     height: 160px;
   }
