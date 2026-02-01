@@ -105,47 +105,111 @@
   font-weight: bold;
 }
 
-/* עיצוב מפרט טכני */
+/* עיצוב מפרט טכני פרימיום - Premium Design */
 .specifications {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* שתי עמודות לניצול מסך רחב */
+  column-gap: 56px; /* מרווח מרווח יותר למראה אוורירי */
+  row-gap: 14px; /* ריווח בין שורות לנראות נעימה */
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  padding: 32px 28px; /* מרווח פנימי נדיב */
+  background: linear-gradient(135deg, #fafbfc 0%, #f8f9fa 50%, #ffffff 100%); /* גרדיאנט מתוחכם */
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03), 0 6px 16px rgba(15, 23, 42, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+/* אפקט עדין ברקע */
+.specifications::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .specRow {
   display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  align-items: baseline; /* יישור טקסט לפי קו בסיס */
+  padding: 16px 18px; /* ריווח מרווח */
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%); /* גרדיאנט עדין */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 2px 4px rgba(15, 23, 42, 0.02);
+  gap: 14px; /* מרווח ברור בין תווית לערך */
+  position: relative;
+}
+
+/* קו אקסנט עדין משמאל */
+.specRow::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+  border-radius: 2px;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* אפקט Hover פרימיום */
+.specRow:hover {
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08), 0 8px 24px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+.specRow:hover::before {
+  height: 60%;
 }
 
 .specLabel {
-  font-weight: 500;
-  color: #333;
-  flex: 1;
+  font-weight: 600;
+  color: #475569; /* אפור מתוחכם */
+  min-width: 140px; /* רוחב מעט יותר גדול */
+  flex-shrink: 0; /* מונע כיווץ התווית */
+  font-size: 0.9375rem;
+  letter-spacing: 0.3px;
+  text-transform: capitalize; /* אותיות ראשונות גדולות - מראה פרימיום */
 }
 
 .specValue {
-  color: #666;
-  text-align: left;
+  color: #0f172a; /* צבע כהה עמוק */
+  text-align: right; /* יישור לימין (צמוד לתווית ב-RTL) */
   flex: 1;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  overflow-wrap: break-word; /* שבירת מילים ארוכות */
+  font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
 /* 🆕 יחידת מידה מתבנית */
 .specUnit {
-  color: #888;
+  color: #6b7280;
   font-size: 0.9em;
+  margin-right: 4px;
 }
 
 /* הודעה כאשר אין מפרט טכני */
 .noSpecs {
-  color: #999;
+  grid-column: 1 / -1; /* תופס את כל הרוחב */
+  color: #9ca3af;
   text-align: center;
-  padding: 40px 20px;
+  padding: 48px 24px;
   font-style: italic;
+  font-size: 1rem;
 }
 
 /* הודעה כאשר אין תוכן */
@@ -343,6 +407,16 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* מפרט טכני במובייל/טאבלט - חזרה לטור אחד */
+  .specifications {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .specRow {
+    padding: 12px 4px;
+  }
+
   .tabContent {
     padding: 20px;
   }
