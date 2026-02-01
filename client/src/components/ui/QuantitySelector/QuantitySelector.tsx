@@ -11,7 +11,7 @@ interface QuantitySelectorProps {
   max?: number;                       // כמות מקסימלית (אופציונלי - מלאי)
   onChange: (quantity: number) => void; // פונקציה שתקרא כאשר הכמות משתנה
   disabled?: boolean;                 // האם הקומפוננטה מושבתת
-  size?: 'small' | 'medium' | 'large'; // גודל הקומפוננטה
+  size?: 'xs' | 'small' | 'medium' | 'large'; // גודל הקומפוננטה - xs למיני-קארט
   onOverMax?: (max?: number) => void;  // קוראים כאשר המשתמש לוחץ + מעבר למקס (למטרות הודעה)
   showInlineMaxWarning?: boolean; // האם להציג הודעת מלאי בתוך השליטה עצמה (ברירת מחדל: false)
 }

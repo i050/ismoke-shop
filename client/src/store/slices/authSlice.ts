@@ -2,7 +2,7 @@
 // זהו ה-slice הראשי לניהול כל מה שקשור לאימות: התחברות, יציאה, פרטי משתמש
 
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { getToken, getUser, clearAuthData } from '../../utils/tokenUtils'
+import { getToken, getUser, clearAuthData, getLastAuthAt, setLastAuthAt } from '../../utils/tokenUtils'
 
 // הגדרת הממשקים (interfaces) עבור TypeScript
 // זה מבטיח שכל הנתונים יהיו מוקלדים נכון ובטוח
@@ -77,6 +77,9 @@ interface AuthState {
   isAuthenticated: boolean      // האם יש משתמש מחובר כרגע
   isLoading: boolean           // האם אנחנו בתהליך של בדיקת אימות/התחברות
   error: string | null         // הודעת שגיאה אם יש בעיה באימות
+  // 🔐 Soft Login: זמן אימות אחרון (לפעולות רגישות)
+  lastAuthAt: number | null
+  isReAuthenticating: boolean  // האם בתהליך אימות מחדש
 }
 
 // מצב התחלתי של ה-slice
@@ -84,12 +87,16 @@ interface AuthState {
 const initialState: AuthState = (() => {
   const token = getToken()
   const user = getUser()
+  const lastAuthAt = getLastAuthAt() // 🔐 Soft Login: טעינת זמן אימות אחרון
 
   return {
     user: user,                          // טוען משתמש מ-localStorage אם קיים
     isAuthenticated: !!(token && user),  // מאומת אם יש טוקן ומשתמש
     isLoading: false,                   // לא בתהליך טעינה
-    error: null                         // אין שגיאות
+    error: null,                        // אין שגיאות
+    // 🔐 Soft Login
+    lastAuthAt: lastAuthAt,             // זמן אימות אחרון
+    isReAuthenticating: false           // לא בתהליך אימות מחדש
   }
 })()
 
@@ -115,10 +122,14 @@ const authSlice = createSlice({
     // פעולה: התחברות הצליחה
     // נקראת כאשר השרת מחזיר שהמשתמש התחבר בהצלחה
     loginSuccess: (state, action: PayloadAction<User>) => {
+      const now = Date.now()
       state.isLoading = false           // גמרנו את התהליך
       state.isAuthenticated = true      // המשתמש מאומת כעת
       state.user = action.payload       // שומרים את פרטי המשתמש שהתקבלו מהשרת
       state.error = null               // אין שגיאות
+      // 🔐 Soft Login: שמירת זמן אימות אחרון
+      state.lastAuthAt = now
+      setLastAuthAt(now)
     },
     
     // פעולה: התחברות נכשלה
@@ -263,6 +274,27 @@ const authSlice = createSlice({
     // נקראת כאשר רוצים לנקות הודעת שגיאה (למשל, כאשר המשתמש סוגר את ההודעה)
     clearError: (state) => {
       state.error = null              // מנקים את השגיאה
+    },
+    
+    // 🔐 Soft Login: התחלת אימות מחדש
+    reAuthStart: (state) => {
+      state.isReAuthenticating = true
+      state.error = null
+    },
+    
+    // 🔐 Soft Login: אימות מחדש הצליח
+    reAuthSuccess: (state, action: PayloadAction<{ user: User; lastAuthAt: number }>) => {
+      state.isReAuthenticating = false
+      state.user = action.payload.user
+      state.lastAuthAt = action.payload.lastAuthAt
+      state.error = null
+      setLastAuthAt(action.payload.lastAuthAt)
+    },
+    
+    // 🔐 Soft Login: אימות מחדש נכשל
+    reAuthFailure: (state, action: PayloadAction<string>) => {
+      state.isReAuthenticating = false
+      state.error = action.payload
     }
   }
 })
@@ -289,7 +321,11 @@ export const {
   disable2FASuccess,// ביטול 2FA הצליח
   disable2FAFailure,// ביטול 2FA נכשל
   logout,         // יציאה מהמערכת
-  clearError      // ניקוי שגיאות
+  clearError,     // ניקוי שגיאות
+  // 🔐 Soft Login: אימות מחדש לפעולות רגישות
+  reAuthStart,    // התחלת אימות מחדש
+  reAuthSuccess,  // אימות מחדש הצליח
+  reAuthFailure   // אימות מחדש נכשל
 } = authSlice.actions
 
 // ייצוא ה-reducer שישמש ב-store הראשי

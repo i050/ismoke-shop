@@ -1,6 +1,6 @@
 import type { User } from '../types'
 import { ApiError } from '../utils/ApiError';
-import { setToken, setUser, clearAuthData, getToken } from '../utils/tokenUtils'
+import { setToken, setUser, clearAuthData, getToken, setLastAuthAt } from '../utils/tokenUtils'
 import { API_BASE_URL as BASE_URL } from '../config/api';
 
 // כתובת ה-API - משתמש במודול מרכזי עם זיהוי אוטומטי של Railway
@@ -136,6 +136,17 @@ export interface ChangePasswordResponse {
   message: string
 }
 
+// 🔐 Soft Login: תגובת אימות מחדש
+export interface ReAuthResponse {
+  success: boolean
+  message: string
+  data: {
+    token: string
+    user: User
+    lastAuthAt: number
+  }
+}
+
 export interface GetProfileResponse {
   success: boolean
   message: string
@@ -183,6 +194,7 @@ export class AuthService {
       if (data.success && data.data) {
         setToken(data.data.token)
         setUser(data.data.user)
+        setLastAuthAt(Date.now()) // 🔐 Soft Login: שמירת זמן אימות אחרון
         
         // אם חזר cart מה-merge, שמור אותו ב-localStorage
         if (data.data.cart) {
@@ -600,6 +612,49 @@ export class AuthService {
       return data;
     } catch (error) {
       console.error('Error resending OTP:', error);
+      throw error;
+    }
+  }
+
+  // 🔐 Soft Login: אימות מחדש לפעולות רגישות
+  static async reAuthenticate(password: string): Promise<ReAuthResponse> {
+    try {
+      console.log('🔐 Re-authentication attempt...');
+      
+      const response = await fetch(`${API_BASE_URL}/auth/re-authenticate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ password })
+      });
+
+      if (!response.ok) {
+        let errorMessage = response.statusText || `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // אם לא הצלחנו לפרסר JSON, נשאר עם statusText
+        }
+        console.error('❌ Re-authentication error:', errorMessage);
+        throw new ApiError(response.status, errorMessage);
+      }
+
+      const data = await response.json();
+      console.log('✅ Re-authentication successful');
+      
+      // שמירת הטוקן החדש עם lastAuthAt
+      if (data.success && data.data) {
+        setToken(data.data.token);
+        setUser(data.data.user);
+        setLastAuthAt(data.data.lastAuthAt || Date.now());
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('❌ Re-authentication error:', error);
       throw error;
     }
   }

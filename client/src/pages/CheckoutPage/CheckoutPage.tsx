@@ -24,6 +24,9 @@ import { Icon } from '../../components/ui/Icon';
 import Modal from '../../components/ui/Modal';
 import StockAlertButton from '../../components/features/products/StockAlertButton';
 import { setUser } from '../../utils/tokenUtils';
+// 🔐 Soft Login: ייבוא מודל אימות מחדש
+import ReAuthModal from '../../components/features/auth/ReAuthModal/ReAuthModal';
+import { isRecentlyAuthenticated } from '../../utils/tokenUtils';
 import styles from './CheckoutPage.module.css';
 import { API_BASE_URL } from '../../config/api';
 
@@ -88,6 +91,10 @@ const CheckoutPage = () => {
     productName?: string;
     sku?: string;
   } | null>(null);
+  
+  // 🔐 Soft Login: state לאימות מחדש לפני יצירת הזמנה
+  const [showReAuthModal, setShowReAuthModal] = useState(false);
+  const [pendingOrderData, setPendingOrderData] = useState<{ skipPayment: boolean } | null>(null);
   
   // הגדרות מהשרת
   const [settings, setSettings] = useState<PublicSettings | null>(null);
@@ -296,6 +303,14 @@ const CheckoutPage = () => {
   const handlePlaceOrder = async (skipPayment: boolean = false) => {
     if (!validateForm()) return;
     
+    // 🔐 Soft Login: בדיקה אם צריך אימות מחדש לפני יצירת הזמנה
+    // אם עברו יותר מ-15 דקות מאז ההתחברות האחרונה, נבקש סיסמה מחדש
+    if (!isRecentlyAuthenticated()) {
+      setPendingOrderData({ skipPayment });
+      setShowReAuthModal(true);
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
     setStep('processing');
@@ -335,6 +350,16 @@ const CheckoutPage = () => {
       
       // בדיקה אם זו שגיאת מלאי
       const errorMessage = err.message || '';
+      
+      // 🔐 Soft Login: בדיקה אם זו שגיאת דרישת אימות מחדש
+      if (err?.status === 403 || errorMessage.includes('אימות מחדש') || errorMessage.includes('REAUTH_REQUIRED') || err?.code === 'REAUTH_REQUIRED') {
+        setPendingOrderData({ skipPayment });
+        setShowReAuthModal(true);
+        setStep('payment');
+        setIsLoading(false);
+        return;
+      }
+      
       const isStockError = errorMessage.includes('מלאי') || 
                           errorMessage.includes('stock') || 
                           errorMessage.includes('INSUFFICIENT');
@@ -417,6 +442,24 @@ const CheckoutPage = () => {
     setShowUpdateProfileModal(false);
     setStep('payment');
     setError(null);
+  };
+  
+  // 🔐 Soft Login: לאחר אימות מחדש מוצלח - המשך ליצירת ההזמנה
+  const handleReAuthSuccess = () => {
+    setShowReAuthModal(false);
+    if (pendingOrderData) {
+      // קריאה מחדש לפונקציה עם הנתונים הממתינים
+      const { skipPayment } = pendingOrderData;
+      setPendingOrderData(null);
+      // קריאה ישירה ליצירת ההזמנה (בלי בדיקת אימות שוב כי זה עתה בוצע)
+      handlePlaceOrder(skipPayment);
+    }
+  };
+  
+  // 🔐 Soft Login: ביטול האימות מחדש - חזרה לשלב התשלום
+  const handleReAuthClose = () => {
+    setShowReAuthModal(false);
+    setPendingOrderData(null);
   };
   
   // עדכון שדה בטופס
@@ -943,6 +986,14 @@ const CheckoutPage = () => {
           </div>
         </div>
       </Modal>
+      
+      {/* 🔐 Soft Login: מודל אימות מחדש לפני יצירת הזמנה */}
+      <ReAuthModal
+        isOpen={showReAuthModal}
+        onClose={handleReAuthClose}
+        onSuccess={handleReAuthSuccess}
+        message="לביצוע ההזמנה נדרש להזין את הסיסמה שלך"
+      />
     </div>
   );
 };

@@ -143,9 +143,12 @@
 /* הקטנה משמעותית של כל המרכיבים לחיסכון בנקי */
 .cartItem.compact {
   grid-template-columns: 24px 55px 1fr 50px; /* הקטנה משמעותית */
-  gap: 5px 8px; /* הקטנה גם של המרווחים */
-  padding: 6px; /* padding זעיר */
+  gap: 3px 6px; /* 🔽 הקטנה נוספת של מרווחים */
+  padding: 4px; /* 🔽 padding זעיר עוד יותר */
+  padding-bottom: 10px; /* 🔽 מקום לאלמנטים שיוצאים כלפי מטה */
   border-radius: 10px; /* פינות קטנות יותר */
+  position: relative; /* 🔽 נדרש למיקום אבסולוטי של ילדים */
+  overflow: visible; /* 🔽 מאפשר לאלמנטים לצאת מהכרטיסייה */
 }
 
 /* תמונה קטנה משמעותית - 45px במקום 60px */
@@ -178,6 +181,19 @@
   margin: 1px 0 6px 0;
 }
 
+/* שם משני - compact */
+.cartItem.compact .subtitle {
+  font-size: 0.625rem; /* 10px */
+  margin: 0 0 2px 0;
+}
+
+/* שם ווריאנט מלא - compact */
+.cartItem.compact .variantFullName {
+  font-size: 0.625rem; /* 10px */
+  margin: 0 0 3px 0;
+  padding: 1px 4px;
+}
+
 .cartItem.compact .sku {
   font-size: 0.625rem; /* 10px במקום 11px */
 }
@@ -185,6 +201,31 @@
 .cartItem.compact .attributes {
   font-size: 0.625rem; /* 10px */
   gap: 3px;
+}
+
+/* תצוגת צבע/מידה - קטן משמעותית */
+.cartItem.compact .variant {
+  gap: 6px; /* הקטנת מרווח */
+}
+
+.cartItem.compact .variantItem {
+  font-size: 0.625rem; /* 10px - קטן מאוד */
+  gap: 4px;
+}
+
+.cartItem.compact .variantItem strong {
+  font-weight: 400; /* לא בולד */
+  font-size: 0.625rem; /* 10px */
+}
+
+.cartItem.compact .colorDot {
+  width: 10px; /* הקטנה מ-16px */
+  height: 10px;
+  border-width: 1px; /* גבול דק יותר */
+}
+
+.cartItem.compact .colorLabel {
+  font-size: 0.625rem; /* 10px */
 }
 
 /* מחיר קטן משמעותית */
@@ -230,58 +271,45 @@
   }
 }
 
-/* Compact-specific overrides for QuantitySelector inside MiniCart - further reduced */
+/* Compact-specific overrides for MiniCart - Desktop only */
 @media (min-width: 1024px) {
-  /* Apply additional shrinking only on Desktop for extreme compactness */
-  .cartItem.compact .quantitySelector {
-    height: 18px; /* קטן יותר - פחות גובה */
-    border-radius: 4px; /* פחות פינה */
-    border-width: 1px;
-  }
-
-  /* כפתורי ± קטנים מאוד כדי להתאים למקום */
-  .cartItem.compact .quantitySelector .button {
-    width: 5px;
-    height: 5px;
-    margin: 0;
-    font-weight: 400;
-    padding: 0;
-  }
-
-  .cartItem.compact .quantitySelector .icon {
-    font-size: 0.7em;
-    line-height: 1;
-  }
-
-  /* שדה קלט צר וקטן */
-  .cartItem.compact .quantitySelector .input {
-    min-width: 20px;
-    padding: 0 3px;
-    font-size: 0.55rem; /* כעת קטנטן */
-    height: 16px;
-  }
-
+  /* מרווח זעיר בין האלמנטים */
   .cartItem.compact .quantityWrapper {
-    gap: 3px;
+    gap: 2px;
   }
 
   /* גם ה-remove icon יכול להיות קטן יותר */
   .cartItem.compact .actions {
     width: 22px;
     height: 22px;
+    bottom: -6px; /* 🔽 יוצא מהכרטיסייה כלפי מטה */
+    left: 5px;
   }
 
   .cartItem.compact .actions button {
     width: 22px !important;
     height: 22px !important;
+    /* 🎯 אפקט ריחוף - צף מעל הכרטיסייה */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .cartItem.compact .actions button:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-3px) !important;
   }
 }
 
 /* Ensure visual alignment in compact mode */
 .cartItem.compact .quantityDesktop {
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* 🔽 יישור לתחתית */
   justify-content: center;
+  justify-self: center; /* 🎯 ממרכז את הבורר כמות רק במיני-קארד */
+  grid-column: 3; /* 🎯 מעביר לעמודת הפרטים כדי למרכז אותו */
+  position: relative; /* 🔽 נדרש למיקום */
+  margin-bottom: -16px; /* 🔽 יוצא מהכרטיסייה כלפי מטה */
 }
 
 /* Reduce attributes/color label font size further */
@@ -367,6 +395,32 @@
   margin: 0 0 4px 0;
   line-height: 1.4;
   text-align: right;
+}
+
+/* שם משני של המוצר - מוצג מתחת לשם הראשי */
+.subtitle {
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 400;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  text-align: right;
+  direction: rtl;
+}
+
+/* שם הווריאנט המלא - מוצג בסגנון מודגש קל */
+.variantFullName {
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 500;
+  color: var(--color-text-primary, #374151);
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+  text-align: right;
+  direction: rtl;
+  padding: 2px 8px;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 4px;
+  display: inline-block;
 }
 
 /* שם תת-הוריאנט - מוצג מתחת לשם המוצר בקטן */
@@ -668,128 +722,11 @@
 }
 
 /* ==========================
-   עיצוב רספונסיבי
+   עיצוב רספונסיבי - מושבת למיני-קארד אחיד
 ========================== */
 
-/* טאבלטים וקטנים יותר */
-@media (max-width: 768px) {
-  .cartItem {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  /* תמונה קטנה יותר במובייל */
-  .imageContainer {
-    width: 80px;
-    height: 80px;
-  }
-
-  /* פרטים תופסים יותר מקום */
-  .details {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .name {
-    font-size: 0.9375rem;
-  }
-
-  /* הסתרת בורר כמות דסקטופ */
-  .quantityDesktop {
-    display: none;
-  }
-
-  /* אם זה compact בתוך MiniCart - גם אז נסיר את בורר דסקטופ במובייל */
-  .cartItem.compact .quantityDesktop {
-    display: none;
-  }
-
-  /* הצגת בורר כמות מובייל */
-  .quantityMobile {
-    display: flex;
-    margin-top: 0.5rem;
-    justify-content: center;
-    width: 100%;
-  }
-
-  /* ודא שגם במצב compact בורר מובייל יוצג */
-  .cartItem.compact .quantityMobile {
-    display: flex;
-    margin-top: 0.5rem;
-    justify-content: center;
-    width: 100%;
-  }
-
-  /* מחיר סה"כ עובר לשורה חדשה */
-  .totalPrice {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    order: 10;
-    padding-top: 0.75rem;
-    border-top: 1px solid #e5e7eb;
-    min-width: auto;
-  }
-
-  .totalLabel {
-    margin-bottom: 0;
-  }
-
-  .totalValue {
-    font-size: 1.125rem;
-  }
-
-  /* כפתור הסרה נשאר בפינה ותמיד נראה במובייל - מתחת לשורה */
-  .actions {
-    position: absolute;
-    bottom: 0.5rem;
-    left: 0.5rem;
-    opacity: 1; /* תמיד נראה במובייל */
-  }
-}
-
-/* מובייל קטן */
-@media (max-width: 480px) {
-  .cartItem {
-    padding: 0.75rem;
-  }
-
-  .imageContainer {
-    width: 70px;
-    height: 70px;
-  }
-
-  .name {
-    font-size: 0.875rem;
-  }
-
-  .price {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-  .priceLabel {
-    font-size: 0.8125rem;
-  }
-
-  .priceValue {
-    font-size: 1rem;
-  }
-
-  .variant {
-    gap: 0.5rem;
-  }
-
-  .variantItem {
-    font-size: 0.8125rem;
-  }
-
-  .totalValue {
-    font-size: 1rem;
-  }
-}
+/* במובייל - שומר את אותו עיצוב כמו במחשב */
+/* כל ה-media queries הוסרו כדי לשמור על תצוגה אחידה */
 
 /* תמיכה ב-RTL */
 [dir='rtl'] .cartItem {
@@ -798,13 +735,6 @@
 
 [dir='rtl'] .totalPrice {
   align-items: flex-start;
-}
-
-@media (max-width: 768px) {
-  [dir='rtl'] .actions {
-    left: auto;
-    right: 0.5rem;
-  }
 }
 
 /* ==========================
@@ -935,44 +865,4 @@
   filter: grayscale(30%);
 }
 
-/* עיצוב מותאם למובייל */
-@media (max-width: 768px) {
-  .outOfStockBanner {
-    padding: 10px 12px;
-    gap: 8px;
-  }
-  
-  .outOfStockMessage {
-    font-size: 0.875rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .outOfStockBanner {
-    padding: 8px 10px;
-  }
-  
-  .outOfStockMessage {
-    font-size: 0.8125rem;
-    gap: 6px;
-  }
-  
-  .outOfStockIcon {
-    width: 16px;
-    height: 16px;
-  }
-  
-  /* התאמת כמות במובייל */
-  .quantityAdjustmentBanner {
-    padding: 8px 10px;
-    font-size: 0.8125rem;
-    gap: 6px;
-  }
-  
-  .adjustButton {
-    padding: 5px 10px;
-    font-size: 0.75rem;
-    width: 100%;
-    margin-top: 4px;
-  }
-}
+/* עיצוב מותאם - מושבת כדי לשמור על תצוגה אחידה */

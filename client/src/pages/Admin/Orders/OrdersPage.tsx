@@ -11,7 +11,7 @@
  * @module pages/Admin/Orders/OrdersPage
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { TitleWithIcon, Button, Input } from '../../../components/ui';
 import { 
@@ -31,6 +31,8 @@ import { getAllOrders, updateOrderStatus, getOrdersStats } from '../../../servic
 import { useToast } from '../../../hooks/useToast';
 import type { Order, OrderStatus, ShippingDetails } from '../../../services/orderService';
 import { OrderDetailModal } from './components';
+import { ReAuthModal } from '../../../components/features/auth/ReAuthModal/ReAuthModal';
+import { isRecentlyAuthenticated } from '../../../utils/tokenUtils';
 import styles from './OrdersPage.module.css';
 
 // ============================================================================
@@ -137,6 +139,10 @@ const OrdersPage: React.FC = () => {
   
   // Highlight - הזמנה שצריכה להבהב (מגיע מקישור במייל)
   const [highlightOrderId, setHighlightOrderId] = useState<string | null>(null);
+  
+  // 🔐 Soft Login - ReAuth Modal state
+  const [showReAuthModal, setShowReAuthModal] = useState(false);
+  const pendingStatusUpdateRef = useRef<{ orderId: string; newStatus: OrderStatus; shippingDetails?: ShippingDetails } | null>(null);
   
   const { showToast } = useToast();
 
@@ -260,6 +266,20 @@ const OrdersPage: React.FC = () => {
   };
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus, shippingDetails?: ShippingDetails) => {
+    // 🔐 Soft Login - בדיקה האם נדרש אימות מחדש (isAdmin=true לחלון 30 דקות)
+    if (!isRecentlyAuthenticated(true)) {
+      // שמירת הפעולה הממתינה והצגת modal
+      pendingStatusUpdateRef.current = { orderId, newStatus, shippingDetails };
+      setShowReAuthModal(true);
+      return;
+    }
+    
+    // ביצוע עדכון הסטטוס
+    await executeStatusUpdate(orderId, newStatus, shippingDetails);
+  };
+  
+  // פונקציה פנימית לביצוע עדכון סטטוס (לאחר אימות)
+  const executeStatusUpdate = async (orderId: string, newStatus: OrderStatus, shippingDetails?: ShippingDetails) => {
     try {
       setUpdatingStatus(orderId);
       // שליחת פרטי משלוח אם קיימים (רלוונטי כשעוברים ל-shipped)
@@ -288,11 +308,35 @@ const OrdersPage: React.FC = () => {
           showToast('success', 'מייל עדכון משלוח הוזמן ונשלח ללקוח');
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating status:', err);
+      // 🔐 Soft Login - טיפול בשגיאת REAUTH_REQUIRED מהשרת
+      if (err?.response?.data?.code === 'REAUTH_REQUIRED') {
+        pendingStatusUpdateRef.current = { orderId, newStatus: newStatus, shippingDetails };
+        setShowReAuthModal(true);
+        return;
+      }
+      showToast('error', 'שגיאה בעדכון סטטוס');
     } finally {
       setUpdatingStatus(null);
     }
+  };
+  
+  // 🔐 Soft Login - Handler לאחר אימות מוצלח
+  const handleReAuthSuccess = async () => {
+    setShowReAuthModal(false);
+    
+    if (pendingStatusUpdateRef.current) {
+      const { orderId, newStatus, shippingDetails } = pendingStatusUpdateRef.current;
+      pendingStatusUpdateRef.current = null;
+      await executeStatusUpdate(orderId, newStatus, shippingDetails);
+    }
+  };
+  
+  // 🔐 Soft Login - Handler לסגירת modal ללא המשך
+  const handleReAuthClose = () => {
+    setShowReAuthModal(false);
+    pendingStatusUpdateRef.current = null;
   };
 
   const handleViewOrder = (order: Order) => {
@@ -583,6 +627,15 @@ const OrdersPage: React.FC = () => {
           }
         />
       )}
+      
+      {/* 🔐 Soft Login - ReAuth Modal */}
+      <ReAuthModal
+        isOpen={showReAuthModal}
+        onClose={handleReAuthClose}
+        onSuccess={handleReAuthSuccess}
+        title="נדרש אימות מחדש"
+        message="לעדכון סטטוס הזמנה נדרש להזין את הסיסמה שלך"
+      />
     </div>
   );
 };

@@ -14,6 +14,7 @@ export interface CartItem {
   _id?: string;                 // מזהה הפריט בסל
   productId: string;           // מזהה המוצר
   name: string;                // שם המוצר
+  subtitle?: string;           // שם משני - מוצג מתחת לשם הראשי
   price: number;               // מחיר ליחידה (אחרי הנחת קבוצה אם יש)
   originalPrice?: number;      // מחיר מקורי לפני הנחת קבוצה
   discountPercentage?: number; // אחוז ההנחה מקבוצת לקוחות
@@ -670,10 +671,10 @@ export const selectIsCartEmpty = (state: { cart: CartState }) => {
 };
 
 /**
- * המחיר הסופי
+ * סכום המוצרים בלבד (ללא משלוח) - מוצג בהדר
  */
 export const selectCartTotal = (state: { cart: CartState }) => {
-  return state.cart.cart?.totalPrice || 0;
+  return state.cart.cart?.subtotal || 0;
 };
 
 /**

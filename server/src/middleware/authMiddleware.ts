@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { SENSITIVE_ACTION_WINDOW_MINUTES, ADMIN_REAUTH_WINDOW_MINUTES } from '../utils/authHelpers';
 
 // הרחבת ממשק Request להוספת מידע על המשתמש
 declare global {
@@ -8,6 +9,7 @@ declare global {
       user?: {
         userId: string;
         role?: 'customer' | 'admin' | 'super_admin';
+        lastAuthAt?: number; // 🔐 Soft Login: זמן אימות אחרון (timestamp)
       };
     }
   }
@@ -47,13 +49,18 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     const secret = process.env.JWT_SECRET || 'fallback-secret';
 
     try {
-      const decoded = jwt.verify(token, secret) as { userId: string; role?: 'customer' | 'admin' | 'super_admin' };
-      console.log('[authMiddleware] Token verified successfully. UserId:', decoded.userId, 'Role:', decoded.role);
+      const decoded = jwt.verify(token, secret) as { 
+        userId: string; 
+        role?: 'customer' | 'admin' | 'super_admin';
+        lastAuthAt?: number; // 🔐 Soft Login: זמן אימות אחרון
+      };
+      console.log('[authMiddleware] Token verified successfully. UserId:', decoded.userId, 'Role:', decoded.role, 'LastAuthAt:', decoded.lastAuthAt);
 
-      // הוספת מידע המשתמש ל-request
+      // הוספת מידע המשתמש ל-request (כולל lastAuthAt ל-Soft Login)
       req.user = {
         userId: decoded.userId,
-        role: decoded.role
+        role: decoded.role,
+        lastAuthAt: decoded.lastAuthAt // 🔐 Soft Login: שמירת זמן אימות אחרון
       };
 
       // המשך לפונקציה הבאה
@@ -112,12 +119,17 @@ export const optionalAuthMiddleware = (req: Request, res: Response, next: NextFu
     const secret = process.env.JWT_SECRET || 'fallback-secret';
 
     try {
-      const decoded = jwt.verify(token, secret) as { userId: string; role?: 'customer' | 'admin' | 'super_admin' };
+      const decoded = jwt.verify(token, secret) as { 
+        userId: string; 
+        role?: 'customer' | 'admin' | 'super_admin';
+        lastAuthAt?: number; // 🔐 Soft Login
+      };
 
-      // הוספת מידע המשתמש ל-request אם הטוקן תקף
+      // הוספת מידע המשתמש ל-request אם הטוקן תקף (כולל lastAuthAt)
       req.user = {
         userId: decoded.userId,
-        role: decoded.role
+        role: decoded.role,
+        lastAuthAt: decoded.lastAuthAt // 🔐 Soft Login
       };
 
     } catch (jwtError: any) {
@@ -176,5 +188,64 @@ export const requireSuperAdmin = (req: Request, res: Response, next: NextFunctio
   }
 
   // המשתמש הוא super admin - אפשר להמשיך
+  next();
+};
+
+// ============================================================================
+// 🔐 Soft Login: Middleware לפעולות רגישות
+// ============================================================================
+
+/**
+ * Middleware לפעולות רגישות - דורש אימות אחרון בתוך 15 דקות
+ * 
+ * שימוש: router.post('/checkout', authMiddleware, requireRecentAuth, checkoutController)
+ * 
+ * תגובות:
+ * - 401: אם אין משתמש מחובר
+ * - 403 עם code='REAUTH_REQUIRED': אם צריך אימות מחדש (הלקוח יציג ReAuthModal)
+ * - next(): אם האימות האחרון היה בתוך חלון הזמן המותר
+ */
+export const requireRecentAuth = (req: Request, res: Response, next: NextFunction) => {
+  // בדיקה שיש משתמש מחובר
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'נדרש אימות'
+    });
+  }
+  
+  const lastAuthAt = req.user.lastAuthAt;
+  
+  // אם אין lastAuthAt בטוקן - צריך אימות מחדש
+  if (!lastAuthAt) {
+    console.log('[requireRecentAuth] No lastAuthAt in token, requiring re-auth');
+    return res.status(403).json({
+      success: false,
+      message: 'נדרש אימות מחדש לביצוע פעולה זו',
+      code: 'REAUTH_REQUIRED'
+    });
+  }
+  
+  // 🔐 בחירת חלון זמן לפי role: מנהלים = 30 דקות, לקוחות = 15 דקות
+  const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+  const windowMinutes = isAdmin ? ADMIN_REAUTH_WINDOW_MINUTES : SENSITIVE_ACTION_WINDOW_MINUTES;
+  
+  // חישוב כמה זמן עבר מאז האימות האחרון
+  const minutesSinceAuth = (Date.now() - lastAuthAt) / (1000 * 60);
+  
+  console.log(`[requireRecentAuth] Last auth: ${minutesSinceAuth.toFixed(1)} minutes ago (limit: ${windowMinutes} min, role: ${req.user.role || 'customer'})`);
+  
+  // אם עבר יותר מדי זמן - צריך אימות מחדש
+  if (minutesSinceAuth > windowMinutes) {
+    return res.status(403).json({
+      success: false,
+      message: 'נדרש אימות מחדש לביצוע פעולה זו',
+      code: 'REAUTH_REQUIRED',
+      minutesSinceAuth: Math.floor(minutesSinceAuth),
+      requiredWithinMinutes: windowMinutes
+    });
+  }
+  
+  // האימות האחרון היה לאחרונה - אפשר להמשיך
   next();
 };

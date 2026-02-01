@@ -26,18 +26,19 @@
   }
 }
 
-/* המגירה המודרנית - קומפקטי בצד שמאל */
+/* המגירה המודרנית - קומפקטי בצד שמאל עם גובה דינמי */
 .drawer {
   position: fixed;
-  top: 0;
-  left: 0; /* 🔄 שונה מימין לשמאל */
-  bottom: 0;
+  top: var(--spacing-lg); /* 📐 מרחק מההדר העליון */
+  left: var(--spacing-lg); /* 📐 מרחק מהקצה השמאלי */
+  /* bottom הוסר - הגובה יהיה דינמי לפי תוכן */
   width: min(100vw, 320px); /* 📏 הקטנה מ-420px ל-320px */
-  max-height: 85vh; /* 📐 הגבלת גובה - לא full screen */
-  background: var(--color-bg-primary);
+  max-height: calc(100vh - var(--spacing-lg) * 2); /* 📐 גובה מקסימלי בלבד */
+  background: rgba(255, 255, 255, 0.85); /* 🌫️ רקע לבן עם שקיפות מוגברת */
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   box-shadow: var(--shadow-2xl);
+  border-radius: var(--radius-xl); /* 🎨 פינות מעוגלות */
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -65,6 +66,7 @@
   background: var(--gradient-primary);
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-primary);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0; /* 🎨 פינות עליונות מעוגלות */
 }
 
 .title {
@@ -92,12 +94,13 @@
   margin-left: auto; /* דוחף לצד שמאל (RTL) */
 }
 
-/* תוכן עם גלילה חלקה */
+/* תוכן עם גלילה חלקה - גובה דינמי לפי תוכן */
 .content {
-  flex: 1;
+  flex: 0 1 auto; /* 🎯 לא מתרחב - רק לפי התוכן */
   overflow-y: auto;
   padding: var(--spacing-lg);
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, var(--color-bg-secondary));
+  max-height: 60vh; /* 🎯 גובה מקסימלי לגלילה */
 }
 
 /* שגיאות קצרות טווח באזור המגירה - אדום דיסקרטי */
@@ -131,23 +134,23 @@
   gap: var(--spacing-lg);
 }
 
-/* מצב ריק מודרני */
+/* מצב ריק מודרני - קומפקטי */
 .emptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-5xl) var(--spacing-lg);
+  padding: var(--spacing-lg); /* 🎯 הקטנה משמעותית */
   text-align: center;
-  min-height: 400px;
+  min-height: auto; /* 🎯 ללא גובה מינימלי - רק לפי תוכן */
   background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
   border-radius: var(--radius-lg);
   margin: var(--spacing-lg);
 }
 
 .emptyIcon {
-  font-size: var(--font-size-5xl);
-  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-2xl); /* 🎯 הקטנה משמעותית */
+  margin-bottom: var(--spacing-sm); /* 🎯 הקטנת מרווח */
   opacity: 0.4;
   filter: grayscale(100%);
   animation: float 3s ease-in-out infinite;
@@ -163,16 +166,16 @@
 }
 
 .emptyText {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-md); /* 🎯 הקטנה */
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-sm);
+  margin: 0 0 var(--spacing-xs); /* 🎯 הקטנת מרווח */
 }
 
 .emptySubtext {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs); /* 🎯 הקטנה */
   color: var(--color-text-tertiary);
-  margin: 0 0 var(--spacing-2xl);
+  margin: 0 0 var(--spacing-md); /* 🎯 הקטנת מרווח */
 }
 
 .continueShoppingButton {
@@ -272,35 +275,16 @@
    עיצוב רספונסיבי
 ========================== */
 
-/* מובייל */
+/* מובייל - שומר אותו גודל כמו דסקטופ */
 @media (max-width: 480px) {
+  /* המגירה נשארת באותו גודל - לא מסך מלא */
   .drawer {
-    width: 100vw; /* תמיד כל רוחב המסך במובייל */
-    max-width: none;
+    /* שומר את אותם מרווחים ורוחב כמו דסקטופ */
   }
 
-  .header {
-    padding: var(--spacing-lg);
-  }
-
+  /* התאמות קטנות לגופנים בלבד */
   .title {
     font-size: var(--font-size-lg);
-  }
-
-  .content {
-    padding: var(--spacing-md);
-  }
-
-  .footer {
-    padding: var(--spacing-lg);
-  }
-
-  .summaryValue {
-    font-size: var(--font-size-xl);
-  }
-
-  .emptyState {
-    padding: var(--spacing-2xl) var(--spacing-lg);
   }
 
   .emptyIcon {
@@ -313,9 +297,9 @@
 
 /* Desktop-only: shrink header thickness (25% of original) and smaller title */
 @media (min-width: 1024px) {
-  /* הגבלת גובה מעודכנת: מעט גדול יותר מה־42vh - עכשיו 55vh */
+  /* הגבלת גובה מעודכנת: התאמה למרווחים */
   .drawer {
-    max-height: 55vh; /* הגברת גובה קלילה עבור חווית צפייה טובה יותר */
+    max-height: calc(100vh - var(--spacing-lg) * 2); /* 📐 התאמת גובה למרווחים */
   }
 
   .drawer .header {

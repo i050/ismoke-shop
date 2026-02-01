@@ -9,7 +9,7 @@
 
 import express from 'express';
 import * as orderController from '../controllers/orderController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { authMiddleware, requireRecentAuth } from '../middleware/authMiddleware';
 import { requireAdmin } from '../middleware/roleMiddleware';
 import { 
   createOrderLimiter, 
@@ -40,10 +40,14 @@ router.use(authMiddleware);
  * 
  * Rate limiting: 10 הזמנות לדקה
  * Validation: כתובת, פריטים, סכומים
+ * 
+ * 🔐 Soft Login: דורש אימות אחרון (15 דקות) - אם עברו יותר מ-15 דקות מאז
+ *    ההתחברות האחרונה, המשתמש יידרש להזין סיסמה שוב
  */
 router.post(
   '/',
   createOrderLimiter,
+  requireRecentAuth, // 🔐 Soft Login: מוודא שהמשתמש עבר אימות לאחרונה
   validateCreateOrder,
   orderController.createOrder
 );
@@ -177,6 +181,7 @@ router.get(
 /**
  * עדכון סטטוס הזמנה (Admin)
  * PATCH /api/orders/:id/status
+ * 🔐 Soft Login: דורש אימות אחרון (פעולה רגישה)
  * 
  * Body:
  * - status: הסטטוס החדש (חובה)
@@ -188,6 +193,7 @@ router.get(
 router.patch(
   '/:id/status',
   requireAdmin,
+  requireRecentAuth,
   validateUpdateOrderStatus,
   orderController.updateOrderStatus
 );
@@ -195,6 +201,7 @@ router.patch(
 /**
  * עדכון סטטוס תשלום (Admin)
  * PATCH /api/orders/:id/payment-status
+ * 🔐 Soft Login: דורש אימות אחרון (פעולה רגישה)
  * 
  * Body:
  * - paymentStatus: סטטוס התשלום החדש (חובה)
@@ -208,6 +215,7 @@ router.patch(
 router.patch(
   '/:id/payment-status',
   requireAdmin,
+  requireRecentAuth,
   orderController.updatePaymentStatus
 );
 

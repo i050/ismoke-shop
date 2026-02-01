@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TitleWithIcon, Icon } from '../../../components/ui';
 import { 
   getMaintenanceSettings, 
@@ -19,6 +19,8 @@ import {
 } from '../../../services/settingsService';
 import { useSiteStatus } from '../../../contexts/SiteStatusContext';
 import { useToast } from '../../../hooks/useToast';
+import { ReAuthModal } from '../../../components/features/auth/ReAuthModal/ReAuthModal';
+import { isRecentlyAuthenticated } from '../../../utils/tokenUtils';
 import styles from './AdminSettingsPage.module.css';
 
 /**
@@ -93,6 +95,54 @@ const AdminSettingsPage: React.FC = () => {
   
   // Toast notifications
   const { showToast } = useToast();
+  
+  // 🔐 Soft Login - ReAuth Modal state
+  const [showReAuthModal, setShowReAuthModal] = useState(false);
+  const pendingActionRef = useRef<(() => Promise<void>) | null>(null);
+  
+  // 🔐 Soft Login - פונקציה לעטיפת פעולות רגישות
+  const withReAuth = useCallback(async (action: () => Promise<void>) => {
+    // בדיקה האם נדרש אימות מחדש (isAdmin=true לחלון 30 דקות)
+    if (!isRecentlyAuthenticated(true)) {
+      pendingActionRef.current = action;
+      setShowReAuthModal(true);
+      return;
+    }
+    
+    // ביצוע הפעולה ישירות
+    try {
+      await action();
+    } catch (err: any) {
+      // טיפול בשגיאת REAUTH_REQUIRED מהשרת
+      if (err?.response?.data?.code === 'REAUTH_REQUIRED') {
+        pendingActionRef.current = action;
+        setShowReAuthModal(true);
+        return;
+      }
+      throw err;
+    }
+  }, []);
+  
+  // 🔐 Soft Login - Handler לאחר אימות מוצלח
+  const handleReAuthSuccess = async () => {
+    setShowReAuthModal(false);
+    
+    if (pendingActionRef.current) {
+      const action = pendingActionRef.current;
+      pendingActionRef.current = null;
+      try {
+        await action();
+      } catch (err) {
+        console.error('Error executing pending action:', err);
+      }
+    }
+  };
+  
+  // 🔐 Soft Login - Handler לסגירת modal
+  const handleReAuthClose = () => {
+    setShowReAuthModal(false);
+    pendingActionRef.current = null;
+  };
 
   // טעינת ההגדרות
   const loadSettings = useCallback(async () => {
@@ -190,15 +240,19 @@ const AdminSettingsPage: React.FC = () => {
       setPendingEnabled(true);
       setShowConfirmModal(true);
     } else {
-      // אם מכבים - שומרים ישירות
-      saveSettings({ enabled: false });
+      // אם מכבים - עוטפים ב-withReAuth
+      withReAuth(async () => {
+        await saveSettings({ enabled: false });
+      });
     }
   };
 
-  // אישור הפעלת מצב תחזוקה
+  // אישור הפעלת מצב תחזוקה - עטוף ב-withReAuth
   const confirmEnableMaintenance = () => {
     setShowConfirmModal(false);
-    saveSettings({ enabled: true });
+    withReAuth(async () => {
+      await saveSettings({ enabled: true });
+    });
   };
 
   // ביטול הפעלת מצב תחזוקה
@@ -207,12 +261,14 @@ const AdminSettingsPage: React.FC = () => {
     setPendingEnabled(false);
   };
 
-  // שמירת הודעה מותאמת
+  // שמירת הודעה מותאמת - עטוף ב-withReAuth
   const handleMessageSave = () => {
-    saveSettings({ message: maintenanceSettings.message });
+    withReAuth(async () => {
+      await saveSettings({ message: maintenanceSettings.message });
+    });
   };
 
-  // טיפול בשינוי תפקידים מורשים
+  // טיפול בשינוי תפקידים מורשים - עטוף ב-withReAuth
   const handleRoleToggle = (role: string) => {
     const currentRoles = maintenanceSettings.allowedRoles;
     const newRoles = currentRoles.includes(role)
@@ -224,97 +280,107 @@ const AdminSettingsPage: React.FC = () => {
     if (!newRoles.includes('super_admin')) newRoles.push('super_admin');
     
     setMaintenanceSettings(prev => ({ ...prev, allowedRoles: newRoles }));
-    saveSettings({ allowedRoles: newRoles });
+    withReAuth(async () => {
+      await saveSettings({ allowedRoles: newRoles });
+    });
   };
 
-  // טיפול בשינוי הגדרת הזמנות ללא תשלום
+  // טיפול בשינוי הגדרת הזמנות ללא תשלום - עטוף ב-withReAuth
   const handleToggleUnpaidOrders = async () => {
     const newValue = !allowUnpaidOrders;
     
-    try {
-      setOrdersSettingsLoading(true);
-      const response = await toggleAllowUnpaidOrders(newValue);
-      
-      if (response.success) {
-        setAllowUnpaidOrders(response.data.allowUnpaidOrders);
-        const msg = newValue ? 'הזמנות ללא תשלום מיידי הופעלו' : 'הזמנות ללא תשלום מיידי בוטלו';
-        showToast('success', msg);
+    withReAuth(async () => {
+      try {
+        setOrdersSettingsLoading(true);
+        const response = await toggleAllowUnpaidOrders(newValue);
+        
+        if (response.success) {
+          setAllowUnpaidOrders(response.data.allowUnpaidOrders);
+          const msg = newValue ? 'הזמנות ללא תשלום מיידי הופעלו' : 'הזמנות ללא תשלום מיידי בוטלו';
+          showToast('success', msg);
+        }
+      } catch (err) {
+        console.error('Error toggling unpaid orders setting:', err);
+        showToast('error', 'שגיאה בשמירת ההגדרה');
+      } finally {
+        setOrdersSettingsLoading(false);
       }
-    } catch (err) {
-      console.error('Error toggling unpaid orders setting:', err);
-      showToast('error', 'שגיאה בשמירת ההגדרה');
-    } finally {
-      setOrdersSettingsLoading(false);
-    }
+    });
   };
 
-  // טיפול בשינוי הגדרת כיבוי אפשרות תשלום
+  // טיפול בשינוי הגדרת כיבוי אפשרות תשלום - עטוף ב-withReAuth
   const handleToggleDisablePayment = async () => {
     const newValue = !disablePayment;
     
-    try {
-      setOrdersSettingsLoading(true);
-      const response = await toggleDisablePayment(newValue);
-      
-      if (response.success) {
-        setDisablePayment(response.data.disablePayment);
-        const msg = newValue 
-          ? 'אפשרות התשלום כובתה - לקוחות יראו רק אפשרות הזמנה ללא תשלום' 
-          : 'אפשרות התשלום הופעלה מחדש';
-        showToast('success', msg);
+    withReAuth(async () => {
+      try {
+        setOrdersSettingsLoading(true);
+        const response = await toggleDisablePayment(newValue);
+        
+        if (response.success) {
+          setDisablePayment(response.data.disablePayment);
+          const msg = newValue 
+            ? 'אפשרות התשלום כובתה - לקוחות יראו רק אפשרות הזמנה ללא תשלום' 
+            : 'אפשרות התשלום הופעלה מחדש';
+          showToast('success', msg);
+        }
+      } catch (err) {
+        console.error('Error toggling disable payment setting:', err);
+        showToast('error', 'שגיאה בשמירת ההגדרה');
+      } finally {
+        setOrdersSettingsLoading(false);
       }
-    } catch (err) {
-      console.error('Error toggling disable payment setting:', err);
-      showToast('error', 'שגיאה בשמירת ההגדרה');
-    } finally {
-      setOrdersSettingsLoading(false);
-    }
+    });
   };
 
-  // טיפול בשינוי הגדרת דרישת אישור הרשמה
+  // טיפול בשינוי הגדרת דרישת אישור הרשמה - עטוף ב-withReAuth
   const handleToggleRegistrationApproval = async () => {
     const newValue = !requireRegistrationApproval;
     
-    try {
-      setUsersSettingsLoading(true);
-      const response = await toggleRequireRegistrationApproval(newValue);
-      
-      if (response.success) {
-        setRequireRegistrationApproval(response.data.requireRegistrationApproval);
-        const msg = newValue 
-          ? 'אישור מנהל להרשמה הופעל - משתמשים חדשים יצטרכו אישור' 
-          : 'אישור מנהל להרשמה בוטל - משתמשים יכולים להירשם באופן חופשי';
-        showToast('success', msg);
+    withReAuth(async () => {
+      try {
+        setUsersSettingsLoading(true);
+        const response = await toggleRequireRegistrationApproval(newValue);
+        
+        if (response.success) {
+          setRequireRegistrationApproval(response.data.requireRegistrationApproval);
+          const msg = newValue 
+            ? 'אישור מנהל להרשמה הופעל - משתמשים חדשים יצטרכו אישור' 
+            : 'אישור מנהל להרשמה בוטל - משתמשים יכולים להירשם באופן חופשי';
+          showToast('success', msg);
+        }
+      } catch (err) {
+        console.error('Error toggling registration approval setting:', err);
+        showToast('error', 'שגיאה בשמירת ההגדרה');
+      } finally {
+        setUsersSettingsLoading(false);
       }
-    } catch (err) {
-      console.error('Error toggling registration approval setting:', err);
-      showToast('error', 'שגיאה בשמירת ההגדרה');
-    } finally {
-      setUsersSettingsLoading(false);
-    }
+    });
   };
 
-  // טיפול בשינוי הגדרת דרישת OTP בהתחברות
+  // טיפול בשינוי הגדרת דרישת OTP בהתחברות - עטוף ב-withReAuth
   const handleToggleLoginOTP = async () => {
     const newValue = !requireLoginOTP;
     
-    try {
-      setUsersSettingsLoading(true);
-      const response = await toggleRequireLoginOTP(newValue);
-      
-      if (response.success) {
-        setRequireLoginOTP(response.data.requireLoginOTP);
-        const msg = newValue 
-          ? 'אימות OTP בהתחברות הופעל - משתמשים יקבלו קוד במייל בכל התחברות' 
-          : 'אימות OTP בהתחברות בוטל';
-        showToast('success', msg);
+    withReAuth(async () => {
+      try {
+        setUsersSettingsLoading(true);
+        const response = await toggleRequireLoginOTP(newValue);
+        
+        if (response.success) {
+          setRequireLoginOTP(response.data.requireLoginOTP);
+          const msg = newValue 
+            ? 'אימות OTP בהתחברות הופעל - משתמשים יקבלו קוד במייל בכל התחברות' 
+            : 'אימות OTP בהתחברות בוטל';
+          showToast('success', msg);
+        }
+      } catch (err) {
+        console.error('Error toggling login OTP setting:', err);
+        showToast('error', 'שגיאה בשמירת ההגדרה');
+      } finally {
+        setUsersSettingsLoading(false);
       }
-    } catch (err) {
-      console.error('Error toggling login OTP setting:', err);
-      showToast('error', 'שגיאה בשמירת ההגדרה');
-    } finally {
-      setUsersSettingsLoading(false);
-    }
+    });
   };
 
   // טיפול בשינוי הגדרת הצגת מחיר עגלה בהדר
@@ -1556,6 +1622,15 @@ const AdminSettingsPage: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* 🔐 Soft Login - ReAuth Modal */}
+      <ReAuthModal
+        isOpen={showReAuthModal}
+        onClose={handleReAuthClose}
+        onSuccess={handleReAuthSuccess}
+        title="נדרש אימות מחדש"
+        message="לשינוי הגדרות מערכת נדרש להזין את הסיסמה שלך"
+      />
     </div>
   );
 };

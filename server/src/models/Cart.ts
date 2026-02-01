@@ -5,6 +5,7 @@ export interface ICartItem {
   _id?: mongoose.Types.ObjectId; // מזהה הפריט בסל
   productId: mongoose.Types.ObjectId; // מזהה המוצר
   name: string; // שם המוצר (שמור לביצועים)
+  subtitle?: string; // שם משני - מוצג מתחת לשם הראשי
   price: number; // מחיר סופי ליחידה (כולל הנחת קבוצה אם יש)
   originalPrice?: number; // מחיר מקורי לפני הנחת קבוצה
   discountPercentage?: number; // אחוז ההנחה שהוחל (מקבוצת לקוח)
@@ -60,6 +61,9 @@ const CartItemSchema: Schema = new Schema({
   name: {
     type: String,
     required: true,
+  },
+  subtitle: {
+    type: String, // שם משני - מוצג מתחת לשם הראשי
   },
   price: {
     type: Number,

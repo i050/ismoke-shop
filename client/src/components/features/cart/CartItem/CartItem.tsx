@@ -238,6 +238,14 @@ const CartItem = ({
   // בדיקה האם הכמות בעגלה גדולה מהמלאי הזמין (צריך התאמה)
   const needsQuantityAdjustment = !isOutOfStock && item.quantity > availableStock;
 
+  // 🐛 DEBUG: בדיקה מה יש ב-item
+  console.log('CartItem DEBUG:', {
+    name: item.name,
+    subtitle: item.subtitle,
+    variantName: item.variant?.name,
+    fullItem: item
+  });
+
   return (
     <div
       className={`${styles.cartItem} ${compact ? styles.compact : ''} ${isRemoving ? styles.removing : ''} ${isOutOfStock ? styles.outOfStock : ''} ${needsQuantityAdjustment ? styles.needsAdjustment : ''}`}
@@ -255,7 +263,7 @@ const CartItem = ({
 
       {/* מחיר ליחידה */}
       <div className={styles.price}>
-        <span className={styles.priceLabel}>מחיר ליחידה:</span>
+        {/* <span className={styles.priceLabel}>מחיר ליחידה:</span> */}
         <span className={styles.priceValue}>₪{item.price.toFixed(2)}</span>
       </div>
 
@@ -263,6 +271,16 @@ const CartItem = ({
       <div className={styles.details}>
         {/* שם המוצר הראשי */}
         <h3 className={styles.name}>{item.name}</h3>
+
+        {/* שם משני של המוצר - מוצג מתחת לשם הראשי */}
+        {item.subtitle && (
+          <p className={styles.subtitle}>{item.subtitle}</p>
+        )}
+
+        {/* שם הווריאנט הספציפי - מוצג בקטן */}
+        {item.variant?.name && (
+          <p className={styles.variantFullName}>{item.variant.name}</p>
+        )}
 
         {/* שם תת-הוריאנט עם ערכו - מוצג מתחת לשם המוצר בקטן */}
         {item.variant?.secondaryAttribute && item.variant?.secondaryValue && (
@@ -282,13 +300,13 @@ const CartItem = ({
                 const swatchColor = isHex ? (variantColor.startsWith('#') ? variantColor : `#${variantColor}`) : '';
                 return (
                   <div className={styles.colorBlock}>
-                    <span
+                    {/* <span
                       className={styles.colorDot}
                       style={{ backgroundColor: swatchColor || 'transparent' }}
                       title={displayColor || variantColor}
                       aria-hidden={false}
                     />
-                    <span className={styles.colorLabel}>צבע: <strong>{displayColor || variantColor}</strong></span>
+                    <span className={styles.colorLabel}>צבע: <strong>{displayColor || variantColor}</strong></span> */}
                   </div>
                 );
               })()
@@ -395,7 +413,7 @@ const CartItem = ({
               onChange={handleQuantityChange}
               onOverMax={showStockPill}
               disabled={isRemoving}
-              size={compact ? 'small' : 'medium'}
+              size={compact ? 'xs' : 'medium'}
             />
             {/* הודעת מלאי קלה וברורה מוצהרת אך ממוקמת באבסולוט כך שלא מזיזה תוכן */}
             <div

@@ -10,6 +10,7 @@ import {
 } from '../../utils/validationHelpers';
 import {
   generateToken,
+  generateReAuthToken,
   checkAccountLocked,
   resetLoginAttempts,
   incrementLoginAttempts,
@@ -509,5 +510,98 @@ export const resendLoginOTP = async (req: Request, res: Response) => {
 
   } catch (error) {
     sendServerErrorResponse(res, error, 'שגיאה בשליחת קוד אימות מחדש');
+  }
+};
+
+// ============================================================================
+// 🔐 Soft Login: אימות מחדש לפעולות רגישות
+// ============================================================================
+
+/**
+ * אימות מחדש (Re-authenticate) לפעולות רגישות
+ * 
+ * המשתמש כבר מחובר (יש לו טוקן תקף), אבל לביצוע פעולות רגישות (checkout, שינוי כתובת וכו')
+ * צריך לאמת את הסיסמה מחדש כדי לקבל טוקן חדש עם lastAuthAt עדכני.
+ * 
+ * @route POST /api/auth/re-authenticate
+ * @body { password: string }
+ * @requires authMiddleware - המשתמש חייב להיות מחובר
+ */
+export const reAuthenticate = async (req: Request, res: Response) => {
+  try {
+    const { password } = req.body;
+    const userId = (req as any).user?.userId;
+
+    // בדיקה שהמשתמש מחובר
+    if (!userId) {
+      return sendErrorResponse(res, 'נדרש אימות', 401);
+    }
+
+    // בדיקת שדה חובה
+    if (!password) {
+      return sendErrorResponse(res, 'נדרשת סיסמה', 400);
+    }
+
+    // מציאת המשתמש
+    const user = await findUserByEmailWithPassword(undefined as any);
+    // 🔧 צריך למצוא לפי ID, לא לפי email
+    const userById = await findUserById(userId);
+    if (!userById) {
+      return sendErrorResponse(res, 'משתמש לא נמצא', 404);
+    }
+
+    // קבלת המשתמש עם סיסמה לאימות
+    const userWithPassword = await findUserByEmailWithPassword(userById.email);
+    if (!userWithPassword) {
+      return sendErrorResponse(res, 'משתמש לא נמצא', 404);
+    }
+
+    // בדיקת חשבון נעול
+    const lockedError = checkAccountLocked(userWithPassword);
+    if (lockedError) {
+      return sendErrorResponse(res, lockedError, 423);
+    }
+
+    // בדיקת סיסמה
+    const isPasswordValid = await userWithPassword.comparePassword(password);
+    if (!isPasswordValid) {
+      // לוגינג של כשלון אימות מחדש
+      logSecurityEvent('REAUTH_FAILED_INVALID_PASSWORD', {
+        userId,
+        email: userWithPassword.email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        attemptNumber: userWithPassword.loginAttempts + 1
+      });
+
+      // הגדלת מספר הניסיונות הכושלים
+      incrementLoginAttempts(userWithPassword);
+      await userWithPassword.save();
+
+      return sendErrorResponse(res, 'סיסמה שגויה', 401);
+    }
+
+    // איפוס ניסיונות התחברות כושלים באימות מוצלח
+    resetLoginAttempts(userWithPassword);
+    await userWithPassword.save();
+
+    // יצירת טוקן חדש עם lastAuthAt עדכני (🔐 Soft Login)
+    const newToken = generateReAuthToken(userId, userWithPassword.role);
+
+    // לוגינג של אימות מחדש מוצלח
+    logUserAction('REAUTH_SUCCESS', userId, {
+      email: userWithPassword.email,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    sendSuccessResponse(res, 'אימות מחדש בוצע בהצלחה', {
+      token: newToken,
+      user: formatUserData(userWithPassword),
+      lastAuthAt: Date.now() // 🔐 Soft Login: זמן אימות אחרון
+    });
+
+  } catch (error) {
+    sendServerErrorResponse(res, error, 'שגיאה באימות מחדש');
   }
 };

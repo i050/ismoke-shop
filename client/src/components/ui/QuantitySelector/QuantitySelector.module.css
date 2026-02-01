@@ -108,6 +108,41 @@
 }
 
 /* גדלים שונים */
+
+/* 🎯 גודל זעיר - למיני-קארט ומקומות צפופים */
+.xs {
+  height: 22px;
+  border-radius: 6px;
+  /* 🎯 אפקט ריחוף - צף מעל הכרטיסייה */
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.xs:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.xs .button {
+  width: 18px;
+  height: 18px;
+  margin: 1px;
+  border-radius: 4px;
+}
+
+.xs .input {
+  width: 24px;
+  min-width: 20px;
+  font-size: 0.625rem;
+  padding: 0 2px;
+}
+
+.xs .icon {
+  font-size: 0.7em;
+}
+
 .small {
   height: 32px;
 }

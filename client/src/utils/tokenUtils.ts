@@ -3,6 +3,7 @@
 const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'auth_user';
+const LAST_AUTH_AT_KEY = 'last_auth_at'; // 🔐 Soft Login: זמן אימות אחרון
 
 /**
  * שמירת טוקן ב-localStorage
@@ -98,6 +99,7 @@ export const clearAuthData = (): void => {
   removeToken();
   removeRefreshToken();
   removeUser();
+  removeLastAuthAt(); // 🔐 Soft Login: ניקוי זמן אימות אחרון
   // 🔒 ניקוי גם מפתחות ישנים/חלופיים שעלולים להכיל ערכים פגומים
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
@@ -109,6 +111,68 @@ export const clearAuthData = (): void => {
  */
 export const hasValidToken = (): boolean => {
   return !!getToken();
+};
+
+// ============================================================================
+// 🔐 Soft Login: ניהול זמן אימות אחרון
+// ============================================================================
+
+// חלון זמן מותר לפעולות רגישות (בדקות) - לפי סוג משתמש
+export const SENSITIVE_ACTION_WINDOW_MINUTES = 15;  // לקוחות רגילים
+export const ADMIN_REAUTH_WINDOW_MINUTES = 30;      // מנהלים - זמן ארוך יותר לעבודה רציפה
+
+/**
+ * שמירת זמן אימות אחרון ב-localStorage
+ */
+export const setLastAuthAt = (timestamp: number): void => {
+  localStorage.setItem(LAST_AUTH_AT_KEY, timestamp.toString());
+};
+
+/**
+ * שליפת זמן אימות אחרון מ-localStorage
+ */
+export const getLastAuthAt = (): number | null => {
+  const value = localStorage.getItem(LAST_AUTH_AT_KEY);
+  if (!value || value === 'undefined' || value === 'null') {
+    return null;
+  }
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? null : parsed;
+};
+
+/**
+ * מחיקת זמן אימות אחרון מ-localStorage
+ */
+export const removeLastAuthAt = (): void => {
+  localStorage.removeItem(LAST_AUTH_AT_KEY);
+};
+
+/**
+ * בדיקה אם האימות האחרון היה בתוך חלון הזמן המותר לפעולות רגישות
+ * @param isAdmin - האם המשתמש הוא מנהל (משנה את חלון הזמן)
+ * @returns true אם האימות האחרון היה בתוך חלון הזמן המותר
+ */
+export const isRecentlyAuthenticated = (isAdmin: boolean = false): boolean => {
+  const lastAuthAt = getLastAuthAt();
+  if (!lastAuthAt) {
+    return false;
+  }
+  
+  // 🔐 בחירת חלון זמן לפי סוג משתמש: מנהלים = 30 דקות, לקוחות = 15 דקות
+  const windowMinutes = isAdmin ? ADMIN_REAUTH_WINDOW_MINUTES : SENSITIVE_ACTION_WINDOW_MINUTES;
+  const minutesSinceAuth = (Date.now() - lastAuthAt) / (1000 * 60);
+  return minutesSinceAuth <= windowMinutes;
+};
+
+/**
+ * קבלת מספר הדקות שעברו מאז האימות האחרון
+ */
+export const getMinutesSinceAuth = (): number | null => {
+  const lastAuthAt = getLastAuthAt();
+  if (!lastAuthAt) {
+    return null;
+  }
+  return Math.floor((Date.now() - lastAuthAt) / (1000 * 60));
 };
 
 /**

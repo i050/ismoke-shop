@@ -15,6 +15,7 @@ type ProductPricingSnapshot = {
   _id: mongoose.Types.ObjectId;
   basePrice: number;
   name?: string;
+  subtitle?: string; // 🆕 שם משני של המוצר
   categoryId?: mongoose.Types.ObjectId;
 };
 
@@ -272,9 +273,9 @@ class CartService {
       throw new Error(`במלאי יש רק ${skuDoc.stockQuantity} יחידות`);
     }
 
-    // שליפת מוצר בסיסי (לשם, קטגוריה, basePrice, secondaryVariantAttribute)
+    // שליפת מוצר בסיסי (לשם, קטגוריה, basePrice, secondaryVariantAttribute, subtitle)
     const product = await Product.findById(productId)
-      .select('name categoryId basePrice secondaryVariantAttribute')
+      .select('name subtitle categoryId basePrice secondaryVariantAttribute')
       .lean<ProductPricingSnapshot & { secondaryVariantAttribute?: string | null }>();
     if (!product) {
       throw new Error('המוצר לא נמצא');
@@ -313,6 +314,10 @@ class CartService {
       existingItem.customerGroupName = pricingResult.customerGroupName;
       existingItem.subtotal = Math.round(pricingResult.finalPrice * newQuantity * 100) / 100;
       existingItem.availableStock = skuDoc.stockQuantity;
+      // עדכון שם משני אם קיים במוצר (למקרה שנוסף לפני שהיה)
+      if (product.subtitle && !existingItem.subtitle) {
+        existingItem.subtitle = product.subtitle;
+      }
       // עדכון variant משדות שטוחים (color) ו-attributes + מאפיין משני
       if (skuDoc.color || skuDoc.attributes?.size || product.secondaryVariantAttribute) {
         const secondaryAttr = product.secondaryVariantAttribute;
@@ -343,11 +348,14 @@ class CartService {
 
       // שם המוצר הראשי - לא שם הווריאנט
       const itemName = product.name || skuDoc.name || skuDoc.sku;
+      // שם משני של המוצר (אם קיים)
+      const itemSubtitle = product.subtitle;
 
       // Phase 4.0: פריט חדש עם הנחת קבוצה
       const newItem: ICartItem = {
         productId,
         name: itemName,
+        subtitle: itemSubtitle, // שם משני
         price: pricingResult.finalPrice,
         originalPrice: pricingResult.hasDiscount ? pricingResult.originalPrice : undefined,
         discountPercentage: pricingResult.hasDiscount ? pricingResult.discountPercentage : undefined,

@@ -13,7 +13,8 @@ import {
   loginWithOTP,
   resendLoginOTP,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  reAuthenticate // 🔐 Soft Login: אימות מחדש לפעולות רגישות
 } from '../controllers/auth';
 import { authMiddleware } from '../middleware/authMiddleware';
 
@@ -34,6 +35,9 @@ router.post('/reset-password', resetPassword);
 router.get('/profile', authMiddleware, getProfile);
 router.put('/profile', authMiddleware, updateProfile);
 router.put('/change-password', authMiddleware, changePassword);
+
+// 🔐 Soft Login: אימות מחדש לפעולות רגישות (checkout, שינוי כתובת וכו')
+router.post('/re-authenticate', authMiddleware, reAuthenticate);
 
 // רוטס 2FA - דורש אימות
 router.post('/setup-2fa', authMiddleware, setup2FA);
