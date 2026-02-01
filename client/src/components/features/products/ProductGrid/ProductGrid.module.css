@@ -19,7 +19,9 @@
   grid-template-columns: repeat(var(--grid-columns, auto-fit), minmax(var(--grid-min-width), var(--grid-max-width)));
   justify-content: center;
   width: 100%;
+  max-width: 100%; /* מניעת Grid Blowout */
   margin: 0 auto;
+  overflow: hidden; /* מניעת גלילה אופקית */
   
   /* התאמה לכיוון RTL */
   direction: rtl;
@@ -47,10 +49,26 @@
   justify-content: center;
   align-items: stretch;
   
+  /* מניעת Grid Blowout - חיוני למובייל */
+  min-width: 0;
+  overflow: hidden;
+  
   /* אנימציה לכניסה */
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* כפיית רוחב מלא לכל הכרטיסיות - במובייל ובדסקטופ */
+.gridItem {
+  width: 100%; /* הכרטיסייה תתפוס את כל רוחב התא */
+  max-width: 100%; /* מניעת חריגה מהתא */
+}
+
+.gridItem > * {
+  width: 100%; /* גם הילדים יתפסו רוחב מלא */
+  max-width: 100%; /* מניעת Grid Blowout */
+  min-width: 0;    /* מאפשר כיווץ */
 }
 
 /* אנימציית טעינה */

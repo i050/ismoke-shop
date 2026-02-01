@@ -6,7 +6,10 @@
   color: inherit;
   display: block;
   width: 100%;
+  max-width: 100%; /* מניעת Grid Blowout */
+  min-width: 0;    /* מאפשר כיווץ בתוך Grid */
   height: 100%;
+  overflow: hidden; /* חיתוך תוכן חורג */
 }
 
 .productCard {
@@ -14,6 +17,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   height: 100%;
+  max-width: 100%; /* מניעת Grid Blowout */
+  min-width: 0;    /* מאפשר כיווץ בתוך Grid */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -45,6 +50,8 @@
 .imageContainer {
   position: relative;
   width: 100%;
+  max-width: 100%; /* מניעת Grid Blowout */
+  min-width: 0;    /* מאפשר כיווץ בתוך Grid */
   overflow: hidden;
   /* רקע אזור התמונה: שימוש ב-token עם ברירת מחדל גלובלית */
   background: var(--color-surface-secondary, var(--color-bg-tertiary));
@@ -121,6 +128,7 @@
 .productImage {
   width: 100%;
   height: 100%;
+  max-width: 100%; /* מניעת חריגה מהקונטיינר - תיקון Grid Blowout */
   object-fit: cover;
   transition: transform 0.3s ease;
 }
@@ -324,12 +332,6 @@
 
 /* תמיכה רספונסיבית */
 @media (max-width: 768px) {
-  /* במובייל וטאבלט - ביטול aspect-ratio לטובת גובה קבוע למניעת התרחבות */
-  .grid .imageContainer,
-  .carousel .imageContainer {
-    aspect-ratio: auto;
-  }
-  
   .imageContainer {
     height: 180px;
   }
@@ -360,12 +362,6 @@
 }
 
 @media (max-width: 480px) {
-  /* במובייל - ביטול aspect-ratio לטובת גובה קבוע למניעת התרחבות */
-  .grid .imageContainer,
-  .carousel .imageContainer {
-    aspect-ratio: auto;
-  }
-  
   .imageContainer {
     height: 160px;
   }
