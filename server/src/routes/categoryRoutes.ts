@@ -12,6 +12,9 @@ import {
 	reorderCategories,
 	uploadCategoryImage,
 	getActiveCategoriesTree,
+	// פונקציות לניהול תבנית מפרט טכני
+	getSpecificationTemplate,
+	updateSpecificationTemplate,
 } from '../controllers/categoryController';
 import {
 	validateCreateCategory,
@@ -47,6 +50,20 @@ router.post('/reorder', validateReorderCategories, reorderCategories);
 
 // GET /api/categories/stats/:id - סטטיסטיקות קטגוריה
 router.get('/stats/:id', validateCategoryId, getCategoryStats);
+
+// ============================================================================
+// נתיבים לניהול תבנית מפרט טכני
+// ============================================================================
+
+// GET /api/categories/:id/specification-template - תבנית מפרט עם ירושה
+router.get('/:id/specification-template', validateCategoryId, getSpecificationTemplate);
+
+// PUT /api/categories/:id/specification-template - עדכון תבנית מפרט
+router.put('/:id/specification-template', validateCategoryId, updateSpecificationTemplate);
+
+// ============================================================================
+// נתיבים לקטגוריה בודדת
+// ============================================================================
 
 // GET /api/categories/:id - קטגוריה בודדת
 router.get('/:id', validateCategoryId, getCategory);

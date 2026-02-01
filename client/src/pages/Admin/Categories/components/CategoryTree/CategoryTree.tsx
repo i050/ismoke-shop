@@ -9,6 +9,8 @@ interface CategoryTreeProps {
   onDelete: (category: CategoryTreeNodeClient) => void;
   onToggleActive: (category: CategoryTreeNodeClient) => void;
   onAddSubcategory: (parentId: string) => void;
+  /** callback לפתיחת עורך תבנית מפרט טכני */
+  onEditSpecificationTemplate?: (category: CategoryTreeNodeClient) => void;
 }
 
 /**
@@ -21,6 +23,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
   onDelete,
   onToggleActive,
   onAddSubcategory,
+  onEditSpecificationTemplate,
 }) => {
   // מעקב אחרי צמתים פתוחים
   const [expanded, setExpanded] = useState<Set<string>>(() => {
@@ -147,6 +150,21 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
                 aria-label="הוסף תת-קטגוריה"
               >
                 <Icon name="FolderPlus" size={16} />
+              </Button>
+            )}
+
+            {/* הגדרת מפרט טכני */}
+            {onEditSpecificationTemplate && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={styles.actionBtn}
+                onClick={() => onEditSpecificationTemplate(node)}
+                title="הגדר מפרט טכני"
+                aria-label="הגדר מפרט טכני"
+              >
+                <Icon name="FileText" size={16} />
               </Button>
             )}
 

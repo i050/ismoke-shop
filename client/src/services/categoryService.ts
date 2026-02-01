@@ -15,7 +15,8 @@ import type {
 	CategoryDeleteOptions,
 	CategoryDeleteResult,
 	CategoryReorderItem,
-	Category 
+	Category,
+	ISpecificationField 
 } from '../types/Category';
 import { API_BASE_URL as BASE_URL } from '../config/api';
 
@@ -34,6 +35,7 @@ export interface CategoryTreeNodeClient {
 	isActive?: boolean;
 	sortOrder?: number;
 	description?: string;
+	specificationTemplate?: ISpecificationField[];  // תבנית מפרט טכני
 }
 
 // ===== קבועים =====
@@ -314,4 +316,60 @@ export function flattenTree(tree: CategoryTreeNodeClient[]): CategoryTreeNodeCli
 	
 	flatten(tree);
 	return result;
+}
+
+// ============================================================================
+// פונקציות לניהול תבנית מפרט טכני
+// ============================================================================
+
+/**
+ * טיפוס לשדה בתבנית מפרט עם מידע על ירושה
+ */
+export interface InheritedSpecificationField extends ISpecificationField {
+	inheritedFrom?: string;      // שם הקטגוריה שממנה השדה נורש
+	inheritedFromId?: string;    // ID של הקטגוריה שממנה השדה נורש
+	isInherited: boolean;        // האם השדה נורש או מוגדר ישירות
+}
+
+/**
+ * טיפוס לתבנית מפרט ממוזגת עם ירושה
+ */
+export interface MergedSpecificationTemplate {
+	categoryId: string;
+	categoryName: string;
+	fields: InheritedSpecificationField[];
+	inheritanceChain: Array<{
+		id: string;
+		name: string;
+		fieldsCount: number;
+	}>;
+}
+
+/**
+ * קבלת תבנית מפרט טכני עם ירושה מקטגוריות אב
+ * מחזיר תבנית ממוזגת שכוללת שדות מכל הקטגוריות בהיררכיה
+ */
+export async function getSpecificationTemplate(
+	categoryId: string
+): Promise<MergedSpecificationTemplate> {
+	return apiFetch<MergedSpecificationTemplate>(
+		`/categories/${categoryId}/specification-template`
+	);
+}
+
+/**
+ * עדכון תבנית מפרט טכני לקטגוריה
+ * שומר רק את השדות הישירים של הקטגוריה (לא את הירושה)
+ */
+export async function updateSpecificationTemplate(
+	categoryId: string,
+	template: ISpecificationField[]
+): Promise<Category> {
+	return apiFetch<Category>(
+		`/categories/${categoryId}/specification-template`,
+		{
+			method: 'PUT',
+			body: JSON.stringify({ template }),
+		}
+	);
 }

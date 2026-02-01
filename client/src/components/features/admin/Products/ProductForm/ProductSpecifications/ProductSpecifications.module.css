@@ -224,3 +224,79 @@
     flex: 1 1 100%;
   }
 }
+
+/* ==========================================
+   🆕 סגנונות לתמיכה בתבנית מפרט
+   ========================================== */
+
+/* הודעת תבנית מקטגוריה */
+.templateInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.5rem);
+  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
+  background: var(--color-success-light, #ecfdf5);
+  border: 1px solid var(--color-success, #10b981);
+  border-radius: var(--border-radius-md, 8px);
+  color: var(--color-success-dark, #065f46);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
+.templateInfo svg {
+  flex-shrink: 0;
+}
+
+/* רמז לבחירת קטגוריה */
+.templateHint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.5rem);
+  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
+  background: var(--color-bg-secondary, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--border-radius-md, 8px);
+  color: var(--color-text-secondary, #6b7280);
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
+.templateHint svg {
+  flex-shrink: 0;
+  color: var(--color-info, #3b82f6);
+}
+
+/* אייקון טעינה מסתובב */
+.loadingIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* שורת מאפיין מתבנית */
+.specificationRow.fromTemplate {
+  background: var(--color-primary-lightest, #f5f3ff);
+  border-color: var(--color-primary-light, #c4b5fd);
+  position: relative;
+}
+
+/* אינדיקטור שדה מתבנית */
+.templateIndicator {
+  position: absolute;
+  top: var(--spacing-xs, 0.25rem);
+  right: var(--spacing-xs, 0.25rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--color-primary, #6366f1);
+  border-radius: 50%;
+  color: white;
+}
+
+.templateIndicator svg {
+  width: 12px;
+  height: 12px;
+}

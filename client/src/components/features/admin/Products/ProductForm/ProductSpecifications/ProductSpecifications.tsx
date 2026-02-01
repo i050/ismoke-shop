@@ -1,8 +1,14 @@
 // ProductSpecifications - ניהול מפרט טכני למוצר
 // מטרת הקומפוננטה: מאפשרת למנהל להוסיף, לערוך ולמחוק מאפייני מפרט טכני בפורמט key-value
+// 🆕 תמיכה בתבנית מפרט היררכית מקטגוריה
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Input, Button, Icon } from '@/components/ui';
+import { 
+  getSpecificationTemplate,
+  type MergedSpecificationTemplate,
+  type InheritedSpecificationField,
+} from '@/services/categoryService';
 import styles from './ProductSpecifications.module.css';
 
 // ==========================================
@@ -12,6 +18,8 @@ import styles from './ProductSpecifications.module.css';
 interface Specification {
   key: string;
   value: string;
+  label?: string;  // 🆕 תווית לתצוגה (מתבנית)
+  unit?: string;   // 🆕 יחידת מידה (מתבנית)
 }
 
 interface ProductSpecificationsProps {
@@ -19,6 +27,8 @@ interface ProductSpecificationsProps {
   specifications: Specification[];
   /** פונקציה לעדכון רשימת המפרט */
   onChange: (specifications: Specification[]) => void;
+  /** ID הקטגוריה - לטעינת תבנית מפרט */
+  categoryId?: string | null;
   /** האם הטופס במצב שמירה/loading */
   disabled?: boolean;
   /** שגיאות validation */
@@ -34,11 +44,63 @@ interface ProductSpecificationsProps {
 const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
   specifications,
   onChange,
+  categoryId,
   disabled = false,
   errors = {},
 }) => {
+  // 🆕 מצב תבנית מפרט מקטגוריה
+  const [templateFields, setTemplateFields] = useState<InheritedSpecificationField[]>([]);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
+  
   // 🔍 DEBUG: בדיקת specifications שמתקבלים ונשלחים
   console.log('📋 [ProductSpecifications] specifications:', specifications);
+  console.log('📋 [ProductSpecifications] categoryId:', categoryId);
+  console.log('📋 [ProductSpecifications] templateFields:', templateFields);
+  
+  // 🆕 טעינת תבנית מפרט מקטגוריה
+  useEffect(() => {
+    const loadTemplate = async () => {
+      if (!categoryId) {
+        setTemplateFields([]);
+        return;
+      }
+      
+      setLoadingTemplate(true);
+      try {
+        const data = await getSpecificationTemplate(categoryId);
+        setTemplateFields(data.fields || []);
+        console.log('📋 [ProductSpecifications] Template loaded:', data.fields);
+      } catch (err) {
+        console.error('📋 [ProductSpecifications] Failed to load template:', err);
+        setTemplateFields([]);
+      } finally {
+        setLoadingTemplate(false);
+      }
+    };
+    
+    loadTemplate();
+  }, [categoryId]);
+
+  // 🆕 החלת תבנית - מוסיף שדות חסרים מהתבנית לרשימת המפרט
+  const handleApplyTemplate = useCallback(() => {
+    const existingKeys = new Set(specifications.map(s => s.key));
+    const newSpecs: Specification[] = [...specifications];
+    
+    // הוספת שדות מהתבנית שלא קיימים
+    // כולל label ו-unit מהתבנית לתצוגה ידידותית
+    for (const field of templateFields) {
+      if (!existingKeys.has(field.key)) {
+        newSpecs.push({
+          key: field.key,
+          value: '',
+          label: field.label,  // 🆕 שמירת התווית מהתבנית
+          unit: field.unit,    // 🆕 שמירת יחידת המידה מהתבנית
+        });
+      }
+    }
+    
+    onChange(newSpecs);
+  }, [specifications, templateFields, onChange]);
   
   // הוספת מאפיין חדש
   const handleAddSpecification = useCallback(() => {
@@ -99,19 +161,68 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
         </p>
       </div>
 
+      {/* 🆕 הודעת תבנית מקטגוריה */}
+      {loadingTemplate && (
+        <div className={styles.templateInfo}>
+          <Icon name="Loader" size={16} className={styles.loadingIcon} />
+          <span>טוען תבנית מפרט מהקטגוריה...</span>
+        </div>
+      )}
+      
+      {!loadingTemplate && templateFields.length > 0 && (
+        <div className={styles.templateInfo}>
+          <Icon name="FileText" size={16} />
+          <span>
+            נמצאה תבנית מפרט עם {templateFields.length} שדות מוגדרים.
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleApplyTemplate}
+            disabled={disabled}
+          >
+            החל תבנית
+          </Button>
+        </div>
+      )}
+      
+      {!loadingTemplate && !categoryId && (
+        <div className={styles.templateHint}>
+          <Icon name="Info" size={16} />
+          <span>בחר קטגוריה כדי לטעון תבנית מפרט טכני מוגדרת מראש</span>
+        </div>
+      )}
+
       {/* רשימת המאפיינים */}
       <div className={styles.specificationsList}>
         {specifications.length === 0 ? (
           <div className={styles.emptyState}>
             <Icon name="FileText" size={32} className={styles.emptyIcon} />
             <p className={styles.emptyText}>אין מאפייני מפרט טכני</p>
-            <p className={styles.emptySubtext}>לחץ על "הוסף מאפיין" כדי להתחיל</p>
+            <p className={styles.emptySubtext}>
+              {templateFields.length > 0 
+                ? 'לחץ על "החל תבנית" להוספת שדות מהקטגוריה, או "הוסף מאפיין" להוספה ידנית'
+                : 'לחץ על "הוסף מאפיין" כדי להתחיל'
+              }
+            </p>
           </div>
         ) : (
           specifications.map((spec, index) => {
             const specErrors = errors.specifications?.[index];
+            // 🆕 חיפוש שדה מהתבנית לקבלת מטא-דטה (יחידת מידה, label, וכו')
+            const templateField = templateFields.find(f => f.key === spec.key);
+            const isFromTemplate = !!templateField;
+            
             return (
-              <div key={index} className={styles.specificationRow}>
+              <div key={index} className={`${styles.specificationRow} ${isFromTemplate ? styles.fromTemplate : ''}`}>
+                {/* 🆕 אינדיקטור שדה מתבנית */}
+                {isFromTemplate && (
+                  <div className={styles.templateIndicator} title={`שדה מתבנית${templateField.inheritedFrom ? ` (נורש מ-${templateField.inheritedFrom})` : ''}`}>
+                    <Icon name="FileText" size={12} />
+                  </div>
+                )}
+                
                 {/* כפתורי הזזה */}
                 <div className={styles.reorderButtons}>
                   <button
@@ -139,12 +250,12 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
                   <Input
                     id={`spec-key-${index}`}
                     name={`spec-key-${index}`}
-                    label="שם המאפיין"
+                    label={templateField?.label || "שם המאפיין"}
                     type="text"
                     value={spec.key}
                     onChange={(e) => handleUpdateSpecification(index, 'key', e.target.value)}
-                    placeholder="לדוגמה: קיבולת סוללה"
-                    disabled={disabled}
+                    placeholder={templateField?.label || "לדוגמה: קיבולת סוללה"}
+                    disabled={disabled || isFromTemplate}
                     error={!!specErrors?.key}
                     helperText={specErrors?.key}
                     size="medium"
@@ -156,14 +267,14 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
                   <Input
                     id={`spec-value-${index}`}
                     name={`spec-value-${index}`}
-                    label="ערך"
-                    type="text"
+                    label={`ערך${templateField?.unit ? ` (${templateField.unit})` : ''}`}
+                    type={templateField?.type === 'number' ? 'number' : 'text'}
                     value={spec.value}
                     onChange={(e) => handleUpdateSpecification(index, 'value', e.target.value)}
-                    placeholder="לדוגמה: 1500mAh"
+                    placeholder={templateField?.unit ? `הכנס ערך ב${templateField.unit}` : "לדוגמה: 1500mAh"}
                     disabled={disabled}
                     error={!!specErrors?.value}
-                    helperText={specErrors?.value}
+                    helperText={specErrors?.value || (templateField?.required ? 'שדה חובה' : undefined)}
                     size="medium"
                   />
                 </div>

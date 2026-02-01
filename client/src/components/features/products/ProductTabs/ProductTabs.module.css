@@ -134,6 +134,12 @@
   flex: 1;
 }
 
+/* 🆕 יחידת מידה מתבנית */
+.specUnit {
+  color: #888;
+  font-size: 0.9em;
+}
+
 /* הודעה כאשר אין מפרט טכני */
 .noSpecs {
   color: #999;

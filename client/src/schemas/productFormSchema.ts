@@ -429,6 +429,9 @@ export const productSchema = yup.object({
           .max(500, 'ערך המאפיין לא יכול להכיל יותר מ-500 תווים')
           .trim()
           .default(''),
+        // 🆕 שדות אופציונליים מתבנית קטגוריה
+        label: yup.string().optional().nullable(),
+        unit: yup.string().optional().nullable(),
       })
     )
     .optional()

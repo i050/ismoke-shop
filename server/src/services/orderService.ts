@@ -396,11 +396,39 @@ class OrderService {
       // =====================================
       // שלב 2: חישוב סכומים
       // Phase 4.2: מע"מ כלול במחיר - לא מחשבים בנפרד
+      // Phase 6.0: הנחת סף (Threshold Discount)
       // =====================================
       const subtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
       const tax = 0; // Phase 4.2: מע"מ כלול במחיר
       const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_COST;
-      const total = subtotal + shippingCost; // ללא מע"מ
+      
+      // Phase 6.0: חישוב הנחת סף מתוך הגדרות החנות
+      let thresholdDiscountAmount = 0;
+      try {
+        const storeSettings = await StoreSettings.getSettings();
+        const thresholdConfig = storeSettings.thresholdDiscount;
+        
+        // בדיקה אם הנחת הסף פעילה והלקוח עבר את הסף
+        if (thresholdConfig?.enabled && subtotal >= thresholdConfig.minimumAmount) {
+          // חישוב סכום ההנחה עם עיגול לשתי ספרות אחרי הנקודה
+          thresholdDiscountAmount = Math.round(
+            (subtotal * thresholdConfig.discountPercentage) / 100 * 100
+          ) / 100;
+          
+          logger.info('ORDER_THRESHOLD_DISCOUNT_APPLIED', {
+            subtotal,
+            minimumAmount: thresholdConfig.minimumAmount,
+            discountPercentage: thresholdConfig.discountPercentage,
+            discountAmount: thresholdDiscountAmount
+          });
+        }
+      } catch (settingsError) {
+        // במקרה של שגיאה בטעינת ההגדרות - ממשיכים ללא הנחת סף
+        logger.warn('ORDER_THRESHOLD_SETTINGS_ERROR', { error: String(settingsError) });
+      }
+      
+      // חישוב סה"כ סופי: סכום ביניים + משלוח - הנחת סף
+      const total = subtotal + shippingCost - thresholdDiscountAmount;
       
       // =====================================
       // שלב 3: יצירת ההזמנה
@@ -413,7 +441,7 @@ class OrderService {
         subtotal,
         tax,
         shippingCost,
-        discount: 0,
+        discount: thresholdDiscountAmount, // הנחת סף מחושבת
         total,
         currency: 'ILS',
         shippingAddress: {

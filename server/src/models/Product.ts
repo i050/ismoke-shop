@@ -27,9 +27,13 @@ export interface IAttribute {
 
 // Interface for technical specifications (מפרט טכני)
 // מאפשר למנהל להזין מפרט key-value דינמי
+// 🆕 label - תווית לתצוגה (אופציונלי, מתבנית הקטגוריה)
+// 🆕 unit - יחידת מידה (אופציונלי, מתבנית הקטגוריה)
 export interface ISpecification {
   key: string;
   value: string;
+  label?: string;  // תווית לתצוגה (מתבנית)
+  unit?: string;   // יחידת מידה (מתבנית)
 }
 
 // Interface for product dimensions
@@ -212,9 +216,12 @@ const AttributeSchema: Schema = new Schema({
 }, { _id: false });
 
 // Schema for technical specifications (מפרט טכני)
+// 🆕 תמיכה ב-label ו-unit מתבנית הקטגוריה
 const SpecificationSchema: Schema = new Schema({
   key: { type: String, required: true },
   value: { type: String, required: true },
+  label: { type: String, required: false },  // תווית לתצוגה (מתבנית)
+  unit: { type: String, required: false },   // יחידת מידה (מתבנית)
 }, { _id: false });
 
 /**

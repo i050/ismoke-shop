@@ -493,3 +493,135 @@ export async function getActiveCategoriesTree(): Promise<CategoryTreeNode[]> {
 	
 	return roots;
 }
+
+// ============================================================================
+// פונקציות לניהול תבנית מפרט טכני
+// ============================================================================
+
+import { ISpecificationField } from '../models/Category';
+
+/**
+ * טיפוס לתבנית מפרט עם מידע על מקור (ירושה)
+ */
+export interface InheritedSpecificationField extends ISpecificationField {
+	inheritedFrom?: string;      // שם הקטגוריה שממנה השדה נורש
+	inheritedFromId?: string;    // ID של הקטגוריה שממנה השדה נורש
+	isInherited: boolean;        // האם השדה נורש או מוגדר ישירות
+}
+
+/**
+ * תבנית מפרט מורכבת עם ירושה
+ */
+export interface MergedSpecificationTemplate {
+	categoryId: string;
+	categoryName: string;
+	fields: InheritedSpecificationField[];
+	inheritanceChain: Array<{
+		id: string;
+		name: string;
+		fieldsCount: number;
+	}>;
+}
+
+/**
+ * קבלת תבנית מפרט טכני עם ירושה מקטגוריות אב
+ * - מאחד שדות מכל הקטגוריות בשרשרת (מהשורש עד הקטגוריה הנבחרת)
+ * - שדות עם אותו key יידרסו על ידי הקטגוריה הקרובה יותר
+ * - כולל מידע על מקור כל שדה (לצורך תצוגה)
+ */
+export async function getSpecificationTemplateWithInheritance(
+	categoryId: string
+): Promise<MergedSpecificationTemplate | null> {
+	// טעינת הקטגוריה הנבחרת
+	const category = await Category.findById(categoryId).lean<ICategory>();
+	if (!category) return null;
+	
+	// בניית שרשרת הירושה (מהשורש לקטגוריה הנוכחית)
+	const inheritanceChain: Array<{ id: string; name: string; template: ISpecificationField[] }> = [];
+	
+	// התחלה מהקטגוריה הנוכחית ועלייה בהיררכיה
+	let currentCat: ICategory | null = category;
+	const categoryPath: ICategory[] = [category];
+	
+	while (currentCat?.parentId) {
+		const parentCat: ICategory | null = await Category.findById(currentCat.parentId).lean<ICategory>();
+		if (!parentCat) break;
+		categoryPath.unshift(parentCat); // הוספה להתחלה - סדר מהשורש
+		currentCat = parentCat;
+	}
+	
+	// בניית שרשרת הירושה עם התבניות
+	for (const cat of categoryPath) {
+		inheritanceChain.push({
+			id: (cat._id as any).toString(),
+			name: cat.name,
+			template: cat.specificationTemplate || [],
+		});
+	}
+	
+	// מיזוג השדות - שדות מקטגוריות יורשות דורסים שדות מהורים
+	const mergedFields = new Map<string, InheritedSpecificationField>();
+	
+	for (const item of inheritanceChain) {
+		for (const field of item.template) {
+			const inheritedField: InheritedSpecificationField = {
+				...field,
+				inheritedFrom: item.id === (category._id as any).toString() ? undefined : item.name,
+				inheritedFromId: item.id === (category._id as any).toString() ? undefined : item.id,
+				isInherited: item.id !== (category._id as any).toString(),
+			};
+			mergedFields.set(field.key, inheritedField);
+		}
+	}
+	
+	// המרה למערך ומיון לפי sortOrder
+	const sortedFields = Array.from(mergedFields.values()).sort((a, b) => {
+		const orderA = a.sortOrder ?? 999;
+		const orderB = b.sortOrder ?? 999;
+		return orderA - orderB;
+	});
+	
+	return {
+		categoryId: (category._id as any).toString(),
+		categoryName: category.name,
+		fields: sortedFields,
+		inheritanceChain: inheritanceChain.map(item => ({
+			id: item.id,
+			name: item.name,
+			fieldsCount: item.template.length,
+		})),
+	};
+}
+
+/**
+ * עדכון תבנית מפרט טכני לקטגוריה
+ */
+export async function updateSpecificationTemplate(
+	categoryId: string,
+	template: ISpecificationField[]
+): Promise<ICategory | null> {
+	// ולידציה בסיסית
+	if (template.length > 30) {
+		throw new Error('לא ניתן להגדיר יותר מ-30 שדות בתבנית מפרט');
+	}
+	
+	// בדיקת keys ייחודיים
+	const keys = template.map(f => f.key);
+	const uniqueKeys = new Set(keys);
+	if (keys.length !== uniqueKeys.size) {
+		throw new Error('כל שדה בתבנית חייב להיות עם key ייחודי');
+	}
+	
+	// הוספת sortOrder אוטומטי אם לא קיים
+	const normalizedTemplate = template.map((field, index) => ({
+		...field,
+		sortOrder: field.sortOrder ?? index,
+	}));
+	
+	return Category.findByIdAndUpdate(
+		categoryId,
+		{ $set: { specificationTemplate: normalizedTemplate } },
+		{ new: true }
+	).lean<ICategory>();
+}
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../../../hooks/reduxHooks';
 import { useToast } from '../../../hooks/useToast';
 import {
@@ -27,6 +27,7 @@ import { TitleWithIcon, Button, Icon } from '../../../components/ui';
 import { CategoryTree } from './components/CategoryTree';
 import { CategoryForm } from './components/CategoryForm';
 import { CategoryDeleteModal } from './components/CategoryDeleteModal';
+import { SpecificationTemplateEditor } from './components/SpecificationTemplateEditor';
 import type { CategoryCreateRequest, CategoryUpdateRequest, CategoryDeleteOptions, Category } from '../../../types/Category';
 import type { CategoryTreeNodeClient } from '../../../services/categoryService';
 import styles from './CategoriesManagementPage.module.css';
@@ -34,6 +35,7 @@ import styles from './CategoriesManagementPage.module.css';
 /**
  * דף ניהול קטגוריות - Admin
  * מאפשר יצירה, עריכה ומחיקה של קטגוריות בעץ היררכי
+ * + ניהול תבנית מפרט טכני לכל קטגוריה
  */
 const CategoriesManagementPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -53,8 +55,12 @@ const CategoriesManagementPage: React.FC = () => {
   const loadingStats = useAppSelector(selectLoadingStats);
 
   // State מקומי למודאל מחיקה
-  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-  const [categoryToDelete, setCategoryToDelete] = React.useState<CategoryTreeNodeClient | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryTreeNodeClient | null>(null);
+
+  // State מקומי לעורך תבנית מפרט טכני
+  const [specTemplateEditorOpen, setSpecTemplateEditorOpen] = useState(false);
+  const [categoryForSpecTemplate, setCategoryForSpecTemplate] = useState<CategoryTreeNodeClient | null>(null);
 
   // טעינת קטגוריות בעת טעינת הדף
   useEffect(() => {
@@ -165,6 +171,24 @@ const CategoriesManagementPage: React.FC = () => {
     }
   }, [dispatch, showToast]);
 
+  // פתיחת עורך תבנית מפרט טכני
+  const handleEditSpecificationTemplate = useCallback((category: CategoryTreeNodeClient) => {
+    console.log('📋 פתיחת עורך תבנית מפרט טכני:', category.name);
+    setCategoryForSpecTemplate(category);
+    setSpecTemplateEditorOpen(true);
+  }, []);
+
+  // סגירת עורך תבנית מפרט טכני
+  const handleCloseSpecTemplateEditor = useCallback(() => {
+    setSpecTemplateEditorOpen(false);
+    setCategoryForSpecTemplate(null);
+  }, []);
+
+  // שמירת תבנית מפרט טכני (callback)
+  const handleSpecTemplateSaved = useCallback(() => {
+    showToast('success', 'תבנית המפרט הטכני נשמרה בהצלחה');
+  }, [showToast]);
+
   return (
     <div className={styles.categoriesPage}>
       {/* כותרת */}
@@ -242,6 +266,7 @@ const CategoriesManagementPage: React.FC = () => {
                 onEdit={handleEditCategory}
                 onDelete={handleDeleteClick}
                 onToggleActive={handleToggleActive}
+                onEditSpecificationTemplate={handleEditSpecificationTemplate}
                 onAddSubcategory={(parentId: string) => {
                   // מעבר ליצירה עם parentId שמור ב-Redux
                   handleAddCategory(parentId);
@@ -304,6 +329,15 @@ const CategoriesManagementPage: React.FC = () => {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         deleting={deleting}
+      />
+
+      {/* עורך תבנית מפרט טכני */}
+      <SpecificationTemplateEditor
+        isOpen={specTemplateEditorOpen}
+        categoryId={categoryForSpecTemplate?._id || null}
+        categoryName={categoryForSpecTemplate?.name || ''}
+        onClose={handleCloseSpecTemplateEditor}
+        onSaved={handleSpecTemplateSaved}
       />
     </div>
   );

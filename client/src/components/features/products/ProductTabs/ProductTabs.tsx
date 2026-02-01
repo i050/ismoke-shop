@@ -73,13 +73,22 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
       content: (
         <div className={styles.tabContent}>
           <div className={styles.specifications}>
-            {/* מפרט טכני - מוזן על ידי המנהל באזור הניהול */}
+            {/* מפרט טכני - מוזן על ידי המנהל באזור הניהול
+                🆕 תמיכה ב-label מתבנית קטגוריה - אם קיים, מוצג במקום key
+                🆕 תמיכה ב-unit - יחידת מידה מוצגת אחרי הערך */}
             {product.specifications && product.specifications.length > 0 ? (
               <>
-                {product.specifications.map((spec, index) => (
+                {product.specifications
+                  .filter(spec => spec.value && spec.value.trim() !== '')  // 🆕 מציג רק שדות עם ערך
+                  .map((spec, index) => (
                   <div key={index} className={styles.specRow}>
-                    <span className={styles.specLabel}>{spec.key}:</span>
-                    <span className={styles.specValue}>{spec.value}</span>
+                    <span className={styles.specLabel}>
+                      {spec.label || spec.key}:
+                    </span>
+                    <span className={styles.specValue}>
+                      {spec.value}
+                      {spec.unit && <span className={styles.specUnit}> {spec.unit}</span>}
+                    </span>
                   </div>
                 ))}
               </>

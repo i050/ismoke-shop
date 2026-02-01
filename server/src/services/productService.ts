@@ -650,7 +650,10 @@ export const fetchAllProducts = async (): Promise<any[]> => {
  */
 export const fetchProductById = async (id: string): Promise<IProduct | null> => {
   // רק מוצרים פעילים - מוצרים באשפה לא יוצגו
-  return Product.findOne({ _id: id, isActive: true });
+  const product = await Product.findOne({ _id: id, isActive: true });
+  // 🔍 DEBUG: בדיקת specifications במוצר שנמצא
+  console.log('📋 [fetchProductById] Product specifications:', product?.specifications);
+  return product;
 };
 
 /**

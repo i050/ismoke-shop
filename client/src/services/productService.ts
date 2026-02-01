@@ -159,6 +159,20 @@ export class ProductService {
     }
   }
 
+  /**
+   * ניקוי מטמון עבור מוצר ספציפי או כלל מטמון המוצרים
+   * יש לקרוא לפונקציה זו לאחר עדכון/יצירת מוצר
+   */
+  static invalidateProductDetailsCache(productId?: string): void {
+    if (productId) {
+      productDetailsCache.delete(productId);
+      console.log(`🗑️ [ProductService] Invalidated cache for product: ${productId}`);
+    } else {
+      productDetailsCache.clear();
+      console.log('🗑️ [ProductService] Cleared entire product details cache');
+    }
+  }
+
   // הפעלת פרה-פאץ' שקט לעמוד הבא – נטען רק אם אין מטמון חי
   static async prefetchFilteredProducts(params: FilteredProductsRequestParams): Promise<void> {
     // נעבור קודם על מטמון וננקות רשומות שפג תוקפן

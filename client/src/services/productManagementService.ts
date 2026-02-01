@@ -7,6 +7,7 @@ import type { FetchProductsParams, FetchProductsResponse } from '../store/slices
 import type { ProductFormData } from '../schemas/productFormSchema';
 import { ApiError } from '../utils/ApiError';
 import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
+import { ProductService } from './productService'; // 🆕 לצורך ניקוי cache
 
 /**
  * Service לניהול מוצרים
@@ -323,6 +324,9 @@ class ProductManagementService {
       // תמיד נשתמש ב-/with-skus endpoint. גם כשאין SKUs נקבל מערך ריק -
       // השרת יודע ליצור SKU בסיס אוטומטית לפי כללי ה-service.
       
+      // 🔍 DEBUG: בדיקת specifications לפני שליחה
+      console.log('📋 [createProduct] productFields.specifications:', productFields.specifications);
+      
       const payload = this.cleanPayload({
         product: {
           ...productFields,
@@ -336,6 +340,9 @@ class ProductManagementService {
         },
         skus: this.normalizeSKUs(skus), // יכול להיות []
       });
+      
+      // 🔍 DEBUG: בדיקת specifications אחרי cleanPayload
+      console.log('📋 [createProduct] payload.product.specifications:', (payload as any).product?.specifications);
 
       const response = await this.makeRequest<
         | Product
@@ -354,7 +361,16 @@ class ProductManagementService {
         const payloadData: any = (response as any).data;
         const product = payloadData.product || payloadData;
         const skus = payloadData.skus || [];
+        // 🆕 ניקוי cache לאחר יצירה
+        if (product._id) {
+          ProductService.invalidateProductDetailsCache(product._id);
+        }
         return { ...(product as any), skus } as Product;
+      }
+      
+      // 🆕 ניקוי cache לאחר יצירה
+      if ((response as any)?._id) {
+        ProductService.invalidateProductDetailsCache((response as any)._id);
       }
 
       return response as Product;
@@ -392,6 +408,9 @@ class ProductManagementService {
       const { skus, ...productFields } = productData;
       const hasSkus = skus && Array.isArray(skus) && skus.length > 0;
       
+      // � DEBUG: בדיקת specifications לפני שליחה
+      console.log('📋 [updateProduct] productFields.specifications:', productFields.specifications);
+      
       // 🔧 FIX: אם יש SKUs, משתמשים ב-/with-skus endpoint
       if (hasSkus) {
         const normalizedSkus = this.normalizeSKUs(skus);
@@ -408,6 +427,9 @@ class ProductManagementService {
           },
           skus: normalizedSkus, // 🔧 FIX: שטח attributes
         });
+        
+        // 🔍 DEBUG: בדיקת specifications אחרי cleanPayload
+        console.log('📋 [updateProduct] payload.product.specifications:', (payload as any).product?.specifications);
 
         const response = await this.makeRequest<
           | Product
@@ -419,6 +441,9 @@ class ProductManagementService {
             body: JSON.stringify(payload),
           }
         );
+
+        // 🆕 ניקוי cache לאחר עדכון
+        ProductService.invalidateProductDetailsCache(productId);
 
         if (response && typeof response === 'object' && 'data' in response) {
           const payloadData: any = (response as any).data;
@@ -448,6 +473,9 @@ class ProductManagementService {
             body: JSON.stringify(payload),
           }
         );
+
+        // 🆕 ניקוי cache לאחר עדכון
+        ProductService.invalidateProductDetailsCache(productId);
 
         return 'data' in response ? response.data : response;
       }

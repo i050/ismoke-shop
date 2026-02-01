@@ -1100,6 +1100,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             <ProductSpecifications
               specifications={formValues.specifications || []}
               onChange={(specs) => setValueWithDirty('specifications', specs)}
+              categoryId={formValues.categoryId}
               disabled={isSubmitting}
               errors={errors as any}
             />

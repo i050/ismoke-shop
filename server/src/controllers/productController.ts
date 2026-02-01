@@ -362,6 +362,9 @@ export const createProductWithSkus = async (req: Request, res: Response) => {
   try {
     const { product: productData, skus: skusData } = req.body;
 
+    // 🔍 DEBUG: בדיקת specifications שמתקבל מהלקוח
+    console.log('📋 [createProductWithSkus] Received specifications:', productData?.specifications);
+
     // וולידציה בסיסית
     if (!productData || !productData.name) {
       return res.status(400).json({ 
@@ -416,6 +419,9 @@ export const updateProductWithSkus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { product: productData, skus: skusData } = req.body;
+
+    // 🔍 DEBUG: בדיקת specifications שמתקבל מהלקוח
+    console.log('📋 [updateProductWithSkus] Received specifications:', productData?.specifications);
 
     // וולידציה
     if (!mongoose.Types.ObjectId.isValid(id)) {

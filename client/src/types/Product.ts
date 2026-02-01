@@ -20,9 +20,13 @@ export interface IImage {
 
 // ממשק למפרט טכני (Technical Specification)
 // מאפשר להציג key-value דינמי בעמוד המוצר
+// 🆕 label - תווית לתצוגה (אופציונלי, מתבנית הקטגוריה)
+// 🆕 unit - יחידת מידה (אופציונלי, מתבנית הקטגוריה)
 export interface ISpecification {
   key: string;
   value: string;
+  label?: string;  // תווית לתצוגה (מתבנית)
+  unit?: string;   // יחידת מידה (מתבנית)
 }
 
 // ============================================================================

@@ -167,3 +167,63 @@ export const getActiveCategoriesTree = async (_req: Request, res: Response) => {
 		res.status(500).json({ message: 'שגיאה בבניית עץ קטגוריות', error: err.message });
 	}
 };
+
+// ============================================================================
+// פונקציות לניהול תבנית מפרט טכני
+// ============================================================================
+
+/**
+ * קבלת תבנית מפרט טכני עם ירושה מקטגוריות אב
+ * GET /api/categories/:id/specification-template
+ * 
+ * מחזיר:
+ * - fields: מערך שדות ממוזג (כולל ירושה)
+ * - inheritanceChain: שרשרת הירושה עם מידע על כל קטגוריה
+ */
+export const getSpecificationTemplate = async (req: Request, res: Response) => {
+	try {
+		const result = await categoryService.getSpecificationTemplateWithInheritance(req.params.id);
+		if (!result) {
+			return res.status(404).json({ message: 'קטגוריה לא נמצאה' });
+		}
+		res.json(result);
+	} catch (err: any) {
+		res.status(500).json({ 
+			message: 'שגיאה בקבלת תבנית מפרט טכני', 
+			error: err.message 
+		});
+	}
+};
+
+/**
+ * עדכון תבנית מפרט טכני לקטגוריה
+ * PUT /api/categories/:id/specification-template
+ * 
+ * Body: { template: ISpecificationField[] }
+ */
+export const updateSpecificationTemplate = async (req: Request, res: Response) => {
+	try {
+		const { template } = req.body;
+		
+		if (!Array.isArray(template)) {
+			return res.status(400).json({ 
+				message: 'נדרש מערך של שדות תבנית' 
+			});
+		}
+		
+		const result = await categoryService.updateSpecificationTemplate(
+			req.params.id, 
+			template
+		);
+		
+		if (!result) {
+			return res.status(404).json({ message: 'קטגוריה לא נמצאה' });
+		}
+		
+		res.json(result);
+	} catch (err: any) {
+		res.status(400).json({ 
+			message: err.message || 'שגיאה בעדכון תבנית מפרט טכני'
+		});
+	}
+};

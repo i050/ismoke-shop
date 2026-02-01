@@ -7,6 +7,29 @@ export interface CategoryImage {
   public_id: string;
 }
 
+// ============================================================================
+// ממשק לשדה בתבנית מפרט טכני
+// ============================================================================
+/**
+ * שדה בתבנית מפרט טכני של קטגוריה
+ * - key: מזהה ייחודי (באנגלית)
+ * - label: תווית להצגה (בעברית)
+ * - unit: יחידת מידה (אופציונלי)
+ * - type: סוג השדה
+ * - options: אפשרויות לבחירה (ל-select)
+ * - required: האם חובה
+ * - sortOrder: סדר הצגה
+ */
+export interface ISpecificationField {
+  key: string;
+  label: string;
+  unit?: string;
+  type: 'text' | 'number' | 'select';
+  options?: string[];
+  required?: boolean;
+  sortOrder?: number;
+}
+
 // ממשק קטגוריה מלא - תואם למודל בשרת
 export interface Category {
   _id: string;
@@ -19,6 +42,7 @@ export interface Category {
   sortOrder: number;       // סדר תצוגה
   description?: string;    // תיאור לSEO
   image?: CategoryImage;   // תמונת קטגוריה
+  specificationTemplate?: ISpecificationField[];  // תבנית מפרט טכני
   createdAt: string;
   updatedAt: string;
 }
@@ -42,6 +66,7 @@ export interface CategoryCreateRequest {
   description?: string;
   isActive?: boolean;
   sortOrder?: number;
+  specificationTemplate?: ISpecificationField[];  // תבנית מפרט טכני
 }
 
 // בקשת עדכון קטגוריה קיימת
@@ -52,6 +77,7 @@ export interface CategoryUpdateRequest {
   description?: string;
   isActive?: boolean;
   sortOrder?: number;
+  specificationTemplate?: ISpecificationField[];  // תבנית מפרט טכני
 }
 
 // סטטיסטיקות קטגוריה - מוחזר מ-API stats
