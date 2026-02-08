@@ -405,8 +405,10 @@
   max-height: 300px;
   overflow-y: auto;
   overflow-x: visible; /* מאפשר לעיגול הכמות לצאת אופקית */
+  padding-top: 10px; /* מרווח עליון כדי שהעיגול של הפריט הראשון לא ייחתך */
   padding-right: 8px; /* מרווח נוסף כדי שהעיגול לא ייחתך */
   padding-left: 8px;
+  padding-bottom: 4px; /* מרווח תחתון קטן */
 }
 
 .summaryItem {
@@ -446,6 +448,8 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   border-radius: 50%;
+  z-index: 10; /* מוודא שהעיגול מעל הכל */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* צל קל לבולטות */
 }
 
 .itemDetails {
