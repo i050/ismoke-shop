@@ -415,6 +415,7 @@
   width: 56px;
   height: 56px;
   flex-shrink: 0;
+  overflow: visible; /* מאפשר לעיגול הכמות לצאת מגבולות התמונה */
 }
 
 .itemImage img {
