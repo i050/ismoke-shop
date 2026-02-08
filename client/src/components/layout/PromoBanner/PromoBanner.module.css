@@ -1,0 +1,63 @@
+/* ==============================================
+   PromoBanner - בר פרומו להנחת סף
+   מוצג מתחת ל-Header בכל הדפים כשהנחת סף מופעלת
+   ============================================== */
+
+.banner {
+  width: 100%;
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
+  text-align: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  direction: rtl;
+  position: relative;
+  z-index: 999; /* מתחת ל-Header (1000) */
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+/* תוכן הבאנר - מרכוז עם אייקון */
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* אייקון */
+.icon {
+  flex-shrink: 0;
+  font-size: var(--font-size-base);
+}
+
+/* טקסט הבאנר */
+.text {
+  display: inline;
+}
+
+/* הדגשת המספרים (אחוז הנחה וסכום סף) */
+.highlight {
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+/* ==============================================
+   Responsive - התאמה למובייל
+   ============================================== */
+
+@media (max-width: 768px) {
+  .banner {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+  
+  .content {
+    gap: var(--spacing-xs);
+  }
+}

@@ -4,7 +4,7 @@
 
 import { useEffect } from 'react';
 import { Outlet, ScrollRestoration, useLocation, Navigate } from 'react-router-dom';
-import { Header, Footer } from '@layout';
+import { Header, Footer, PromoBanner } from '@layout';
 import { LogoLoader } from '@ui';
 import MiniCart from './components/features/cart/MiniCart';
 import { useAppDispatch, useAppSelector } from './hooks/reduxHooks';
@@ -61,6 +61,9 @@ const RootLayout = () => {
       <div className="app">
         {/* Header מקצועי - על כל הרוחב */}
         <Header />
+
+        {/* בר פרומו להנחת סף - מוצג מתחת להדר כשמופעל */}
+        <PromoBanner />
 
         {/* MiniCart - מגירה הזזה */}
         <MiniCart />
