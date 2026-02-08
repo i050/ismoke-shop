@@ -375,6 +375,7 @@
 .summaryPanel {
   position: sticky;
   top: var(--spacing-2xl);
+  overflow: visible; /* מאפשר לעיגול כמות לצאת מגבולות */
 }
 
 .summaryCard {
@@ -383,6 +384,7 @@
   border: 1px solid var(--border);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-sm);
+  overflow: visible; /* מאפשר לעיגול כמות לצאת מגבולות */
 }
 
 .summaryTitle {
@@ -402,12 +404,16 @@
   margin-bottom: var(--spacing-xl);
   max-height: 300px;
   overflow-y: auto;
+  overflow-x: visible; /* מאפשר לעיגול הכמות לצאת אופקית */
+  padding-right: 8px; /* מרווח נוסף כדי שהעיגול לא ייחתך */
+  padding-left: 8px;
 }
 
 .summaryItem {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-md);
+  overflow: visible; /* מאפשר לעיגול הכמות לצאת מגבולות */
 }
 
 .itemImage {
