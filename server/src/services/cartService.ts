@@ -15,8 +15,9 @@ type ProductPricingSnapshot = {
   _id: mongoose.Types.ObjectId;
   basePrice: number;
   name?: string;
-  subtitle?: string; // 🆕 שם משני של המוצר
+  subtitle?: string; // שם משני של המוצר
   categoryId?: mongoose.Types.ObjectId;
+  images?: { thumbnail: string; medium: string; large: string }[]; // תמונות המוצר - fallback כשאין תמונות ב-SKU
 };
 
 // טיפוס למידע הנחת קבוצת לקוח
@@ -168,9 +169,9 @@ class CartService {
           console.warn(`SKU ${item.sku} לא נמצא או לא פעיל`);
           item.availableStock = 0;
         } else {
-          // שליפת המוצר לקבלת basePrice
+          // שליפת המוצר לקבלת basePrice + תמונות (לרענון)
           const product = await Product.findById(item.productId)
-            .select('basePrice')
+            .select('basePrice images')
             .lean<ProductPricingSnapshot>();
           if (!product) {
             console.warn(`מוצר ${item.productId} לא נמצא`);
@@ -178,18 +179,37 @@ class CartService {
             continue;
           }
 
-          // Base Price + Override Pattern
+          // Base Price + Override Pattern - מחיר בסיס לפני הנחה
           const effectivePrice = skuDoc.price ?? product.basePrice;
 
           // עדכון מלאי זמין מ-SKU Collection
           item.availableStock = skuDoc.stockQuantity;
           
-          // אימות מחיר - אם המחיר השתנה, עדכן (Phase 1.2 - re-validation)
-          if (Math.abs(item.price - effectivePrice) > 0.01) {
-            console.log(`מחיר ${item.name} השתנה מ-${item.price} ל-${effectivePrice}`);
-            item.price = effectivePrice;
-            item.subtotal = Math.round(effectivePrice * item.quantity * 100) / 100;
-            // TODO: בעתיד - הוסף התראה למשתמש על שינוי מחיר
+          // אימות מחיר - חישוב הנחת קבוצת לקוח מחדש
+          // חשוב! משווה ל-effectivePrice (מחיר בסיס) ולא ל-item.price (שכבר כולל הנחה)
+          const pricingResult = await this.calculatePriceWithGroupDiscount(
+            effectivePrice,
+            cart.userId
+          );
+          
+          // בדיקה אם המחיר הסופי השתנה (שינוי במחיר בסיס או בהנחת הקבוצה)
+          if (Math.abs(item.price - pricingResult.finalPrice) > 0.01) {
+            console.log(`מחיר ${item.name} עודכן מ-${item.price} ל-${pricingResult.finalPrice}`);
+            item.price = pricingResult.finalPrice;
+            item.subtotal = Math.round(pricingResult.finalPrice * item.quantity * 100) / 100;
+          }
+          
+          // עדכון מידע ההנחה על הפריט (לתצוגה בצד הלקוח)
+          item.originalPrice = pricingResult.originalPrice;
+          item.discountPercentage = pricingResult.discountPercentage;
+          item.customerGroupName = pricingResult.customerGroupName;
+
+          // רענון תמונה מ-SKU או מהמוצר (למקרה שהתמונה השתנתה או הייתה ריקה)
+          const freshImage = skuDoc.images && skuDoc.images.length > 0
+            ? (typeof skuDoc.images[0] === 'string' ? skuDoc.images[0] : skuDoc.images[0].medium)
+            : (product.images && product.images.length > 0 ? product.images[0].medium : '');
+          if (freshImage && freshImage !== item.image) {
+            item.image = freshImage;
           }
         }
       } catch (e) {
@@ -273,9 +293,9 @@ class CartService {
       throw new Error(`במלאי יש רק ${skuDoc.stockQuantity} יחידות`);
     }
 
-    // שליפת מוצר בסיסי (לשם, קטגוריה, basePrice, secondaryVariantAttribute, subtitle)
+    // שליפת מוצר בסיסי (לשם, קטגוריה, basePrice, secondaryVariantAttribute, subtitle, תמונות)
     const product = await Product.findById(productId)
-      .select('name subtitle categoryId basePrice secondaryVariantAttribute')
+      .select('name subtitle categoryId basePrice secondaryVariantAttribute images')
       .lean<ProductPricingSnapshot & { secondaryVariantAttribute?: string | null }>();
     if (!product) {
       throw new Error('המוצר לא נמצא');
@@ -341,10 +361,11 @@ class CartService {
       }
     } else {
       // Phase 3.2: הוספת פריט חדש מ-SKU Collection
-      // Phase 1.4: המרת IImage ל-URL string (סל צריך רק URL)
+      // המרת IImage ל-URL string (סל צריך רק URL)
+      // עדיפות: תמונת SKU > תמונת המוצר > מחרוזת ריקה
       const itemImage = skuDoc.images && skuDoc.images.length > 0 
         ? (typeof skuDoc.images[0] === 'string' ? skuDoc.images[0] : skuDoc.images[0].medium)
-        : '';
+        : (product.images && product.images.length > 0 ? product.images[0].medium : '');
 
       // שם המוצר הראשי - לא שם הווריאנט
       const itemName = product.name || skuDoc.name || skuDoc.sku;
@@ -546,7 +567,7 @@ class CartService {
             existingItem.quantity = targetQuantity;
           }
           
-          // עדכן מחיר וsubtotal
+          // עדכן מחיר עם הנחת קבוצת לקוח
           if (skuDoc) {
             // שליפת המוצר לקבלת basePrice
             const product = await Product.findById(guestItem.productId)
@@ -554,8 +575,17 @@ class CartService {
               .lean<ProductPricingSnapshot>();
             const effectivePrice = product ? (skuDoc.price ?? product.basePrice) : skuDoc.price ?? 0;
             
-            existingItem.price = effectivePrice;
-            existingItem.subtotal = Math.round(effectivePrice * existingItem.quantity * 100) / 100;
+            // חישוב הנחת קבוצה עבור המשתמש המחובר
+            const pricingResult = await this.calculatePriceWithGroupDiscount(
+              effectivePrice,
+              userCart.userId
+            );
+            
+            existingItem.price = pricingResult.finalPrice;
+            existingItem.originalPrice = pricingResult.originalPrice;
+            existingItem.discountPercentage = pricingResult.discountPercentage;
+            existingItem.customerGroupName = pricingResult.customerGroupName;
+            existingItem.subtotal = Math.round(pricingResult.finalPrice * existingItem.quantity * 100) / 100;
             existingItem.availableStock = skuDoc.stockQuantity;
           }
         } catch (error) {
@@ -573,7 +603,7 @@ class CartService {
             guestItem.quantity = maxStock;
           }
           
-          // עדכן מחיר מ-SKU Collection
+          // עדכן מחיר מ-SKU Collection עם הנחת קבוצה
           if (skuDoc && skuDoc.isActive) {
             // שליפת המוצר לקבלת basePrice
             const product = await Product.findById(guestItem.productId)
@@ -581,8 +611,17 @@ class CartService {
               .lean<ProductPricingSnapshot>();
             const effectivePrice = product ? (skuDoc.price ?? product.basePrice) : skuDoc.price ?? 0;
             
-            guestItem.price = effectivePrice;
-            guestItem.subtotal = Math.round(effectivePrice * guestItem.quantity * 100) / 100;
+            // חישוב הנחת קבוצה עבור המשתמש המחובר
+            const pricingResult = await this.calculatePriceWithGroupDiscount(
+              effectivePrice,
+              userCart.userId
+            );
+            
+            guestItem.price = pricingResult.finalPrice;
+            guestItem.originalPrice = pricingResult.originalPrice;
+            guestItem.discountPercentage = pricingResult.discountPercentage;
+            guestItem.customerGroupName = pricingResult.customerGroupName;
+            guestItem.subtotal = Math.round(pricingResult.finalPrice * guestItem.quantity * 100) / 100;
             guestItem.availableStock = skuDoc.stockQuantity;
             userCart.items.push(guestItem);
           } else {

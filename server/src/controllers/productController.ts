@@ -18,13 +18,20 @@ const toPlainProduct = (product: any) => {
 };
 
 // פונקציית עזר ליצירת מידע מחיר ברירת מחדל
-const buildDefaultPricing = (product: any) => ({
-  productId: product._id.toString(),
-  originalPrice: product.basePrice,
-  finalPrice: product.basePrice,
-  discountPercentage: 0,
-  hasDiscount: false,
-});
+// כוללת תמיכה ב-compareAtPrice להצגת חיסכון גם לאורחים
+const buildDefaultPricing = (product: any) => {
+  const compareAtPrice = product.compareAtPrice;
+  const hasCompareDiscount = compareAtPrice && compareAtPrice > product.basePrice;
+  
+  return {
+    productId: product._id.toString(),
+    originalPrice: hasCompareDiscount ? compareAtPrice : product.basePrice,
+    finalPrice: product.basePrice,
+    discountPercentage: 0,
+    hasDiscount: !!hasCompareDiscount,
+    ...(compareAtPrice ? { compareAtPrice } : {}),
+  };
+};
 
 // Get all products
 export const getAllProducts = async (req: Request, res: Response) => {

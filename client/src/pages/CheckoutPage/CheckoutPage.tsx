@@ -151,6 +151,9 @@ const CheckoutPage = () => {
         productId: buyNowItem.productId,
         name: buyNowItem.name,
         price: buyNowItem.price,
+        originalPrice: (buyNowItem as any).originalPrice as number | undefined,
+        discountPercentage: (buyNowItem as any).discountPercentage as number | undefined,
+        customerGroupName: (buyNowItem as any).customerGroupName as string | undefined,
         quantity: buyNowItem.quantity,
         image: buyNowItem.image,
         sku: buyNowItem.sku,
@@ -858,7 +861,7 @@ const CheckoutPage = () => {
               {checkoutItems.map((item) => (
                 <div key={item._id || item.sku} className={styles.summaryItem}>
                   <div className={styles.itemImage}>
-                    <img src={item.image} alt={item.name} />
+                    <img src={item.image || '/ismoke-placeholder.png'} alt={item.name} />
                     <span className={styles.itemQuantity}>{item.quantity}</span>
                   </div>
                   <div className={styles.itemDetails}>
@@ -873,10 +876,24 @@ const CheckoutPage = () => {
                         מידה: {item.variant.size}
                       </span>
                     )}
+                    {/* הצגת שם קבוצת הלקוח + אחוז הנחה */}
+                    {item.customerGroupName && item.discountPercentage && (
+                      <span className={styles.itemGroupDiscount}>
+                        {item.customerGroupName} • {item.discountPercentage}%
+                      </span>
+                    )}
                   </div>
-                  <span className={styles.itemPrice}>
-                    ₪{(item.price * item.quantity).toFixed(2)}
-                  </span>
+                  <div className={styles.itemPriceBlock}>
+                    {/* מחיר מקורי מחוק - כשיש הנחת קבוצה */}
+                    {item.originalPrice && item.originalPrice > item.price && (
+                      <span className={styles.itemOriginalPrice}>
+                        ₪{(item.originalPrice * item.quantity).toFixed(2)}
+                      </span>
+                    )}
+                    <span className={styles.itemPrice}>
+                      ₪{(item.price * item.quantity).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

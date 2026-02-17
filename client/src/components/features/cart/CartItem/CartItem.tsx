@@ -230,6 +230,9 @@ const CartItem = ({
 
   // חישוב מחיר סה"כ לפריט
   const totalPrice = item.price * item.quantity;
+  // חישוב מחיר מקורי סה"כ (לפני הנחת קבוצת לקוח)
+  const hasGroupDiscount = !!(item.originalPrice && item.originalPrice > item.price);
+  const originalTotalPrice = hasGroupDiscount ? item.originalPrice! * item.quantity : null;
   
   // בדיקה האם המוצר אזל מהמלאי
   const availableStock = (item as any).availableStock ?? 0;
@@ -263,8 +266,17 @@ const CartItem = ({
 
       {/* מחיר ליחידה */}
       <div className={styles.price}>
-        {/* <span className={styles.priceLabel}>מחיר ליחידה:</span> */}
+        {/* מחיר מקורי מחוק - מוצג רק כשיש הנחת קבוצת לקוחות */}
+        {item.originalPrice && item.originalPrice > item.price && (
+          <span className={styles.priceOriginal}>₪{item.originalPrice.toFixed(2)}</span>
+        )}
         <span className={styles.priceValue}>₪{item.price.toFixed(2)}</span>
+        {/* תג שם קבוצת לקוח + אחוז הנחה */}
+        {item.customerGroupName && item.discountPercentage && (
+          <span className={styles.groupBadge}>
+            {item.customerGroupName} • {item.discountPercentage}%
+          </span>
+        )}
       </div>
 
       {/* פרטי המוצר */}
@@ -435,6 +447,10 @@ const CartItem = ({
       {/* מחיר סה"כ */}
       <div className={styles.totalPrice}>
         <span className={styles.totalLabel}>סה"כ:</span>
+        {/* מחיר מקורי סה"כ מחוק - כשיש הנחת קבוצה */}
+        {originalTotalPrice && (
+          <span className={styles.totalOriginal}>₪{originalTotalPrice.toFixed(2)}</span>
+        )}
         <span className={styles.totalValue}>₪{totalPrice.toFixed(2)}</span>
       </div>
 

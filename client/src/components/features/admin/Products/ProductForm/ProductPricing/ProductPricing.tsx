@@ -15,8 +15,8 @@ interface ProductPricingProps {
     compareAtPrice: number | null;
   };
   errors?: {
-    basePrice?: string;
-    compareAtPrice?: string;
+    basePrice?: { message?: string }; // react-hook-form error object
+    compareAtPrice?: { message?: string }; // react-hook-form error object
   };
   onChange: (field: 'basePrice' | 'compareAtPrice', value: number | null) => void;
   disabled?: boolean;
@@ -142,7 +142,7 @@ const ProductPricing: React.FC<ProductPricingProps> = ({
             onChange={handleCompareAtPriceChange}
             error={!!errors?.compareAtPrice}
             helperText={
-              errors?.compareAtPrice ||
+              errors?.compareAtPrice?.message ||
               'המחיר המקורי לפני הנחה - להצגת חיסכון'
             }
             disabled={disabled}

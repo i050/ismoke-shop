@@ -208,7 +208,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           description: initialData.description || '',
           brand: null, // TODO: להוסיף brand ל-Product type
           basePrice: initialData.basePrice || 0,
-          compareAtPrice: null, // TODO: להוסיף compareAtPrice ל-Product type
+          compareAtPrice: (initialData as any).compareAtPrice || null, // מחיר לפני הנחה מהמוצר הקיים
           // 🔧 FIX: המרת תמונות ישנות (string) לפורמט חדש (object)
           images: initialData.images?.map(img => 
             typeof img === 'string' 

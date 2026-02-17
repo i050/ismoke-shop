@@ -480,6 +480,30 @@
   flex-shrink: 0;
 }
 
+/* בלוק מחיר עם מחיר מקורי */
+.itemPriceBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* מחיר מקורי לפני הנחה - מחוק */
+.itemOriginalPrice {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-decoration: line-through;
+}
+
+/* תג הנחת קבוצת לקוח */
+.itemGroupDiscount {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: #10b981;
+  font-weight: 600;
+}
+
 /* פירוט מחירים */
 .summaryTotals {
   display: flex;

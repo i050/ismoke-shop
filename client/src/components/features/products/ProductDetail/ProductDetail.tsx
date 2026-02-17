@@ -112,14 +112,25 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
     // אם ל-SKU הנבחר יש מחיר משלו (override), השתמש בו
     const skuBasePrice = selectedSkuData.price ?? product.basePrice;
+    const hasSkuPriceOverride = selectedSkuData.price != null;
     
     // אם יש pricing מהשרת עם הנחה, החל את אחוז ההנחה על המחיר של ה-SKU
     if (product.pricing?.hasDiscount) {
       const discountedPrice = skuBasePrice * (1 - (product.pricing.discountPercentage || 0) / 100);
+      const finalPrice = Math.round(discountedPrice * 100) / 100;
+      
+      // מחיר מקורי: אם אין override ויש compareAtPrice, השתמש בו כמחיר לפני הנחה
+      const originalPrice = !hasSkuPriceOverride 
+        && product.pricing.compareAtPrice 
+        && product.pricing.compareAtPrice > finalPrice
+        ? product.pricing.compareAtPrice
+        : skuBasePrice;
+      
       return {
         ...product.pricing,
-        originalPrice: skuBasePrice,
-        finalPrice: Math.round(discountedPrice * 100) / 100
+        originalPrice,
+        finalPrice,
+        hasDiscount: originalPrice > finalPrice,
       };
     }
 

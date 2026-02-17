@@ -5,11 +5,12 @@ import User from '../models/User';
 // ממשק לתוצאת חישוב מחיר
 interface PriceCalculationResult {
   productId: string;
-  originalPrice: number;      // מחיר מקורי של המוצר
-  finalPrice: number;         // מחיר סופי אחרי הנחה
-  discountPercentage: number; // אחוז ההנחה שהוחל
-  customerGroupName?: string; // שם קבוצת הלקוח (אם יש)
-  hasDiscount: boolean;       // האם יש הנחה
+  originalPrice: number;       // מחיר מקורי להצגה (compareAtPrice או basePrice)
+  finalPrice: number;          // מחיר סופי שהלקוח משלם
+  discountPercentage: number;  // אחוז הנחת קבוצת לקוח (0 אם אין קבוצה)
+  customerGroupName?: string;  // שם קבוצת הלקוח (אם יש)
+  hasDiscount: boolean;        // האם יש הנחה כלשהי (compareAtPrice או קבוצה)
+  compareAtPrice?: number;     // מחיר לפני הנחה (מהמוצר, אופציונלי)
 }
 
 type ProductLike = Partial<IProduct> & {
@@ -53,6 +54,12 @@ class PricingService {
       hasDiscount: false
     };
 
+    // שלב 2.5: שמירת compareAtPrice מהמוצר (אם קיים)
+    const compareAtPrice = product.compareAtPrice;
+    if (compareAtPrice && compareAtPrice > 0) {
+      result.compareAtPrice = compareAtPrice;
+    }
+
     // שלב 3: שליפת המשתמש פעם אחת (אם לא סופק מראש)
     let user = preloadedUser;
     if (userId && !user) {
@@ -72,6 +79,7 @@ class PricingService {
         productId: productId,
         userId: userId || 'guest',
         basePrice: product.basePrice,
+        compareAtPrice: compareAtPrice || null,
         hasCustomerGroup: !!customerGroup,
         customerGroup: customerGroup ? {
           name: customerGroup.name,
@@ -88,7 +96,7 @@ class PricingService {
       result.finalPrice = product.basePrice - discountAmount;
       
       // בדיקה: האם להציג ללקוח שיש הנחה?
-      // אם showOriginalPrice === false, הלקוח לא יידע שהוא מקבל הנחה
+      // אם showOriginalPrice === false, הלקוח לא יידע שהוא מקבל הנחה מקבוצה
       const shouldShowDiscount = customerGroup.showOriginalPrice !== false;
       
       if (shouldShowDiscount) {
@@ -107,10 +115,10 @@ class PricingService {
           });
         }
       } else {
-        // מצב "הנחה שקטה" - הלקוח לא יודע שהוא מקבל הנחה
-        // המחיר הסופי כבר חושב, אבל לא נחשוף את המידע
-        result.originalPrice = result.finalPrice; // המחיר "המקורי" = המחיר הסופי
-        result.hasDiscount = false; // נסתיר את העובדה שיש הנחה
+        // מצב "הנחה שקטה" - הלקוח לא יודע שהוא מקבל הנחה מקבוצה
+        // המחיר הסופי כבר חושב, אבל לא נחשוף את מידע הקבוצה
+        result.originalPrice = result.finalPrice; // המחיר "המקורי" = המחיר הסופי (מוסתר)
+        result.hasDiscount = false; // נסתיר את העובדה שיש הנחת קבוצה
         // לא נשלח discountPercentage או customerGroupName
         
         // 🚀 Performance: לוגים רק ב-development
@@ -134,6 +142,14 @@ class PricingService {
 
     // שלב 5: עיגול המחיר לשני מקומות אחרי הנקודה
     result.finalPrice = Math.round(result.finalPrice * 100) / 100;
+
+    // שלב 6: שילוב compareAtPrice - קובע את originalPrice להצגת חיסכון
+    // compareAtPrice הוא "מחיר לפני הנחה" שמוצג לכל הלקוחות
+    // הוא עדיף על basePrice כ-originalPrice כי הוא המחיר ה"מנופח" ביותר
+    if (compareAtPrice && compareAtPrice > result.finalPrice) {
+      result.originalPrice = compareAtPrice;
+      result.hasDiscount = true;
+    }
 
     return result;
   }

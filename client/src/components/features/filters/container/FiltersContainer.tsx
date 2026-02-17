@@ -52,6 +52,7 @@ const FiltersContainer: React.FC = () => {
           onRetry={refetch}
           onPageChange={(p) => setPage(p)}
           onPageSizeChange={(sz) => setPageSize(sz)}
+          activeColorFamily={state.attributes.color?.length === 1 ? state.attributes.color[0] : undefined}
         />
       </div>
     </div>

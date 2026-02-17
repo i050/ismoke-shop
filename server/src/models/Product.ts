@@ -150,6 +150,7 @@ export interface IProduct extends Document {
   isFeatured: boolean;
 
   // Pricing and discounts
+  compareAtPrice?: number; // מחיר לפני הנחה - להצגת חיסכון ללקוח (אופציונלי)
   isOnSale: boolean;
   discountPercentage: number;
   salePrice?: number;
@@ -423,6 +424,12 @@ const ProductSchema: Schema = new Schema({
   },
 
   // Pricing and discounts
+  // מחיר לפני הנחה - מוצג ללקוח כמחיר מחוק לצד המחיר הנוכחי
+  compareAtPrice: {
+    type: Number,
+    min: 0,
+    default: null,
+  },
   isOnSale: {
     type: Boolean,
     default: false,

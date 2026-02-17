@@ -407,11 +407,12 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       return (
         <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
           {/* 🎯 אם הציר המשני הוא צבע - נציג אותו ראשון (UX: צבע תמיד ראשון) */}
+          {/* במצב compactMode (כרטיסייה) - ללא wrapper שמוסיף מרווחים, כדי שהכפתורים יהיו באותו מיקום כמו צבע ראשי */}
           {isSecondaryAxisColor && customSecondaryOptions.length > 0 && (!hideSecondaryVariants || showSecondaryColorsInCompact) && (
-            <div className={styles.secondaryVariantSection}>
+            <div className={compactMode ? undefined : styles.secondaryVariantSection}>
               {!compactMode && <h4 className={styles.secondaryVariantTitle}>{secondaryLabelText}:</h4>}
               <div className={styles.variantOptions}>
-                {customSecondaryOptions.map((sku, idx) => {
+                {customSecondaryOptions.slice(0, showAllColors ? customSecondaryOptions.length : (maxColors || customSecondaryOptions.length)).map((sku, idx) => {
                   const colorHex = getSkuColor(sku);
                   const colorName = getSkuColorName(sku);
                   const colorCode = getColorCode(colorHex);
@@ -463,16 +464,31 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                     </Button>
                   );
                 })}
+                {/* אינדיקטור "+X" לצבעים נוספים - כמו במצב צבע ראשי */}
+                {maxColors && customSecondaryOptions.length > maxColors && !showAllColors && (
+                  <span 
+                    className={styles.moreColorsIndicator} 
+                    title={`לחץ להצגת כל ${customSecondaryOptions.length} הצבעים`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowAllColors(true);
+                    }}
+                  >
+                    +{customSecondaryOptions.length - maxColors}
+                  </span>
+                )}
               </div>
             </div>
           )}
 
           {/* ציר ראשי: דרופדאון או כפתורי צבע */}
-          {/* 🎯 במצב compact: אם הציר המשני הוא צבע, לא מציגים את הציר הראשי */}
-          {!(compactMode && isSecondaryAxisColor && showSecondaryColorsInCompact) && (isPrimaryAxisColor ? (
+          {/* 🎯 במצב compact: אם הציר הראשי או המשני הוא צבע, לא מציגים דרופדאון (מציגים רק כפתורי צבע) */}
+          {!(compactMode && (isSecondaryAxisColor && showSecondaryColorsInCompact || isPrimaryAxisColor)) && (isPrimaryAxisColor ? (
              <div className={styles.variantOptions}>
                 {!compactMode && <h3 className={styles.variantTitle}>{primaryLabelText}:</h3>}
-                {customVariantGroups.map((group, index) => {
+                {/* חיתוך לפי maxColors + אינדיקטור +X — זהה לנתיבי הצבע האחרים */}
+                {customVariantGroups.slice(0, showAllColors ? customVariantGroups.length : (maxColors || customVariantGroups.length)).map((group, index) => {
                   const representativeSku = group.skus[0];
                   const colorHex = getSkuColor(representativeSku);
                   const colorCode = getColorCode(colorHex);
@@ -485,7 +501,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                       size="sm"
                       className={`${styles.variantButton} ${
                         isSelected ? styles.variantActive : ''
-                      } ${showColorPreview ? styles.withColorPreview : ''}`}
+                      } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
                       onClick={() => handlePrimaryChange(group.variantName)}
                       style={{
                         ['--variant-color' as any]: colorCode,
@@ -493,11 +509,11 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                       }}
                       title={`בחר ${primaryLabelText} ${group.variantName}`}
                     >
-                      {showColorPreview && (
+                      {showColorPreview && !compactMode && (
                         <div className={styles.colorPreview} />
                       )}
                       
-                      {(() => {
+                      {!compactMode && (() => {
                         // 🆕 לוגיקת חיפוש תמונה גם ב-custom: colorImages (עדיפות) -> colorFamilyImages (fallback) -> תמונות SKU
                         const skuColorName = (representativeSku as any).color;
                         const skuColorFamily = (representativeSku as any).colorFamily;
@@ -522,6 +538,20 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                     </Button>
                   );
                 })}
+                {/* אינדיקטור "+X" לצבעים נוספים */}
+                {maxColors && customVariantGroups.length > maxColors && !showAllColors && (
+                  <span 
+                    className={styles.moreColorsIndicator} 
+                    title={`לחץ להצגת כל ${customVariantGroups.length} הצבעים`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowAllColors(true);
+                    }}
+                  >
+                    +{customVariantGroups.length - maxColors}
+                  </span>
+                )}
              </div>
           ) : !compactMode && (
             <div className={styles.customVariantSelector}>
@@ -913,7 +943,8 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
 
     return (
       <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
-        {/* דרופדאון 1: ציר ראשי (variantName/name) */}
+        {/* דרופדאון 1: ציר ראשי - מוסתר בכרטיסייה כשהציר המשני הוא צבע (כדי שכפתורי הצבע יהיו באותו מיקום תמיד) */}
+        {!(compactMode && isSecondaryAxisColorInNonColorMode) && (
         <div className={styles.customVariantSelector}>
           <label className={styles.customVariantLabel}>
             {getPrimaryVariantLabel()}:
@@ -936,15 +967,16 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
             </svg>
           </div>
         </div>
+        )}
 
         {/* ציר משני: כפתורי צבע או dropdown */}
         {secondaryOptions.length > 0 && (
           isSecondaryAxisColorInNonColorMode ? (
-            /* 🎯 אם הציר המשני הוא צבע - הצג כפתורי צבע */
-            <div className={styles.secondaryVariantSection}>
-              <h4 className={styles.secondaryVariantTitle}>צבע:</h4>
+            /* 🎯 אם הציר המשני הוא צבע - הצג כפתורי צבע (עם תמיכה ב-compactMode לכרטיסייה) */
+            <div className={compactMode ? undefined : styles.secondaryVariantSection}>
+              {!compactMode && <h4 className={styles.secondaryVariantTitle}>צבע:</h4>}
               <div className={styles.variantOptions}>
-                {secondaryOptions.map((sku, index) => {
+                {secondaryOptions.slice(0, showAllColors ? secondaryOptions.length : (maxColors || secondaryOptions.length)).map((sku, index) => {
                   const colorHex = getSkuColor(sku);
                   const colorName = getSkuColorName(sku);
                   const colorCode = getColorCode(colorHex);
@@ -957,7 +989,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                       size="sm"
                       className={`${styles.variantButton} ${
                         isSelected ? styles.variantActive : ''
-                      } ${showColorPreview ? styles.withColorPreview : ''}`}
+                      } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
                       onClick={() => onSkuChange(sku.sku)}
                       style={{
                         ['--variant-color' as any]: colorCode,
@@ -965,11 +997,11 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                       }}
                       title={`בחר צבע ${colorName || colorHex}`}
                     >
-                      {showColorPreview && (
+                      {showColorPreview && !compactMode && (
                         <div className={styles.colorPreview} />
                       )}
                       
-                      {(() => {
+                      {!compactMode && (() => {
                         const skuColorName = sku.color;
                         const skuColorFamily = sku.colorFamily;
                         
@@ -992,6 +1024,20 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                     </Button>
                   );
                 })}
+                {/* אינדיקטור "+X" לצבעים נוספים - כמו במצב צבע ראשי */}
+                {maxColors && secondaryOptions.length > maxColors && !showAllColors && (
+                  <span 
+                    className={styles.moreColorsIndicator} 
+                    title={`לחץ להצגת כל ${secondaryOptions.length} הצבעים`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowAllColors(true);
+                    }}
+                  >
+                    +{secondaryOptions.length - maxColors}
+                  </span>
+                )}
               </div>
             </div>
           ) : (

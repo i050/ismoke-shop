@@ -23,9 +23,10 @@ interface ProductsResultsProps {
   onRetry: () => void;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  activeColorFamily?: string; // 🆕 משפחת צבע פעילה מהסינון - לבחירת SKU מתאים אוטומטית בכרטיס
 }
 
-export const ProductsResults: React.FC<ProductsResultsProps> = ({ products, meta, loading, error, onRetry, onPageChange, onPageSizeChange }) => {
+export const ProductsResults: React.FC<ProductsResultsProps> = ({ products, meta, loading, error, onRetry, onPageChange, onPageSizeChange, activeColorFamily }) => {
   if (loading) return <div>טוען...</div>;
   if (error) return (
     <div className={styles.error}>
@@ -54,6 +55,7 @@ export const ProductsResults: React.FC<ProductsResultsProps> = ({ products, meta
             key={p._id} 
             product={p}
             variant="grid"
+            initialColorFamily={activeColorFamily}
           />
         ))}
       </div>

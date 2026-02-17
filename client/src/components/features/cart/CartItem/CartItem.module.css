@@ -494,6 +494,23 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* מחיר מקורי לפני הנחה - מחוק */
+.priceOriginal {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+  line-height: 1;
+}
+
+/* תג הנחת קבוצת לקוח */
+.groupBadge {
+  font-size: 0.65rem;
+  color: #10b981;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 /* בורר כמות - דסקטופ */
 .quantityDesktop {
   display: flex;
@@ -521,6 +538,13 @@
 /* מחיר סה"כ - מוסתר בגרסה זו */
 .totalPrice {
   display: none;
+}
+
+/* מחיר מקורי סה"כ לפני הנחה - מחוק */
+.totalOriginal {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-decoration: line-through;
 }
 
 /* כפתורי פעולות - בפינה הימנית העליונה */

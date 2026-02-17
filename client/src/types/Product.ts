@@ -1,11 +1,12 @@
 // ממשק לנתוני מחיר דינמיים שמגיעים מהשרת
 export interface PricingData {
   productId: string;
-  originalPrice: number;      // מחיר מקורי של המוצר
-  finalPrice: number;         // מחיר סופי אחרי הנחה
-  discountPercentage: number; // אחוז ההנחה שהוחל
-  customerGroupName?: string; // שם קבוצת הלקוח (אם יש)
-  hasDiscount: boolean;       // האם יש הנחה
+  originalPrice: number;       // מחיר מקורי להצגה (compareAtPrice או basePrice)
+  finalPrice: number;          // מחיר סופי שהלקוח משלם
+  discountPercentage: number;  // אחוז הנחת קבוצת לקוח (0 אם אין קבוצה)
+  customerGroupName?: string;  // שם קבוצת הלקוח (אם יש)
+  hasDiscount: boolean;        // האם יש הנחה כלשהי (compareAtPrice או קבוצה)
+  compareAtPrice?: number;     // מחיר לפני הנחה מהמוצר (אופציונלי)
 }
 
 // ✅ ממשק לתמונה עם DigitalOcean Spaces (3 גדלים מעובדים מראש)
@@ -97,6 +98,7 @@ export interface Product {// זה הטייפ של מוצר
   subtitle?: string; // שם משני אופציונלי - מוצג מתחת לשם הראשי
   description: string;
   basePrice: number;
+  compareAtPrice?: number; // מחיר לפני הנחה - להצגת חיסכון
   images: IImage[]; // Phase 1.4: שונה מ-string[] ל-IImage[]
   quantityInStock: number;
   sku?: string; // קוד SKU ברמת מוצר (לא SKU מרובים)

@@ -39,6 +39,7 @@ interface ProductCardProps {
   onAddToCart?: (product: Product, sku?: string, quantity?: number) => void; // פונקציה להוספה לסל עם קוד SKU וכמות
   onProductClick?: (productId: string) => void; // פונקציה לקליק על המוצר - אופציונלי
   className?: string;                           // קלאס נוסף - אופציונלי
+  initialColorFamily?: string;                  // 🆕 משפחת צבע מסינון - לבחירת SKU מתאים אוטומטית
 }
 
 // הגדרת דגל דיבאג הנשלט ע"י משתני הסביבה (כיבוי לוגים כברירת מחדל בסביבת פרודקשן)
@@ -57,7 +58,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   variant = 'grid',              // ברירת מחדל: grid - לשימוש בגריד מוצרים
   onAddToCart,
   onProductClick,
-  className = ''
+  className = '',
+  initialColorFamily,            // 🆕 משפחת צבע מסינון
 }) => {
   // יצירת מזהה אחוד (עדיפות ל-_id, פולבק ל-id)
   const productId = product._id || product.id || '';
@@ -74,10 +76,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
   // State לניהול התמונה הנוכחית המוצגת
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // State ל-SKU נבחר (קוד SKU, לא אינדקס) - אתחול עם ה-SKU הראשון אם קיים
-  const [selectedSku, setSelectedSku] = useState<string | null>(
-    product.skus && product.skus.length > 0 ? product.skus[0].sku : null
-  );
+  // State ל-SKU נבחר (קוד SKU, לא אינדקס)
+  // 🆕 אם יש initialColorFamily (מסינון לפי צבע) - מוצא SKU תואם כדי להציג את הצבע שסוננו לפיו
+  const [selectedSku, setSelectedSku] = useState<string | null>(() => {
+    if (!product.skus || product.skus.length === 0) return null;
+    // אם יש משפחת צבע מסינון, נבחר את ה-SKU הראשון שתואם לה
+    if (initialColorFamily) {
+      const matchingSku = product.skus.find(
+        s => (s as any).colorFamily === initialColorFamily
+      );
+      if (matchingSku) return matchingSku.sku;
+    }
+    // ברירת מחדל: SKU ראשון
+    return product.skus[0].sku;
+  });
   
   // חישוב כמה יחידות מה-SKU הנבחר נמצאות בעגלה של המשתמש
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,14 +137,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // אם ל-SKU הנבחר יש מחיר משלו (override), השתמש בו
     const skuBasePrice = selectedSkuData.price ?? updatedProduct.basePrice;
+    const hasSkuPriceOverride = selectedSkuData.price != null;
     
     // אם יש pricing מהשרת עם הנחה, החל את אחוז ההנחה על המחיר של ה-SKU
     if (updatedProduct.pricing?.hasDiscount) {
       const discountedPrice = skuBasePrice * (1 - (updatedProduct.pricing.discountPercentage || 0) / 100);
+      const finalPrice = Math.round(discountedPrice * 100) / 100;
+      
+      // מחיר מקורי: אם אין override ויש compareAtPrice, השתמש בו כמחיר לפני הנחה
+      const originalPrice = !hasSkuPriceOverride 
+        && updatedProduct.pricing.compareAtPrice 
+        && updatedProduct.pricing.compareAtPrice > finalPrice
+        ? updatedProduct.pricing.compareAtPrice
+        : skuBasePrice;
+      
       return {
         ...updatedProduct.pricing,
-        originalPrice: skuBasePrice,
-        finalPrice: Math.round(discountedPrice * 100) / 100
+        originalPrice,
+        finalPrice,
+        hasDiscount: originalPrice > finalPrice,
       };
     }
 
@@ -340,8 +363,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </div>
           )}
 
-          {product.pricing?.hasDiscount && (
-            <div className={styles.saleTag}>-{product.pricing.discountPercentage}%</div>
+          {product.pricing?.hasDiscount && product.pricing.originalPrice > product.pricing.finalPrice && (
+            <div className={styles.saleTag}>
+              -{Math.round(((product.pricing.originalPrice - product.pricing.finalPrice) / product.pricing.originalPrice) * 100)}%
+            </div>
           )}
         </div>
 
