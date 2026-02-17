@@ -4,8 +4,16 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* שינוי: מניעת שבירת שורה */
   font-family: inherit;
+}
+
+/* wrapper למחירים בלבד (מוזל + מחוק) */
+.pricesWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
 }
 
 /* גדלים שונים */
@@ -78,25 +86,82 @@
   white-space: nowrap;
 }
 
-/* שם קבוצת הלקוח - עם gradient זהב למראה premium/exclusive */
-.groupName {
-  /* Gradient זהב - מעבר משמאל ימין לאפקט דינמי */
-  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+/* wrapper לאייקון info עם tooltip */
+.groupInfoWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+/* אייקון info */
+.infoIcon {
+  color: #f59e0b;
+  transition: color 0.2s ease;
+}
+
+.groupInfoWrapper:hover .infoIcon {
+  color: #d97706;
+}
+
+/* Tooltip container - מוסתר כברירת מחדל */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* חץ של tooltip */
+.tooltip::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1f2937;
+}
+
+/* הצגת tooltip בריחוף */
+.groupInfoWrapper:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* טקסט בתוך tooltip */
+.tooltipText {
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: #f59e0b; /* fallback עבור דפדפנים שלא תומכים background-clip */
-  
-  /* סטיילינג */
-  font-size: 0.75em;
-  font-weight: 600;
-  padding: 0.2em 0.5em;
-  border-radius: 4px;
-  white-space: nowrap;
-  
-  /* Border זהב עדין */
-  border: 1px solid #fcd34d;
-  background-color: transparent; /* להסיר הרקע כדי לתת את הגרדיאנט */
+  font-weight: 700;
+  font-size: 0.875em;
+}
+
+.tooltipDiscount {
+  color: #d1d5db;
+  font-size: 0.8em;
+  font-weight: 400;
 }
 
 /* התאמה למובייל */

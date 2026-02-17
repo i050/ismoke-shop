@@ -66,21 +66,31 @@ const ProductPrice: React.FC<ProductPriceProps> = ({
   if (pricing && pricing.hasDiscount) {
     return (
       <div className={`${styles.priceContainer} ${styles[size]} ${className}`}>
-        {/* מחיר סופי מוזל */}
-        <span className={styles.discountedPrice}>
-          {formatPrice(finalPrice)}
-        </span>
-        
-        {/* מחיר מקורי מחוק */}
-        <span className={styles.originalPrice}>
-          {formatPrice(originalPrice)}
-        </span>
-        
-        {/* שם קבוצת הלקוח + אחוז הנחה */}
-        {pricing.customerGroupName && (
-          <span className={styles.groupName}>
-            {pricing.customerGroupName} • {pricing.discountPercentage}%
+        <div className={styles.pricesWrapper}>
+          {/* מחיר סופי מוזל */}
+          <span className={styles.discountedPrice}>
+            {formatPrice(finalPrice)}
           </span>
+          
+          {/* מחיר מקורי מחוק */}
+          <span className={styles.originalPrice}>
+            {formatPrice(originalPrice)}
+          </span>
+        </div>
+        
+        {/* אייקון info עם tooltip עבור שם קבוצת הלקוח */}
+        {pricing.customerGroupName && (
+          <div className={styles.groupInfoWrapper}>
+            <Icon name="Info" size={14} className={styles.infoIcon} />
+            <div className={styles.tooltip}>
+              <span className={styles.tooltipText}>
+                {pricing.customerGroupName}
+              </span>
+              <span className={styles.tooltipDiscount}>
+                {pricing.discountPercentage}% הנחה
+              </span>
+            </div>
+          </div>
         )}
       </div>
     );
