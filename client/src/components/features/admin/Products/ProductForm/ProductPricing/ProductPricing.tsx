@@ -136,7 +136,7 @@ const ProductPricing: React.FC<ProductPricingProps> = ({
         {/* מחיר להשוואה */}
         <div className={styles.formGroup}>
           <Input
-            label="מחיר להשוואה (אופציונלי)"
+            label="מחיר לפני הנחה (אופציונלי)"
             type="number"
             value={values.compareAtPrice?.toString() || ''}
             onChange={handleCompareAtPriceChange}
