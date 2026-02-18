@@ -6,10 +6,12 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
+# מתקין את כל ה-dependencies כולל devDependencies — נדרש לשלב הbuild
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["npm run build || echo 'No build step'"]
+# קומפיל TypeScript ל-JavaScript — חובה בproduction
+cmds = ["npm run build && echo 'TypeScript build completed successfully'"]
 
 [start]
 cmd = "npm run start"
