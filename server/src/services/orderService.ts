@@ -948,6 +948,9 @@ class OrderService {
   ): Promise<IOrder> {
     const update: any = { paymentStatus };
     
+    // סנכרון שדה payment.status עם paymentStatus ברמה העליונה
+    update['payment.status'] = paymentStatus;
+    
     if (paymentInfo) {
       if (paymentInfo.transactionId) {
         update['payment.transactionId'] = paymentInfo.transactionId;

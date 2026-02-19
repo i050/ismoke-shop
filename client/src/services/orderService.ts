@@ -103,6 +103,15 @@ export type OrderStatus =
   | 'cancelled'
   | 'refunded';
 
+/** סטטוס תשלום */
+export type PaymentStatus = 
+  | 'pending'
+  | 'paid'
+  | 'failed'
+  | 'cancelled'
+  | 'refunded'
+  | 'partially_refunded';
+
 /** פריט בהזמנה (מהשרת) */
 export interface OrderItem {
   productId: string;
@@ -123,7 +132,7 @@ export interface OrderItem {
 export interface PaymentInfo {
   gateway: 'stripe' | 'paypal' | 'cash' | 'mock';
   transactionId?: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'cancelled';
+  status: 'pending' | 'processing' | 'completed' | 'paid' | 'failed' | 'refunded' | 'cancelled' | 'partially_refunded';
   lastError?: string;
   paidAt?: string;
 }
@@ -371,6 +380,22 @@ export const updateOrderStatus = async (
 };
 
 /**
+ * עדכון סטטוס תשלום (Admin)
+ * מאפשר למנהל לשנות סטטוס תשלום (למשל: סימון כ"שולם" עבור תשלום במזומן)
+ */
+export const updatePaymentStatus = async (
+  orderId: string,
+  paymentStatus: PaymentStatus
+): Promise<{ success: boolean; data: Order; message?: string }> => {
+  const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/payment-status`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ paymentStatus })
+  });
+  return handleResponse(response);
+};
+
+/**
  * שליחה מחדש של מייל עדכון משלוח (Admin)
  */
 export const resendShippedEmail = async (orderId: string): Promise<{ success: boolean; message: string }> => {
@@ -492,6 +517,7 @@ export const orderService = {
   // Admin
   getAllOrders,
   updateOrderStatus,
+  updatePaymentStatus,
   getOrdersStats,
   getTopSellingProducts,
   getRevenueByCustomerGroup

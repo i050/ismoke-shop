@@ -217,6 +217,37 @@
   gap: var(--spacing-sm);
 }
 
+/* Payment Cell - עמודת תשלום עם dropdown לעדכון */
+.paymentCell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.paymentSelect {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ordersTable tbody tr:hover .paymentSelect {
+  opacity: 1;
+  border-color: var(--color-border);
+  background: var(--color-bg-primary);
+}
+
+.paymentSelect:focus {
+  opacity: 1;
+  outline: none;
+  border-color: var(--color-primary);
+}
+
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -679,6 +710,15 @@
   .ordersTable tbody tr td:nth-child(8) {
     grid-area: actions;
     justify-content: flex-end;
+  }
+
+  /* Payment select נראה תמיד במובייל */
+  .paymentSelect {
+    opacity: 1;
+    border-color: var(--color-border);
+    background: var(--color-bg-primary);
+    padding: 6px 10px;
+    font-size: var(--font-size-xs);
   }
 
   /* Badge adjustments */

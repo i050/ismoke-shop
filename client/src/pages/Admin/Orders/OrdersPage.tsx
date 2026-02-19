@@ -27,9 +27,9 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { getAllOrders, updateOrderStatus, getOrdersStats } from '../../../services/orderService';
+import { getAllOrders, updateOrderStatus, updatePaymentStatus, getOrdersStats } from '../../../services/orderService';
 import { useToast } from '../../../hooks/useToast';
-import type { Order, OrderStatus, ShippingDetails } from '../../../services/orderService';
+import type { Order, OrderStatus, PaymentStatus, ShippingDetails } from '../../../services/orderService';
 import { OrderDetailModal } from './components';
 import { ReAuthModal } from '../../../components/features/auth/ReAuthModal/ReAuthModal';
 import { isRecentlyAuthenticated } from '../../../utils/tokenUtils';
@@ -76,7 +76,18 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
   failed: 'נכשל',
   refunded: 'הוחזר',
   cancelled: 'בוטל',
+  partially_refunded: 'הוחזר חלקית',
 };
+
+// אפשרויות סטטוס תשלום ל-dropdown
+const PAYMENT_STATUS_OPTIONS: { value: PaymentStatus; label: string }[] = [
+  { value: 'pending', label: 'לא שולם' },
+  { value: 'paid', label: 'שולם' },
+  { value: 'failed', label: 'נכשל' },
+  { value: 'cancelled', label: 'בוטל' },
+  { value: 'refunded', label: 'הוחזר' },
+  { value: 'partially_refunded', label: 'הוחזר חלקית' },
+];
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'warning',
@@ -124,6 +135,7 @@ const OrdersPage: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [updatingPayment, setUpdatingPayment] = useState<string | null>(null);
   
   const [filters, setFilters] = useState<Filters>({
     status: '',
@@ -143,6 +155,7 @@ const OrdersPage: React.FC = () => {
   // 🔐 Soft Login - ReAuth Modal state
   const [showReAuthModal, setShowReAuthModal] = useState(false);
   const pendingStatusUpdateRef = useRef<{ orderId: string; newStatus: OrderStatus; shippingDetails?: ShippingDetails } | null>(null);
+  const pendingPaymentUpdateRef = useRef<{ orderId: string; paymentStatus: PaymentStatus } | null>(null);
   
   const { showToast } = useToast();
 
@@ -326,10 +339,18 @@ const OrdersPage: React.FC = () => {
   const handleReAuthSuccess = async () => {
     setShowReAuthModal(false);
     
+    // בדיקה אם יש עדכון סטטוס הזמנה ממתין
     if (pendingStatusUpdateRef.current) {
       const { orderId, newStatus, shippingDetails } = pendingStatusUpdateRef.current;
       pendingStatusUpdateRef.current = null;
       await executeStatusUpdate(orderId, newStatus, shippingDetails);
+    }
+    
+    // בדיקה אם יש עדכון סטטוס תשלום ממתין
+    if (pendingPaymentUpdateRef.current) {
+      const { orderId, paymentStatus } = pendingPaymentUpdateRef.current;
+      pendingPaymentUpdateRef.current = null;
+      await executePaymentStatusUpdate(orderId, paymentStatus);
     }
   };
   
@@ -337,6 +358,57 @@ const OrdersPage: React.FC = () => {
   const handleReAuthClose = () => {
     setShowReAuthModal(false);
     pendingStatusUpdateRef.current = null;
+    pendingPaymentUpdateRef.current = null;
+  };
+
+  // ==========================================================================
+  // Payment Status Handlers - עדכון סטטוס תשלום
+  // ==========================================================================
+
+  const handlePaymentStatusUpdate = async (orderId: string, newPaymentStatus: PaymentStatus) => {
+    // 🔐 Soft Login - בדיקה האם נדרש אימות מחדש
+    if (!isRecentlyAuthenticated(true)) {
+      pendingPaymentUpdateRef.current = { orderId, paymentStatus: newPaymentStatus };
+      setShowReAuthModal(true);
+      return;
+    }
+    
+    await executePaymentStatusUpdate(orderId, newPaymentStatus);
+  };
+  
+  // פונקציה פנימית לביצוע עדכון סטטוס תשלום (לאחר אימות)
+  const executePaymentStatusUpdate = async (orderId: string, newPaymentStatus: PaymentStatus) => {
+    try {
+      setUpdatingPayment(orderId);
+      const response = await updatePaymentStatus(orderId, newPaymentStatus);
+      
+      if (response.success) {
+        // עדכון הרשימה המקומית עם הנתונים מהשרת
+        setOrders(prev => 
+          prev.map(order => 
+            order._id === orderId 
+              ? { 
+                  ...order, 
+                  ...response.data,
+                  payment: { ...order.payment, status: newPaymentStatus }
+                }
+              : order
+          )
+        );
+        fetchStats();
+        showToast('success', `סטטוס תשלום עודכן ל-${PAYMENT_STATUS_LABELS[newPaymentStatus]}`);
+      }
+    } catch (err: any) {
+      console.error('Error updating payment status:', err);
+      if (err?.response?.data?.code === 'REAUTH_REQUIRED') {
+        pendingPaymentUpdateRef.current = { orderId, paymentStatus: newPaymentStatus };
+        setShowReAuthModal(true);
+        return;
+      }
+      showToast('error', 'שגיאה בעדכון סטטוס תשלום');
+    } finally {
+      setUpdatingPayment(null);
+    }
   };
 
   const handleViewOrder = (order: Order) => {
@@ -559,12 +631,30 @@ const OrdersPage: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <span className={`${styles.badge} ${
-                        order.payment?.status === 'completed' ? styles.badgesuccess : 
-                        order.payment?.status === 'failed' ? styles.badgedanger : styles.badgewarning
-                      }`}>
-                        {PAYMENT_STATUS_LABELS[order.payment?.status || 'pending'] || 'ממתין'}
-                      </span>
+                      <div className={styles.paymentCell}>
+                        <span className={`${styles.badge} ${
+                          order.payment?.status === 'completed' || order.payment?.status === 'paid' ? styles.badgesuccess : 
+                          order.payment?.status === 'failed' ? styles.badgedanger : styles.badgewarning
+                        }`}>
+                          {PAYMENT_STATUS_LABELS[order.payment?.status || 'pending'] || 'ממתין'}
+                        </span>
+                        
+                        {/* עדכון מהיר של סטטוס תשלום */}
+                        <select
+                          value={order.payment?.status === 'completed' ? 'paid' : (order.payment?.status || 'pending')}
+                          onChange={(e) => handlePaymentStatusUpdate(order._id, e.target.value as PaymentStatus)}
+                          className={styles.paymentSelect}
+                          disabled={updatingPayment === order._id}
+                          aria-label="עדכון סטטוס תשלום"
+                          title="עדכון סטטוס תשלום"
+                        >
+                          {PAYMENT_STATUS_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
                     <td>
                       <Button
@@ -624,6 +714,9 @@ const OrdersPage: React.FC = () => {
           }}
           onStatusUpdate={(status: OrderStatus, shippingDetails?: ShippingDetails) => 
             handleStatusUpdate(selectedOrder._id, status, shippingDetails)
+          }
+          onPaymentStatusUpdate={(paymentStatus: PaymentStatus) =>
+            handlePaymentStatusUpdate(selectedOrder._id, paymentStatus)
           }
         />
       )}

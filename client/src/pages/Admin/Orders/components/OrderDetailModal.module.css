@@ -146,6 +146,65 @@
   cursor: pointer;
 }
 
+/* עדכון סטטוס תשלום - מודל פרטי הזמנה */
+.paymentStatusUpdate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.paymentUpdateLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.paymentUpdateRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.paymentSelect {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.paymentSelect:hover {
+  border-color: var(--color-border-hover);
+}
+
+.paymentSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.paymentSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.updatingText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
 /* שדות פרטי משלוח - מוצגים כשבוחרים "נשלח" */
 .shippingFields {
   background: linear-gradient(135deg, var(--color-success-bg) 0%, var(--color-info-bg) 100%);

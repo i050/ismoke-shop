@@ -33,7 +33,7 @@ import {
 import domtoimage from 'dom-to-image-more';
 import { jsPDF } from 'jspdf';
 import { Button, Input } from '../../../../components/ui';
-import type { Order, OrderStatus, ShippingDetails } from '../../../../services/orderService';
+import type { Order, OrderStatus, PaymentStatus, ShippingDetails } from '../../../../services/orderService';
 import styles from './OrderDetailModal.module.css';
 
 // ============================================================================
@@ -45,6 +45,7 @@ interface OrderDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusUpdate: (status: OrderStatus, shippingDetails?: ShippingDetails) => void;
+  onPaymentStatusUpdate: (paymentStatus: PaymentStatus) => void;
 }
 
 // ============================================================================
@@ -75,10 +76,22 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
   pending: 'ממתין לתשלום',
   processing: 'בעיבוד',
   completed: 'שולם',
+  paid: 'שולם',
   failed: 'נכשל',
   refunded: 'הוחזר',
   cancelled: 'בוטל',
+  partially_refunded: 'הוחזר חלקית',
 };
+
+// אפשרויות סטטוס תשלום ל-dropdown
+const PAYMENT_STATUS_OPTIONS: { value: PaymentStatus; label: string }[] = [
+  { value: 'pending', label: 'לא שולם' },
+  { value: 'paid', label: 'שולם' },
+  { value: 'failed', label: 'נכשל' },
+  { value: 'cancelled', label: 'בוטל' },
+  { value: 'refunded', label: 'הוחזר' },
+  { value: 'partially_refunded', label: 'הוחזר חלקית' },
+];
 
 // ============================================================================
 // Component
@@ -89,9 +102,11 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   isOpen,
   onClose,
   onStatusUpdate,
+  onPaymentStatusUpdate,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(order.status);
   const [updating, setUpdating] = useState(false);
+  const [updatingPayment, setUpdatingPayment] = useState(false);
   
   // פרטי משלוח אופציונליים - מוצגים רק כשבוחרים "נשלח"
   const [shippingCarrier, setShippingCarrier] = useState(order.shippingCarrier || '');
@@ -511,13 +526,48 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 </span>
                 <span 
                   className={`${styles.badge} ${
-                    order.payment?.status === 'completed' ? styles.badgesuccess : 
+                    order.payment?.status === 'completed' || order.payment?.status === 'paid' ? styles.badgesuccess : 
                     order.payment?.status === 'failed' ? styles.badgedanger : styles.badgewarning
                   }`}
                 >
                   <CreditCard size={14} />
                   {PAYMENT_STATUS_LABELS[order.payment?.status || 'pending'] || order.payment?.status}
                 </span>
+              </div>
+              
+              {/* עדכון סטטוס תשלום - dropdown */}
+              <div className={`${styles.paymentStatusUpdate} no-print`}>
+                <label className={styles.paymentUpdateLabel}>
+                  <CreditCard size={14} />
+                  עדכון סטטוס תשלום:
+                </label>
+                <div className={styles.paymentUpdateRow}>
+                  <select
+                    value={order.payment?.status === 'completed' ? 'paid' : (order.payment?.status || 'pending')}
+                    onChange={async (e) => {
+                      const newStatus = e.target.value as PaymentStatus;
+                      const currentStatus = order.payment?.status === 'completed' ? 'paid' : (order.payment?.status || 'pending');
+                      if (newStatus === currentStatus) return;
+                      setUpdatingPayment(true);
+                      try {
+                        await onPaymentStatusUpdate(newStatus);
+                      } finally {
+                        setUpdatingPayment(false);
+                      }
+                    }}
+                    className={styles.paymentSelect}
+                    disabled={updatingPayment}
+                    aria-label="עדכון סטטוס תשלום"
+                    title="עדכון סטטוס תשלום"
+                  >
+                    {PAYMENT_STATUS_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  {updatingPayment && <span className={styles.updatingText}>מעדכן...</span>}
+                </div>
               </div>
               
               <div className={`${styles.statusUpdate} no-print`}>
