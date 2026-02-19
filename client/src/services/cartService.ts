@@ -122,6 +122,22 @@ const cartService = {
   },
 
   /**
+   * שינוי וריאנט (SKU) של פריט קיים בסל
+   * מחליף את ה-SKU בלי צורך למחוק ולהוסיף מחדש - שומר על מיקום וכמות
+   * @param itemId - מזהה הפריט בסל
+   * @param newSku - קוד ה-SKU החדש
+   */
+  async changeItemVariant(itemId: string, newSku: string): Promise<Cart> {
+    const response = await fetch(`${API_BASE_URL}/api/cart/items/${itemId}/variant`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ sku: newSku }),
+    });
+
+    return handleResponse<Cart>(response);
+  },
+
+  /**
    * ניקוי הסל המלא
    */
   async clearCart(): Promise<Cart> {

@@ -277,6 +277,50 @@ export const removeItemFromCart = createAsyncThunk(
 );
 
 /**
+ * שינוי וריאנט (SKU) של פריט קיים בסל
+ * מחליף את ה-SKU ישירות בלי צורך למחוק ולהוסיף מחדש
+ * מעדכן מחיר, תמונה, מלאי ופרטי וריאנט אוטומטית מצד השרת
+ */
+export const changeItemVariant = createAsyncThunk(
+  'cart/changeItemVariant',
+  async (
+    payload: { itemId: string; newSku: string },
+    { dispatch, rejectWithValue }
+  ) => {
+    try {
+      // סימון הפריט כ"בעדכון"
+      dispatch(cartSlice.actions.startUpdatingItem(payload.itemId));
+
+      const cart = await cartService.changeItemVariant(payload.itemId, payload.newSku);
+      // שמירה ב-localStorage
+      cartService.saveLocalCart(cart);
+
+      // סיום מצב עדכון
+      dispatch(cartSlice.actions.finishUpdatingItem(payload.itemId));
+      dispatch(cartSlice.actions.setUpdatingItemError({ itemId: payload.itemId, message: null }));
+
+      return cart;
+    } catch (error: any) {
+      dispatch(cartSlice.actions.finishUpdatingItem(payload.itemId));
+      const status = error?.status || 500;
+      const message = error?.message || 'שגיאה בשינוי וריאנט';
+      // הצגת הודעת שגיאה על הפריט
+      dispatch(cartSlice.actions.setUpdatingItemError({ itemId: payload.itemId, message }));
+      setTimeout(() => {
+        dispatch(cartSlice.actions.setUpdatingItemError({ itemId: payload.itemId, message: null }));
+      }, 3500);
+
+      if (status < 500) {
+        const id = `err_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+        dispatch(cartSlice.actions.addTransientError({ id, message, status }));
+        setTimeout(() => dispatch(cartSlice.actions.clearTransientError(id)), 3500);
+      }
+      return rejectWithValue({ message, status });
+    }
+  }
+);
+
+/**
  * ניקוי הסל
  */
 export const clearCart = createAsyncThunk(
@@ -596,6 +640,46 @@ const cartSlice = createSlice({
         const message = payload?.message || payload || 'שגיאה בהסרת פריט';
         const status = payload?.status || 500;
         // רק כשמדובר בשגיאה פאטלית (5xx) נציג page-level error
+        if (status >= 500) {
+          state.fatalError = { message, status };
+        }
+      });
+    
+    // changeItemVariant - שינוי וריאנט (SKU) של פריט
+    builder
+      .addCase(changeItemVariant.pending, (state) => {
+        // לא מסמנים isLoading גלובלי - הפריט עצמו יציג ספינר
+        state.error = null;
+        state.fatalError = null;
+      })
+      .addCase(changeItemVariant.fulfilled, (state, action) => {
+        // שמירת מצב הבחירה של כל פריט לפני עדכון הסל
+        const selectionState: Record<string, boolean> = {};
+        if (state.cart) {
+          state.cart.items.forEach(item => {
+            if (item._id) {
+              selectionState[item._id] = item.isSelected ?? true;
+            }
+          });
+        }
+
+        state.cart = action.payload;
+        
+        // שחזור מצב הבחירה + סימון פריטים חדשים כנבחרים
+        if (state.cart) {
+          state.cart.items = state.cart.items.map(item => ({
+            ...item,
+            isSelected: item._id && selectionState[item._id] !== undefined
+              ? selectionState[item._id]
+              : true,
+          }));
+        }
+        state.error = null;
+      })
+      .addCase(changeItemVariant.rejected, (state, action) => {
+        const payload: any = action.payload;
+        const message = payload?.message || payload || 'שגיאה בשינוי וריאנט';
+        const status = payload?.status || 500;
         if (status >= 500) {
           state.fatalError = { message, status };
         }

@@ -3,6 +3,7 @@ import {
   getCart,
   addItem,
   updateItemQuantity,
+  changeItemVariant,
   removeItem,
   clearCart,
   mergeCarts,
@@ -29,6 +30,9 @@ router.post('/adjust-quantities', optionalAuthMiddleware, adjustCartQuantities);
 
 // POST /api/cart/items - הוספת פריט לסל
 router.post('/items', optionalAuthMiddleware, addItem);
+
+// PUT /api/cart/items/:itemId/variant - שינוי וריאנט (SKU) של פריט
+router.put('/items/:itemId/variant', optionalAuthMiddleware, changeItemVariant);
 
 // PUT /api/cart/items/:itemId - עדכון כמות פריט
 router.put('/items/:itemId', optionalAuthMiddleware, updateItemQuantity);

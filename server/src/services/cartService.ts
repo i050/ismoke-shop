@@ -505,6 +505,136 @@ class CartService {
   }
 
   /**
+   * שינוי וריאנט (SKU) של פריט קיים בסל
+   * מחליף את ה-SKU של הפריט תוך שמירה על מיקומו בסל
+   * מעדכן מחיר, תמונה, מלאי ופרטי וריאנט בהתאם ל-SKU החדש
+   * @param cart - הסל הפעיל
+   * @param itemId - מזהה הפריט בסל
+   * @param newSkuCode - קוד ה-SKU החדש
+   */
+  async changeItemVariant(
+    cart: ICart,
+    itemId: string,
+    newSkuCode: string
+  ): Promise<ICart> {
+    // מציאת הפריט בסל
+    const item = cart.items.find(i => i._id?.toString() === itemId);
+    if (!item) {
+      throw new Error('הפריט לא נמצא בסל');
+    }
+
+    // אם ה-SKU לא השתנה - אין צורך בעדכון
+    if (item.sku === newSkuCode) {
+      return cart;
+    }
+
+    // בדיקה שה-SKU החדש שייך לאותו מוצר
+    const newSkuDoc = await Sku.findOne({
+      sku: newSkuCode,
+      productId: item.productId,
+    }).lean<ISku>();
+
+    if (!newSkuDoc) {
+      throw new Error('SKU לא נמצא למוצר זה');
+    }
+
+    if (!newSkuDoc.isActive) {
+      throw new Error('וריאנט זה אינו זמין כרגע');
+    }
+
+    // בדיקה שאין כבר פריט בסל עם אותו SKU חדש (מניעת כפילויות)
+    const duplicateItem = cart.items.find(
+      i => i._id?.toString() !== itemId &&
+           i.productId.toString() === item.productId.toString() &&
+           i.sku === newSkuCode
+    );
+
+    if (duplicateItem) {
+      // מיזוג: העברת הכמות לפריט הקיים והסרת הנוכחי
+      const mergedQuantity = Math.min(
+        duplicateItem.quantity + item.quantity,
+        newSkuDoc.stockQuantity
+      );
+      duplicateItem.quantity = mergedQuantity;
+      duplicateItem.subtotal = Math.round(duplicateItem.price * mergedQuantity * 100) / 100;
+      duplicateItem.availableStock = newSkuDoc.stockQuantity;
+      // הסרת הפריט הנוכחי (כי כבר מוזג לפריט הקיים)
+      cart.items = cart.items.filter(i => i._id?.toString() !== itemId);
+      cart = await this.recalculateCart(cart);
+      await cart.save();
+      return cart;
+    }
+
+    // התאמת כמות למלאי הזמין של ה-SKU החדש
+    const adjustedQuantity = Math.min(item.quantity, newSkuDoc.stockQuantity);
+    if (adjustedQuantity === 0) {
+      throw new Error('הווריאנט שנבחר אזל מהמלאי');
+    }
+
+    // שליפת המוצר לקבלת basePrice ומידע נוסף
+    const product = await Product.findById(item.productId)
+      .select('basePrice subtitle images secondaryVariantAttribute')
+      .lean<ProductPricingSnapshot & { secondaryVariantAttribute?: string | null }>();
+
+    if (!product) {
+      throw new Error('המוצר לא נמצא');
+    }
+
+    // Base Price + Override Pattern
+    const effectivePrice = newSkuDoc.price ?? product.basePrice;
+
+    // חישוב מחיר עם הנחת קבוצת לקוח
+    const pricingResult = await this.calculatePriceWithGroupDiscount(
+      effectivePrice,
+      cart.userId as mongoose.Types.ObjectId | undefined
+    );
+
+    // עדכון כל פרטי הפריט בהתאם ל-SKU החדש
+    item.sku = newSkuCode;
+    item.quantity = adjustedQuantity;
+    item.price = pricingResult.finalPrice;
+    item.originalPrice = pricingResult.hasDiscount ? pricingResult.originalPrice : undefined;
+    item.discountPercentage = pricingResult.hasDiscount ? pricingResult.discountPercentage : undefined;
+    item.customerGroupName = pricingResult.customerGroupName;
+    item.subtotal = Math.round(pricingResult.finalPrice * adjustedQuantity * 100) / 100;
+    item.availableStock = newSkuDoc.stockQuantity;
+
+    // עדכון תמונה - עדיפות ל-SKU, fallback למוצר
+    const freshImage = newSkuDoc.images && newSkuDoc.images.length > 0
+      ? (typeof newSkuDoc.images[0] === 'string' ? newSkuDoc.images[0] : newSkuDoc.images[0].medium)
+      : (product.images && product.images.length > 0 ? product.images[0].medium : '');
+    if (freshImage) {
+      item.image = freshImage;
+    }
+
+    // עדכון פרטי הווריאנט
+    const secondaryAttr = product.secondaryVariantAttribute;
+    const secondaryVal = secondaryAttr && newSkuDoc.attributes?.[secondaryAttr];
+
+    // שליפת שם המאפיין מ-FilterAttribute (אם קיים)
+    let secondaryAttrName: string | undefined;
+    if (secondaryAttr) {
+      const filterAttr = await FilterAttribute.findOne({ key: secondaryAttr }).lean();
+      secondaryAttrName = filterAttr?.name;
+    }
+
+    item.variant = {
+      color: newSkuDoc.color,
+      size: newSkuDoc.attributes?.size,
+      name: newSkuDoc.name,
+      secondaryAttribute: secondaryAttr || undefined,
+      secondaryAttributeName: secondaryAttrName,
+      secondaryValue: secondaryVal || undefined,
+    };
+
+    // חישוב מחדש של הסל
+    cart = await this.recalculateCart(cart);
+    await cart.save();
+
+    return cart;
+  }
+
+  /**
    * ניקוי הסל
    */
   async clearCart(cart: ICart): Promise<ICart> {

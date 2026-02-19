@@ -167,6 +167,64 @@ export const addItem = async (req: Request, res: Response): Promise<void> => {
 };
 
 /**
+ * PUT /api/cart/items/:itemId/variant - שינוי וריאנט (SKU) של פריט בסל
+ * Body: { sku } - קוד ה-SKU החדש
+ */
+export const changeItemVariant = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { itemId } = req.params;
+    const { sku } = req.body;
+
+    // ולידציה - קוד SKU חדש הוא חובה
+    if (!sku) {
+      res.status(400).json({
+        success: false,
+        message: 'חסר קוד SKU חדש',
+      });
+      return;
+    }
+
+    const userId = req.user?.userId ? new mongoose.Types.ObjectId(req.user.userId) : undefined;
+    const sessionId = req.cookies?.sessionId || req.headers['x-session-id'] as string;
+
+    // קבלת הסל
+    let cart = await cartService.getOrCreateCart(userId, sessionId);
+
+    // שינוי הווריאנט
+    cart = await cartService.changeItemVariant(cart, itemId, sku);
+
+    res.status(200).json({
+      success: true,
+      message: 'הווריאנט עודכן בהצלחה',
+      data: cart,
+    });
+  } catch (error: any) {
+    console.error('שגיאה בשינוי וריאנט:', error);
+
+    // שגיאות ידועות (400)
+    if (
+      error.message.includes('לא נמצא') ||
+      error.message.includes('במלאי') ||
+      error.message.includes('SKU') ||
+      error.message.includes('אינו זמין') ||
+      error.message.includes('אזל')
+    ) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'שגיאה בשינוי וריאנט',
+      error: error.message,
+    });
+  }
+};
+
+/**
  * PUT /api/cart/items/:itemId - עדכון כמות פריט
  * Body: { quantity }
  */

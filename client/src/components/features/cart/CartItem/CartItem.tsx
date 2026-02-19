@@ -1,11 +1,13 @@
 // CartItem - קומפוננטה להצגת פריט בסל הקניות
 // מציגה תמונה, שם, מחיר, בורר כמות וכפתור הסרה
+// כולל דרופדאון לשינוי גרסה (וריאנט/SKU) ישירות מהעגלה
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { ProductService } from '../../../../services/productService';
 import { useAppDispatch, useAppSelector } from '../../../../hooks/reduxHooks';
-import { setItemAvailableStock } from '../../../../store/slices/cartSlice';
+import { setItemAvailableStock, changeItemVariant } from '../../../../store/slices/cartSlice';
 import type { CartItem as CartItemType } from '../../../../store/slices/cartSlice';
+import type { Sku } from '../../../../types/Product';
 import QuantitySelector from '../../../ui/QuantitySelector';
 import { Button } from '../../../ui/Button';
 import { Icon } from '../../../ui/Icon/Icon';
@@ -24,6 +26,29 @@ function getSecondaryAttributeLabel(attribute: string): string {
     nicotine: 'ניקוטין',
   };
   return labels[attribute] || attribute;
+}
+
+/**
+ * בניית שם תצוגה קריא לכל SKU - לדרופדאון שינוי גרסה
+ * מנסה להשתמש בשם הווריאנט, צבע, מידה או שם ה-SKU כ-fallback
+ */
+function getSkuDisplayLabel(sku: Sku): string {
+  // וריאנט מותאם אישית - variantName + subVariantName
+  if (sku.variantName) {
+    return sku.subVariantName
+      ? `${sku.variantName} - ${sku.subVariantName}`
+      : sku.variantName;
+  }
+  // וריאנט מבוסס צבע/מידה
+  const parts: string[] = [];
+  if (sku.color) {
+    const isHex = isHexColor(sku.color.startsWith('#') ? sku.color : `#${sku.color}`);
+    parts.push(isHex ? (getColorNameHebrew(sku.color) || sku.color) : sku.color);
+  }
+  if (sku.attributes?.size) parts.push(sku.attributes.size);
+  if (parts.length > 0) return parts.join(' / ');
+  // fallback לשם ה-SKU
+  return sku.name || sku.sku;
 }
 
 // ממשק Props של הקומפוננטה
@@ -74,6 +99,64 @@ const CartItem = ({
   const [pendingQuantity, setPendingQuantity] = useState<number | null>(null);
   const debounceTimerRef = useRef<number | null>(null);
   const DEBOUNCE_DELAY = 300; // זמן debounce ב-ms
+
+  // =============================================
+  // דרופדאון שינוי גרסה (וריאנט/SKU) בעגלה
+  // =============================================
+  // רשימת ה-SKUs הזמינים למוצר (null = עוד לא נטען)
+  const [productSkus, setProductSkus] = useState<Sku[] | null>(null);
+  // האם בטעינת SKUs
+  const [isLoadingSkus, setIsLoadingSkus] = useState(false);
+  // ref למניעת טעינה כפולה
+  const skusFetchedRef = useRef(false);
+  // ref לביטול בקשת SKU
+  const skuFetchControllerRef = useRef<AbortController | null>(null);
+
+  /**
+   * טעינת SKUs זמינים למוצר - נקרא בפוקוס/לחיצה ראשונה על הדרופדאון
+   * Lazy loading - לא טוען עד שהמשתמש מגלה עניין
+   */
+  const fetchProductSkus = useCallback(async () => {
+    // אם כבר נטען או בתהליך טעינה - דלג
+    if (skusFetchedRef.current || isLoadingSkus) return;
+    setIsLoadingSkus(true);
+    try {
+      // ביטול בקשה קודמת אם קיימת
+      if (skuFetchControllerRef.current) {
+        skuFetchControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      skuFetchControllerRef.current = controller;
+
+      const product = await ProductService.getProductById(item.productId, controller.signal);
+      // סינון SKUs פעילים בלבד
+      const activeSkus = product.skus?.filter(s => s.isActive) || [];
+      setProductSkus(activeSkus);
+      skusFetchedRef.current = true;
+      skuFetchControllerRef.current = null;
+    } catch (err) {
+      // בביטול בקשה - לא שגיאה
+      if (err instanceof Error && err.name === 'AbortError') return;
+      // שגיאה שקטה - הדרופדאון פשוט לא ייפתח עם אופציות
+      console.warn('שגיאה בטעינת SKUs עבור דרופדאון שינוי גרסה:', err);
+    } finally {
+      setIsLoadingSkus(false);
+    }
+  }, [item.productId, isLoadingSkus]);
+
+  /**
+   * טיפול בשינוי וריאנט מהדרופדאון
+   * שולח בקשה לשרת להחלפת ה-SKU של הפריט בסל
+   */
+  const handleVariantChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSku = e.target.value;
+    if (!newSku || newSku === item.sku || !item._id) return;
+    dispatch(changeItemVariant({ itemId: item._id, newSku }));
+  }, [dispatch, item.sku, item._id]);
+
+  // האם להציג את דרופדאון שינוי הגרסה
+  // מוצג רק כשיש SKU (כלומר המוצר תומך ב-SKUs) ויש יותר מ-SKU אחד
+  const showVariantDropdown = item.sku && (productSkus === null || (productSkus && productSkus.length > 1));
 
   // פונקציה אחידה להצגת ה־pill לזמן קצר ולמחיקתו אחרי זמן מומלץ
   const showStockPill = async () => {
@@ -166,6 +249,11 @@ const CartItem = ({
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = null;
+      }
+      // ניקוי בקשת SKU אם בתהליך
+      if (skuFetchControllerRef.current) {
+        skuFetchControllerRef.current.abort();
+        skuFetchControllerRef.current = null;
       }
     };
   }, []);
@@ -328,6 +416,41 @@ const CartItem = ({
                 מידה: <strong>{item.variant.size}</strong>
               </span>
             )}
+          </div>
+        )}
+
+        {/* דרופדאון שינוי גרסה (וריאנט/SKU) - מאפשר ללקוח לשנות גרסה ישירות מהעגלה */}
+        {showVariantDropdown && (
+          <div className={styles.variantDropdownWrapper}>
+            <select
+              className={styles.variantDropdown}
+              value={item.sku}
+              onChange={handleVariantChange}
+              onFocus={fetchProductSkus}
+              onMouseDown={fetchProductSkus}
+              disabled={isRemoving || isUpdating || isOutOfStock}
+              aria-label={`שינוי גרסה עבור ${item.name}`}
+            >
+              {/* אופציה נוכחית - תמיד מוצגת גם לפני טעינה */}
+              {(!productSkus || productSkus.length === 0) && (
+                <option value={item.sku}>
+                  {item.variant?.name || item.sku}
+                  {isLoadingSkus ? ' (טוען...)' : ''}
+                </option>
+              )}
+              {/* אופציות מרשימת ה-SKUs שנטענו */}
+              {productSkus && productSkus.length > 1 && productSkus.map((sku) => (
+                <option
+                  key={sku.sku}
+                  value={sku.sku}
+                  disabled={sku.stockQuantity === 0}
+                >
+                  {getSkuDisplayLabel(sku)}
+                  {sku.stockQuantity === 0 ? ' (אזל)' : ''}
+                </option>
+              ))}
+            </select>
+            <Icon name="ChevronDown" size={14} className={styles.variantDropdownIcon} />
           </div>
         )}
 
