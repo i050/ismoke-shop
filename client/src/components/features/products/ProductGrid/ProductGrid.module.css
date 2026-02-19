@@ -127,14 +127,15 @@
 
 /* התאמות רספונסיביות - מסודרות מהקטן לגדול */
 
-/* מסכים מאוד קטנים - מובייל ננו (0-379px) - כרטיס אחד */
+/* מסכים מאוד קטנים - מובייל ננו (0-379px) - שני כרטיסים */
 @media (max-width: 379px) {
   .productGrid {
-    grid-template-columns: 1fr;
-    --grid-min-width: 100%;
-    --grid-max-width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    --grid-min-width: auto;
+    --grid-max-width: auto;
     justify-content: stretch;
     gap: var(--grid-gap-small);
+    padding: 6px;
   }
   
   .gridItem {
