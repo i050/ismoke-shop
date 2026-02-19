@@ -574,7 +574,7 @@ const OrdersPage: React.FC = () => {
                   <th>פריטים</th>
                   <th>סכום</th>
                   <th>סטטוס</th>
-                  <th>עדכון</th>
+                  {/* <th>עדכון</th> */}
                   <th>תשלום</th>
                   <th>פעולות</th>
                 </tr>
