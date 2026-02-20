@@ -13,6 +13,7 @@ import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import { QUEUE_NAMES, EmailJobData, getSharedRedisConnection } from '../index';
 import { logger } from '../../utils/logger';
+import User from '../../models/User';
 
 // =============================================================================
 // הגדרת ספקי מייל - Resend כראשי, Gmail SMTP כגיבוי
@@ -547,6 +548,54 @@ function getEmailTemplate(type: EmailJobData['type'], data: Record<string, unkno
         </body>
         </html>
       `
+    },
+
+    // =====================================================
+    // תבנית קוד OTP להתחברות
+    // =====================================================
+    login_otp: {
+      subject: `🔐 קוד אימות להתחברות - ${storeName}`,
+      html: `
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: white; padding: 30px;">
+          <h2 style="color: #333; text-align: center;">קוד אימות להתחברות</h2>
+          <p>שלום,</p>
+          <p>התקבלה בקשת התחברות לחשבונך.</p>
+          <p>קוד האימות שלך:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="background-color: #f8f9fa; color: #333; padding: 15px 30px; font-size: 32px; font-weight: bold; letter-spacing: 8px; border-radius: 8px; display: inline-block; border: 2px dashed #007bff;">
+              ${data.otpCode}
+            </span>
+          </div>
+          <p><strong>שים לב:</strong> הקוד תקף ל-10 דקות בלבד.</p>
+          <p style="color: #dc3545;">אם לא ביקשת להתחבר, מישהו אחר מנסה לגשת לחשבון שלך. מומלץ לשנות את הסיסמה שלך.</p>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="color: #666; font-size: 12px;">מייל זה נשלח אוטומטית. אנא אל תשיב למייל זה.</p>
+        </div>
+      `
+    },
+
+    // =====================================================
+    // תבנית אימות חשבון באימייל
+    // =====================================================
+    email_verification: {
+      subject: `✉️ אימות חשבון - ${storeName}`,
+      html: `
+        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: white; padding: 30px;">
+          <h2 style="color: #333; text-align: center;">אימות חשבון</h2>
+          <p>שלום,</p>
+          <p>תודה על הרשמתך!</p>
+          <p>כדי להפעיל את החשבון שלך, לחץ על הקישור הבא:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${data.verificationUrl}"
+               style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              אימות חשבון
+            </a>
+          </div>
+          <p><strong>שים לב:</strong> הקישור תקף ל-24 שעות בלבד.</p>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="color: #666; font-size: 12px;">מייל זה נשלח אוטומטית. אנא אל תשיב למייל זה.</p>
+        </div>
+      `
     }
   };
   
@@ -681,6 +730,17 @@ async function processEmailJob(job: Job<EmailJobData>): Promise<SendEmailResult>
   });
   
   try {
+    // בדיקת bounce – אם הכתובת מסומנת כ-bounced/complaint, לא שולחים
+    const bouncedUser = await User.findOne(
+      { email: to, $or: [{ emailBounced: true }, { emailComplaint: true }] },
+      { _id: 1 }
+    ).lean();
+
+    if (bouncedUser) {
+      logger.warn('⛔ דילוג על מייל – כתובת מסומנת כ-bounced/complaint', { to, type });
+      return { success: false, error: 'Email address bounced or complained' };
+    }
+
     // קבלת תבנית
     const template = getEmailTemplate(type, data);
     const subject = customSubject || template.subject;

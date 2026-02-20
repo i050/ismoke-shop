@@ -32,6 +32,7 @@ import { getSiteStatus } from './controllers/settingsController';
 import { scheduleImageCleanup } from './scripts/cleanupDeletedImages';
 import { getQueuesStats, closeQueues } from './queues';
 import { startAllWorkers, stopAllWorkers } from './queues/workers';
+import webhookRoutes from './routes/webhookRoutes';
 
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -139,6 +140,11 @@ app.use('/api', generalLimiter);
  * סטטוס האתר (מצב תחזוקה) - נגיש תמיד
  */
 app.get('/api/site-status', getSiteStatus);
+
+// ============================================================================
+// Webhooks – לפני Maintenance Middleware כי הם צריכים לעבוד תמיד
+// ============================================================================
+app.use('/api/webhooks', webhookRoutes);
 
 // ============================================================================
 // Maintenance Mode Middleware - בודק מצב תחזוקה לפני כל הנתיבים

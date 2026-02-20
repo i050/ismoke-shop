@@ -34,7 +34,7 @@ import { LoginRequest, LoginWith2FARequest } from '../types/auth.types';
 import CartService from '../../services/cartService';
 import Cart, { ICart } from '../../models/Cart';
 import StoreSettings from '../../models/StoreSettings';
-import { sendLoginOTPEmail } from '../../services/emailService';
+import { addEmailJob } from '../../queues';
 
 // התחברות
 export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) => {
@@ -119,16 +119,20 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
       user.loginOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 דקות
       await user.save();
       
-      // שליחת קוד OTP למייל
+      // שליחת קוד OTP למייל דרך ה-Queue (אסינכרוני עם retry)
       try {
-        await sendLoginOTPEmail(user.email, otpCode);
+        await addEmailJob({
+          type: 'login_otp',
+          to: user.email,
+          data: { otpCode }
+        });
         logSecurityEvent('LOGIN_OTP_SENT', {
           userId: (user._id as any).toString(),
           email: user.email,
           ip: req.ip
         });
       } catch (emailError) {
-        console.error('Failed to send login OTP email:', emailError);
+        console.error('Failed to queue login OTP email:', emailError);
         return sendServerErrorResponse(res, emailError, 'שגיאה בשליחת קוד אימות למייל');
       }
       
@@ -493,16 +497,20 @@ export const resendLoginOTP = async (req: Request, res: Response) => {
     user.loginOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 דקות
     await user.save();
     
-    // שליחת קוד OTP למייל
+    // שליחת קוד OTP למייל דרך ה-Queue (אסינכרוני עם retry)
     try {
-      await sendLoginOTPEmail(user.email, otpCode);
+      await addEmailJob({
+        type: 'login_otp',
+        to: user.email,
+        data: { otpCode }
+      });
       logSecurityEvent('LOGIN_OTP_RESENT', {
         userId,
         email: user.email,
         ip: req.ip
       });
     } catch (emailError) {
-      console.error('Failed to resend login OTP email:', emailError);
+      console.error('Failed to queue login OTP email:', emailError);
       return sendServerErrorResponse(res, emailError, 'שגיאה בשליחת קוד אימות למייל');
     }
 

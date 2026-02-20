@@ -13,7 +13,7 @@ import {
   findUserByResetToken
 } from '../../utils/userHelpers';
 import { logUserAction } from '../../utils/logger';
-import { sendPasswordResetEmail } from '../../services/emailService';
+import { addEmailJob } from '../../queues';
 import { Setup2FARequest, Verify2FARequest, Disable2FARequest, ForgotPasswordRequest, ResetPasswordRequest } from '../types/auth.types';
 
 // התחלת הגדרת 2FA
@@ -215,8 +215,14 @@ export const forgotPassword = async (req: Request<{}, {}, ForgotPasswordRequest>
     const resetToken = user.generateResetToken();
     await user.save();
 
-    // TODO: שליחת מייל עם קישור איפוס
-    await sendPasswordResetEmail(user.email, resetToken);
+    // שליחת מייל איפוס סיסמה דרך ה-Queue (אסינכרוני עם retry)
+    await addEmailJob({
+      type: 'password_reset',
+      to: user.email,
+      data: {
+        resetUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`
+      }
+    });
 
     // לוגינג
     logUserAction('PASSWORD_RESET_REQUEST', user._id.toString(), {

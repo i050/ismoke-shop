@@ -65,6 +65,12 @@ export interface IUser extends Document {
   loginOTPCode?: string;
   loginOTPExpires?: Date;
 
+  // Email Deliverability – ניהול bounce ו-complaint מ-Resend
+  emailBounced?: boolean;
+  emailBouncedAt?: Date;
+  emailComplaint?: boolean;
+  emailComplaintAt?: Date;
+
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -187,7 +193,13 @@ const userSchema = new Schema<IUser>({
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   loginOTPCode: String,
-  loginOTPExpires: Date
+  loginOTPExpires: Date,
+
+  // Email Deliverability – ניהול bounce ו-complaint מ-Resend webhook
+  emailBounced: { type: Boolean, default: false },
+  emailBouncedAt: Date,
+  emailComplaint: { type: Boolean, default: false },
+  emailComplaintAt: Date
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
