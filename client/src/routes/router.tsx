@@ -3,10 +3,12 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import { createBrowserRouter } from 'react-router-dom';
-import { lazy, Suspense, type ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import RootLayout from '../RootLayout.tsx';
 import ProtectedRoute from './ProtectedRoute';
 import { LogoLoader } from '@ui';
+import AppErrorPage from '../pages/AppErrorPage';
+import { lazyWithRetry } from './lazyWithRetry';
 
 // ========================================
 // ייבוא דפים ציבוריים (eager loading)
@@ -30,21 +32,23 @@ import MaintenancePage from '../pages/MaintenancePage/index';
 // Lazy loading לכל דפי האדמין
 // טעינה רק כשנכנסים לאזור הניהול
 // ========================================
-const AdminLayout = lazy(() => import('../pages/Admin/Layout'));
-const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'));
-const OrdersPage = lazy(() => import('../pages/Admin/Orders'));
-const ProductsManagementPage = lazy(() => import('../pages/Admin/Products'));
-const CategoriesManagementPage = lazy(() => import('../pages/Admin/Categories'));
-const CustomersPage = lazy(() => import('../pages/Admin/Customers'));
-const CustomerGroupsPage = lazy(() => import('../pages/Admin/CustomerGroups'));
-const UserManagementPage = lazy(() => import('../pages/Admin/UserManagement'));
-const ReportsPage = lazy(() => import('../pages/Admin/Reports'));
-const AdminSettingsPage = lazy(() => import('../pages/Admin/Settings'));
-const BannersPage = lazy(() => import('../pages/Admin/Banners/BannersPage'));
-const InventoryManagementPage = lazy(() => import('../pages/Admin/Inventory'));
-const TestProductsRedux = lazy(() => import('../pages/Admin/TestProductsRedux'));
-const FilterAttributesPage = lazy(() => import('../pages/Admin/FilterAttributes'));
-const StockAlertsDashboard = lazy(() => import('../pages/Admin/StockAlerts'));
+const AdminLayout = lazyWithRetry(() => import('../pages/Admin/Layout'));
+const AdminDashboard = lazyWithRetry(() => import('../pages/Admin/Dashboard'));
+const OrdersPage = lazyWithRetry(() => import('../pages/Admin/Orders'));
+const ProductsManagementPage = lazyWithRetry(() => import('../pages/Admin/Products'));
+const CategoriesManagementPage = lazyWithRetry(() => import('../pages/Admin/Categories'));
+const CustomersPage = lazyWithRetry(() => import('../pages/Admin/Customers'));
+const CustomerGroupsPage = lazyWithRetry(() => import('../pages/Admin/CustomerGroups'));
+const UserManagementPage = lazyWithRetry(() => import('../pages/Admin/UserManagement'));
+const ReportsPage = lazyWithRetry(() => import('../pages/Admin/Reports'));
+const AdminSettingsPage = lazyWithRetry(() => import('../pages/Admin/Settings'));
+const BannersPage = lazyWithRetry(() => import('../pages/Admin/Banners/BannersPage'));
+const InventoryManagementPage = lazyWithRetry(() => import('../pages/Admin/Inventory'));
+const TestProductsRedux = lazyWithRetry(() => import('../pages/Admin/TestProductsRedux'));
+const FilterAttributesPage = lazyWithRetry(() => import('../pages/Admin/FilterAttributes'));
+const StockAlertsDashboard = lazyWithRetry(() => import('../pages/Admin/StockAlerts'));
+
+const routerErrorElement = <AppErrorPage />;
 
 // ========================================
 // קומפוננטת עזר - עוטפת רכיבים lazy עם Suspense
@@ -73,28 +77,34 @@ export const router = createBrowserRouter([
   {
     path: '/maintenance',
     element: <MaintenancePage />,
+    errorElement: routerErrorElement,
   },
   {
     path: '/login',
     element: <LoginPage />,
+    errorElement: routerErrorElement,
   },
   {
     path: '/register',
     element: <RegisterPage />,
+    errorElement: routerErrorElement,
   },
   {
     path: '/forgot-password',
     element: <ForgotPasswordPage />,
+    errorElement: routerErrorElement,
   },
   {
     path: '/reset-password',
     element: <ResetPasswordPage />,
+    errorElement: routerErrorElement,
   },
   
   {
     // נתיב Root - עוטף את כל האפליקציה עם Layout (Header/Footer)
     path: '/',
     element: <RootLayout />,
+    errorElement: routerErrorElement,
     children: [
       // ========================================
       // דפי החנות הציבוריים
@@ -207,6 +217,7 @@ export const router = createBrowserRouter([
             </AdminSuspenseWrapper>
           </ProtectedRoute>
         ),
+        errorElement: routerErrorElement,
         children: [
           // נתיבי ילדים - כל דפי האדמין
           {

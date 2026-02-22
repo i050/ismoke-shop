@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "serve -s dist",
+    "start": "node server.cjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
