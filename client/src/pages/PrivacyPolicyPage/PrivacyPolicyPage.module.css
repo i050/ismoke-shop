@@ -1,0 +1,97 @@
+.page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-xl);
+}
+
+.content {
+  width: 100%;
+  max-width: 980px;
+  background: var(--color-bg-elevated, #ffffff);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--shadow-sm, 0 4px 14px rgba(0, 0, 0, 0.06));
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  line-height: 1.7;
+  color: var(--color-text-primary, #1f2937);
+}
+
+.disclaimerBadge {
+  margin: 0;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-bg-secondary, #f8fafc);
+  border: 1px solid var(--color-border, #e2e8f0);
+  color: var(--color-text-secondary, #475569);
+}
+
+.content h1,
+.content h2,
+.content h3 {
+  margin: 0;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.content h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+
+.content h2 {
+  font-size: clamp(1.15rem, 2.5vw, 1.5rem);
+  margin-top: var(--spacing-md);
+}
+
+.content h3 {
+  font-size: 1.05rem;
+}
+
+.content p,
+.content ul,
+.content ol {
+  margin: 0;
+}
+
+.content ul,
+.content ol {
+  padding-inline-start: 1.5rem;
+}
+
+.content li + li {
+  margin-top: 0.35rem;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+
+.table th,
+.table td {
+  text-align: right;
+  border: 1px solid var(--color-border, #e2e8f0);
+  padding: 0.7rem 0.85rem;
+  vertical-align: top;
+}
+
+.table th {
+  background: var(--color-bg-secondary, #f8fafc);
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: var(--spacing-md);
+  }
+
+  .content {
+    padding: var(--spacing-lg);
+  }
+}

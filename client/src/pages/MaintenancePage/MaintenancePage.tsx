@@ -51,13 +51,13 @@ const MaintenancePage: React.FC = () => {
       </div>
 
       {/* פוטר מינימליסטי */}
-      <div className={styles.footer}>
+      {/* <div className={styles.footer}>
         <p>לשאלות ובירורים:</p>
         <a href="mailto:support@example.com" className={styles.contactLink}>
           <Icon name="Mail" size={16} />
           <span>support@example.com</span>
         </a>
-      </div>
+      </div> */}
     </div>
   );
 };

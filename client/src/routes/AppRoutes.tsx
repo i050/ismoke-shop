@@ -12,6 +12,7 @@ import ForgotPasswordPage from '../pages/ForgotPasswordPage/index';
 import ResetPasswordPage from '../pages/ResetPasswordPage/index';
 import UserSettings from '../pages/UserSettings/index';
 import MaintenancePage from '../pages/MaintenancePage/index';
+import PrivacyPolicyPage from '../pages/PrivacyPolicyPage/index';
 
 // Lazy loading לכל דפי האדמין - טעינה רק כשנכנסים לאזור הניהול
 const AdminLayout = lazy(() => import('../pages/Admin/Layout'));
@@ -45,6 +46,7 @@ const AppRoutes = () => {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
       
       {/* דפי משתמש מחובר */}
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
