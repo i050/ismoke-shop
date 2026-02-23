@@ -42,10 +42,10 @@ interface FooterProps {
 
 // הגדרת קומפוננטת ה-Footer עצמה + destructuring של ה-props + ערכי ברירת מחדל
 const Footer: React.FC<FooterProps> = ({
-  companyName = 'החנות שלי',
+  companyName = 'ismoke-plus',
   address = 'רחוב הדוגמה 123, תל אביב',
-  phone = '03-1234567',
-  email = 'info@mystore.co.il',
+  phone = '0544536209',
+  email = 'smok05731@gmail.com',
   socialLinks = [],
   showNewsletter = true,
   onNewsletterSubmit
@@ -166,7 +166,7 @@ const Footer: React.FC<FooterProps> = ({
           <div className={styles.footerSections}>
             
             {/* רשתות חברתיות */}
-            <div className={styles.section}>
+            {/* <div className={styles.section}>
               <Typography variant="h3" className={styles.sectionTitle}>
                 🌐 רשתות חברתיות
               </Typography>
@@ -186,7 +186,7 @@ const Footer: React.FC<FooterProps> = ({
                   </a>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* קטגוריות קישורים */}
             {linkSections.map((section, index) => (
@@ -211,7 +211,7 @@ const Footer: React.FC<FooterProps> = ({
       </div>
 
       {/* הרשמה לניוזלטר */}
-      {showNewsletter && (
+      {/* {showNewsletter && (
         <div className={styles.newsletterSection}>
           <div className={styles.container}>
             <div className={styles.newsletterContent}>
@@ -257,7 +257,7 @@ const Footer: React.FC<FooterProps> = ({
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* החלק התחתון של הפוטר - מידע יצירת קשר וזכויות יוצרים */}
       <div className={styles.footerBottom}>
@@ -270,10 +270,10 @@ const Footer: React.FC<FooterProps> = ({
               </a>
             </div>
             
-            <div className={styles.contactItem}>
+            {/* <div className={styles.contactItem}>
               <span className={styles.contactIcon}>📍</span>
               <span className={styles.contactText}>{address}</span>
-            </div>
+            </div> */}
             
             <div className={styles.contactItem}>
               <span className={styles.contactIcon}>📧</span>
