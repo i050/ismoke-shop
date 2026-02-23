@@ -5,7 +5,7 @@
 import { useEffect } from 'react';
 import { Outlet, ScrollRestoration, useLocation, Navigate } from 'react-router-dom';
 import { Header, Footer, PromoBanner } from '@layout';
-import { LogoLoader } from '@ui';
+import { LogoLoader, Icon } from '@ui';
 import MiniCart from './components/features/cart/MiniCart';
 import { useAppDispatch, useAppSelector } from './hooks/reduxHooks';
 import { fetchCart } from './store/slices/cartSlice';
@@ -47,6 +47,16 @@ const RootLayout = () => {
 
   // בזמן טעינת סטטוס האתר - מציג מסך טעינה מינימליסטי
   if (siteStatusLoading) {
+    // לאורחים נציג טעינה גנרית כדי לא לחשוף מיתוג לפני החלטת מצב פרטי
+    if (!isAuthenticated) {
+      return (
+        <div className="site-status-loading" role="status" aria-live="polite">
+          <Icon name="Loader2" size={34} className="animate-spin" aria-hidden="true" />
+          <span className="site-status-loadingText">טוען...</span>
+        </div>
+      );
+    }
+
     return <LogoLoader />;
   }
 
