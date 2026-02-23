@@ -39,7 +39,7 @@ const RootLayout = () => {
   useInternalScrollRestoration();
 
   // נתיבים שמותרים גם במצב פרטי כדי לאפשר גישה למסכי התחברות/הרשמה במצב תחזוקה
-  const allowedPaths = ['/maintenance', '/login', '/register', '/forgot-password', '/reset-password'];
+  const allowedPaths = ['/maintenance', '/login', '/register', '/forgot-password', '/reset-password', '/privacy'];
   const isAllowedPath = allowedPaths.some(path => location.pathname.startsWith(path));
 
   // בדיקה האם המשתמש מורשה לגשת במצב תחזוקה (לפי allowedRoles מההגדרות)

@@ -1,10 +1,9 @@
-// ייבוא ספריית React הבסיסית ו-hooks
-import React, { useState } from 'react';
+// ייבוא ספריית React הבסיסית
+import React from 'react';
+import { Link } from 'react-router-dom';
 // ייבוא קובץ הסטיילים שלנו (CSS Modules)
 import styles from './Footer.module.css';
 // ייבוא רכיבי ה-UI הקיימים מהמערכת שלנו
-import { Button } from '../../ui';
-import { Input } from '../../ui';
 import { Typography } from '../../ui';
 
 // הגדרת טיפוסים לקישורי רשתות חברתיות
@@ -43,46 +42,9 @@ interface FooterProps {
 // הגדרת קומפוננטת ה-Footer עצמה + destructuring של ה-props + ערכי ברירת מחדל
 const Footer: React.FC<FooterProps> = ({
   companyName = 'ismoke-plus',
-  address = 'רחוב הדוגמה 123, תל אביב',
   phone = '0544536209',
   email = 'smok05731@gmail.com',
-  socialLinks = [],
-  showNewsletter = true,
-  onNewsletterSubmit
 }) => {
-  // ניהול מצב פנימי של הקומפוננטה
-  const [newsletterEmail, setNewsletterEmail] = useState('');     // אימייל לניוזלטר
-  const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false); // טעינה
-  const [newsletterMessage, setNewsletterMessage] = useState(''); // הודעה להצגה
-
-  // רשתות חברתיות ברירת מחדל
-  const defaultSocialLinks: SocialLink[] = [
-    {
-      name: 'Facebook',
-      icon: '📘',
-      url: 'https://facebook.com',
-      color: '#1877f2'
-    },
-    {
-      name: 'Instagram',
-      icon: '📷',
-      url: 'https://instagram.com',
-      color: '#e4405f'
-    },
-    {
-      name: 'Email',
-      icon: '📧',
-      url: `mailto:${email}`,
-      color: '#34495e'
-    },
-    {
-      name: 'WhatsApp',
-      icon: '📞',
-      url: 'https://wa.me/972501234567',
-      color: '#25d366'
-    }
-  ];
-
   // קטגוריות קישורים
   const linkSections: LinkSection[] = [
     {
@@ -119,44 +81,9 @@ const Footer: React.FC<FooterProps> = ({
     }
   ];
 
-  // טיפול בהרשמה לניוזלטר
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // בדיקת תקינות אימייל בסיסית
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newsletterEmail)) {
-      setNewsletterMessage('נא להזין כתובת אימייל תקינה');
-      return;
-    }
-
-    setIsNewsletterSubmitting(true);
-    setNewsletterMessage('');
-
-    try {
-      // קריאה לפונקציה מהקומפוננטה האב אם קיימת
-      if (onNewsletterSubmit) {
-        await onNewsletterSubmit(newsletterEmail);
-        setNewsletterMessage('נרשמת בהצלחה לניוזלטר! 🎉');
-        setNewsletterEmail('');
-      } else {
-        // סימולציה של שליחה (בפרויקט אמיתי זה יהיה קריאה ל-API)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setNewsletterMessage('נרשמת בהצלחה לניוזלטר! 🎉');
-        setNewsletterEmail('');
-      }
-    } catch (error) {
-      setNewsletterMessage('אירעה שגיאה. נא לנסות שוב מאוחר יותר.');
-      console.error('Newsletter subscription error:', error);
-    } finally {
-      setIsNewsletterSubmitting(false);
-      // הסרת ההודעה אחרי 3 שניות
-      setTimeout(() => setNewsletterMessage(''), 3000);
-    }
+  const isInternalLink = (url: string): boolean => {
+    return url.startsWith('/') && !url.startsWith('//');
   };
-
-  // קביעת הרשתות החברתיות להצגה
-  const socialLinksToShow = socialLinks.length > 0 ? socialLinks : defaultSocialLinks;
 
   return (
     <footer className={styles.footer}>
@@ -197,10 +124,17 @@ const Footer: React.FC<FooterProps> = ({
                 <ul className={styles.linksList}>
                   {section.links.map((link, linkIndex) => (
                     <li key={linkIndex}>
-                      <a href={link.url} className={styles.footerLink}>
-                        {link.icon && <span className={styles.linkIcon}>{link.icon}</span>}
-                        {link.name}
-                      </a>
+                      {isInternalLink(link.url) ? (
+                        <Link to={link.url} className={styles.footerLink}>
+                          {link.icon && <span className={styles.linkIcon}>{link.icon}</span>}
+                          {link.name}
+                        </Link>
+                      ) : (
+                        <a href={link.url} className={styles.footerLink}>
+                          {link.icon && <span className={styles.linkIcon}>{link.icon}</span>}
+                          {link.name}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>
