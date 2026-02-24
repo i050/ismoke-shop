@@ -98,8 +98,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       newErrors.password = 'סיסמה היא שדה חובה';
     } else if (formData.password.length < 8) {
       newErrors.password = 'סיסמה חייבת להכיל לפחות 8 תווים';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'סיסמה חייבת להכיל אות קטנה, גדולה ומספר';
     }
 
     // ולידציה אישור סיסמה

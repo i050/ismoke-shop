@@ -72,8 +72,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({
 
     if (!passwordData.newPassword.trim()) {
       newErrors.newPassword = 'נא להזין סיסמה חדשה';
-    } else if (passwordData.newPassword.length < 6) {
-      newErrors.newPassword = 'הסיסמה חייבת להכיל לפחות 6 תווים';
+    } else if (passwordData.newPassword.length < 8) {
+      newErrors.newPassword = 'הסיסמה חייבת להכיל לפחות 8 תווים';
     }
 
     if (!passwordData.confirmPassword.trim()) {

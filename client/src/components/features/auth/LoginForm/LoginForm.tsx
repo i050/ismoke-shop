@@ -74,8 +74,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
     if (!formData.password.trim()) {
       newErrors.password = 'סיסמה היא שדה חובה';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'סיסמה חייבת להכיל לפחות 6 תווים';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'סיסמה חייבת להכיל לפחות 8 תווים';
     }
 
     setErrors(newErrors);

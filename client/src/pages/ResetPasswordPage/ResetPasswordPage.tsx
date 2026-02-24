@@ -62,8 +62,8 @@ const ResetPasswordPage: React.FC<ResetPasswordFormProps> = ({
 
     if (!formData.password.trim()) {
       newErrors.password = 'נא להזין סיסמה חדשה';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'הסיסמה חייבת להכיל לפחות 6 תווים';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'הסיסמה חייבת להכיל לפחות 8 תווים';
     }
 
     if (!formData.confirmPassword.trim()) {
