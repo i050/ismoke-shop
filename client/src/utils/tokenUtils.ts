@@ -113,6 +113,39 @@ export const hasValidToken = (): boolean => {
   return !!getToken();
 };
 
+/**
+ * פענוח payload מתוך JWT בצורה בטוחה
+ */
+const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const json = atob(padded);
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * בדיקה האם טוקן JWT פג תוקף לפי שדה exp
+ * @param token טוקן JWT
+ * @param clockSkewSeconds מרווח בטיחות בשניות למניעת מרוץ בזמן
+ */
+export const isTokenExpired = (token: string, clockSkewSeconds: number = 30): boolean => {
+  const payload = decodeJwtPayload(token);
+  if (!payload || typeof payload.exp !== 'number') {
+    // אם לא ניתן לפענח/אין exp - נתייחס כלא תקין כדי למנוע מצב אימות שגוי
+    return true;
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return payload.exp <= (nowSeconds + clockSkewSeconds);
+};
+
 // ============================================================================
 // 🔐 Soft Login: ניהול זמן אימות אחרון
 // ============================================================================

@@ -2,15 +2,17 @@
 // קומפוננטה זו עוטפת את כל הדפים ומספקת מבנה אחיד (Header, Footer, MiniCart)
 // כולל שחזור אוטומטי של מיקום גלילה בעת ניווט back/forward
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Outlet, ScrollRestoration, useLocation, Navigate } from 'react-router-dom';
 import { Header, Footer, PromoBanner } from '@layout';
 import { LogoLoader, Icon } from '@ui';
 import MiniCart from './components/features/cart/MiniCart';
 import { useAppDispatch, useAppSelector } from './hooks/reduxHooks';
 import { fetchCart } from './store/slices/cartSlice';
+import { logout } from './store/slices/authSlice';
 import { useInternalScrollRestoration } from './hooks/useInternalScrollRestoration';
 import { useSiteStatus } from './contexts/SiteStatusContext';
+import { getToken, isTokenExpired } from './utils/tokenUtils';
 import './App.css';
 
 /**
@@ -29,6 +31,7 @@ const RootLayout = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const { status: siteStatus, isLoading: siteStatusLoading } = useSiteStatus();
+  const privateModeExpiryHandledRef = useRef(false);
 
   // טעינת הסל בטעינה ראשונית של האפליקציה
   useEffect(() => {
@@ -37,6 +40,29 @@ const RootLayout = () => {
 
   // הפעלת שחזור גלילה פנימית לאלמנטים מסומנים
   useInternalScrollRestoration();
+
+  // בדיקת פקיעת טוקן במצב פרטי - אם פג תוקף, מבצעים logout נקי
+  const currentToken = getToken();
+  const isTokenExpiredInPrivateMode = Boolean(
+    siteStatus.maintenanceMode &&
+    isAuthenticated &&
+    currentToken &&
+    isTokenExpired(currentToken)
+  );
+
+  useEffect(() => {
+    if (!isTokenExpiredInPrivateMode) {
+      privateModeExpiryHandledRef.current = false;
+      return;
+    }
+
+    if (privateModeExpiryHandledRef.current) {
+      return;
+    }
+
+    privateModeExpiryHandledRef.current = true;
+    dispatch(logout());
+  }, [dispatch, isTokenExpiredInPrivateMode]);
 
   // נתיבים שמותרים גם במצב פרטי כדי לאפשר גישה למסכי התחברות/הרשמה במצב תחזוקה
   const allowedPaths = ['/maintenance', '/login', '/register', '/forgot-password', '/reset-password', '/privacy'];
@@ -58,6 +84,11 @@ const RootLayout = () => {
     }
 
     return <LogoLoader />;
+  }
+
+  // מצב פרטי + טוקן שפג תוקפו => הפניה למסך התחברות
+  if (isTokenExpiredInPrivateMode) {
+    return <Navigate to="/login" state={{ from: location, reason: 'token-expired-private-mode' }} replace />;
   }
 
   // אם האתר במצב פרטי, הנתיב לא מותר, והמשתמש לא מורשה - הצג עמוד מצב פרטי ללא Layout
