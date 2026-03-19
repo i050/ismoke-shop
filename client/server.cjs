@@ -43,7 +43,14 @@ const getCacheControl = (requestPath) => {
 
 // מוודא שהנתיב נשאר בתוך dist ולא מאפשר path traversal
 const resolveSafePath = (urlPath) => {
-  const decodedPath = decodeURIComponent(urlPath.split('?')[0]);
+  // הגנה מפני URL עם encoding שבור (למשל בוטים שסורקים פרצות)
+  let decodedPath;
+  try {
+    decodedPath = decodeURIComponent(urlPath.split('?')[0]);
+  } catch {
+    return null;
+  }
+
   const normalizedPath = path.normalize(decodedPath).replace(/^([.]{2}[/\\])+/, '');
   const fullPath = path.join(distDir, normalizedPath);
 
@@ -67,33 +74,51 @@ const sendFile = (res, filePath, requestPath, statusCode = 200) => {
 };
 
 const server = http.createServer((req, res) => {
-  const requestPath = req.url || '/';
-  const safePath = resolveSafePath(requestPath === '/' ? '/index.html' : requestPath);
+  try {
+    const requestPath = req.url || '/';
+    const safePath = resolveSafePath(requestPath === '/' ? '/index.html' : requestPath);
 
-  if (!safePath) {
-    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Bad Request');
-    return;
-  }
-
-  fs.stat(safePath, (error, stats) => {
-    if (!error && stats.isFile()) {
-      sendFile(res, safePath, requestPath);
+    if (!safePath) {
+      res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Bad Request');
       return;
     }
 
-    // SPA fallback: כל נתיב שלא נמצא יטען index.html
-    const indexPath = path.join(distDir, 'index.html');
-    fs.stat(indexPath, (indexError, indexStats) => {
-      if (indexError || !indexStats.isFile()) {
-        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-        res.end('index.html not found');
+    fs.stat(safePath, (error, stats) => {
+      if (!error && stats.isFile()) {
+        sendFile(res, safePath, requestPath);
         return;
       }
 
-      sendFile(res, indexPath, '/index.html');
+      // SPA fallback: כל נתיב שלא נמצא יטען index.html
+      const indexPath = path.join(distDir, 'index.html');
+      fs.stat(indexPath, (indexError, indexStats) => {
+        if (indexError || !indexStats.isFile()) {
+          res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('index.html not found');
+          return;
+        }
+
+        sendFile(res, indexPath, '/index.html');
+      });
     });
-  });
+  } catch (err) {
+    // רשת ביטחון - שום שגיאה לא תפיל את השרת
+    console.error('Unexpected request error:', err.message);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Internal Server Error');
+    }
+  }
+});
+
+// רשת ביטחון אחרונה - מונע קריסה מוחלטת של התהליך
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
 });
 
 server.listen(PORT, () => {
