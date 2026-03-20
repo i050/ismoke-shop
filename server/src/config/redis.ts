@@ -9,48 +9,44 @@ import Redis from 'ioredis';
 import { logger } from '../utils/logger';
 
 // =============================================================================
-// הגדרות חיבור Redis Cloud
+// הגדרות חיבור Redis
+// תומך ב-REDIS_URL (Railway) או בהגדרות נפרדות HOST/PORT/PASSWORD
 // =============================================================================
 
-/**
- * יצירת instance של Redis client
- * תומך ב-Redis Cloud עם אימות
- */
-export const redis = new Redis({
-  // פרטי חיבור - מקבלים מ-environment variables
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  
-  // אימות - נדרש ל-Redis Cloud
-  username: process.env.REDIS_USERNAME || 'default',
-  password: process.env.REDIS_PASSWORD || undefined,
-  
+const redisOptions = {
   // הגדרות לתור BullMQ - חובה!
   maxRetriesPerRequest: null,
   enableReadyCheck: true,
-  
-  // הגדרות TLS - נדרש לחלק מספקי Redis Cloud
-  // tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
-  
+
   // אסטרטגיית ניסיון חוזר בעת ניתוק
   retryStrategy: (times: number) => {
-    // מקסימום 10 ניסיונות
     if (times > 10) {
       logger.error('❌ Redis: נכשלו 10 ניסיונות חיבור, מפסיק לנסות');
-      return null; // מפסיק לנסות
+      return null;
     }
-    
-    // חישוב זמן המתנה עם exponential backoff
-    // מתחיל מ-100ms, מקסימום 5 שניות
     const delay = Math.min(times * 100, 5000);
     logger.warn(`⏳ Redis: ניסיון חיבור ${times}, ממתין ${delay}ms`);
     return delay;
   },
-  
-  // הגדרות נוספות
-  lazyConnect: false, // מתחבר מיד
-  connectTimeout: 15000, // timeout של 15 שניות לחיבור (יותר לענן)
-});
+
+  lazyConnect: false,
+  connectTimeout: 15000,
+};
+
+/**
+ * יצירת instance של Redis client
+ * אם קיים REDIS_URL (Railway internal) - משתמש בו ישירות
+ * אחרת - בונה חיבור מ-HOST/PORT/PASSWORD (Redis Cloud)
+ */
+export const redis = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL, redisOptions)
+  : new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      username: process.env.REDIS_USERNAME || 'default',
+      password: process.env.REDIS_PASSWORD || undefined,
+      ...redisOptions,
+    });
 
 // =============================================================================
 // Event Listeners לניטור חיבור
