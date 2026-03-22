@@ -4,16 +4,21 @@ import { MongoClient } from 'mongodb';
 // =============================================================================
 // אתחול Replica Set אוטומטי
 // נדרש עבור טרנזקציות ב-MongoDB של Railway (שרץ כ-standalone כברירת מחדל)
+// כולל retry למקרה ש-MongoDB עדיין עולה מחדש (בעיית תזמון ב-Railway)
 // =============================================================================
-async function ensureReplicaSet(mongoUri: string): Promise<void> {
+
+const RS_MAX_RETRIES = 3;
+const RS_RETRY_DELAY_MS = 5000;
+
+async function tryInitReplicaSet(mongoUri: string): Promise<boolean> {
   // חילוץ host מה-URI לשימוש ב-rs.initiate
   let host: string;
   try {
     const url = new URL(mongoUri);
-    host = url.host; // כולל port, למשל: mongodb.railway.internal:27017
+    host = url.host;
   } catch {
-    console.log('⚠️ ReplicaSet: לא ניתן לפרסר URI, מדלג על אתחול');
-    return;
+    console.log('⚠️ ReplicaSet: לא ניתן לפרסר URI, מדלג');
+    return false;
   }
 
   // חיבור ישיר (עוקף topology discovery שנתקע בלי primary)
@@ -24,7 +29,7 @@ async function ensureReplicaSet(mongoUri: string): Promise<void> {
   let client: MongoClient | null = null;
   try {
     client = new MongoClient(directUrl, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
     });
     await client.connect();
     const adminDb = client.db('admin');
@@ -38,9 +43,11 @@ async function ensureReplicaSet(mongoUri: string): Promise<void> {
         },
       });
       console.log(`✅ Replica set rs0 אותחל בהצלחה (host: ${host})`);
-      // המתנה לבחירת primary
       await new Promise((resolve) => setTimeout(resolve, 5000));
+      return true;
     } catch (initError: any) {
+      console.log(`🔍 ReplicaSet initiate error: code=${initError.code}, codeName=${initError.codeName}, message=${initError.message}`);
+
       if (initError.code === 23) {
         // AlreadyInitialized - בדיקה ותיקון hostname אם צריך
         console.log('ℹ️ Replica set כבר מאותחל, בודק hostname...');
@@ -60,22 +67,39 @@ async function ensureReplicaSet(mongoUri: string): Promise<void> {
         } catch (reconfigError) {
           console.warn('⚠️ ReplicaSet: לא ניתן לבדוק/לתקן hostname', reconfigError);
         }
+        return true;
       } else if (initError.code === 76) {
-        // NoReplicationEnabled - MongoDB רץ ללא --replSet (Atlas או standalone)
-        console.log('ℹ️ MongoDB רץ ללא replica set (Atlas/standalone), מדלג');
+        // NoReplicationEnabled - MongoDB עדיין ללא --replSet, ננסה שוב
+        console.log('⏳ MongoDB עדיין ללא replica set, ננסה שוב...');
+        return false;
       } else {
-        console.warn('⚠️ ReplicaSet: שגיאת אתחול לא צפויה:', initError.message);
+        console.warn('⚠️ ReplicaSet: שגיאה לא צפויה, ממשיך...', initError.message);
+        return true; // לא חוסמים את ההפעלה
       }
     }
   } catch (connectError) {
-    // לא הצלחנו להתחבר בכלל - ממשיכים, mongoose יטפל בשגיאה
-    console.warn('⚠️ ReplicaSet: לא ניתן להתחבר לאתחול, ממשיך...', 
+    console.warn('⚠️ ReplicaSet: לא ניתן להתחבר, ננסה שוב...',
       connectError instanceof Error ? connectError.message : connectError);
+    return false;
   } finally {
     if (client) {
       try { await client.close(); } catch { /* התעלמות */ }
     }
   }
+}
+
+async function ensureReplicaSet(mongoUri: string): Promise<void> {
+  for (let attempt = 1; attempt <= RS_MAX_RETRIES; attempt++) {
+    console.log(`🔄 ReplicaSet: ניסיון ${attempt}/${RS_MAX_RETRIES}...`);
+    const success = await tryInitReplicaSet(mongoUri);
+    if (success) return;
+
+    if (attempt < RS_MAX_RETRIES) {
+      console.log(`⏳ ממתין ${RS_RETRY_DELAY_MS / 1000} שניות לפני ניסיון נוסף...`);
+      await new Promise((resolve) => setTimeout(resolve, RS_RETRY_DELAY_MS));
+    }
+  }
+  console.warn('⚠️ ReplicaSet: כל הניסיונות נכשלו, ממשיך בלי replica set (טרנזקציות לא יעבדו!)');
 }
 
 // =============================================================================
