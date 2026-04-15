@@ -205,6 +205,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         return {
           // המרת Product קיים ל-ProductFormData - כל השדות!
           name: initialData.name || '',
+          subtitle: initialData.subtitle || '',
           description: initialData.description || '',
           brand: null, // TODO: להוסיף brand ל-Product type
           basePrice: initialData.basePrice || 0,
