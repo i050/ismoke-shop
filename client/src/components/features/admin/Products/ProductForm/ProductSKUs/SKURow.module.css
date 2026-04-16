@@ -13,6 +13,8 @@
   flex-direction: column;
   padding: 0.75rem;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  /* מאפשר לכרטיסייה להצטמצם כראוי כאשר היא פריט ב-grid */
+  min-width: 0;
 }
 
 .skuCard:hover {
@@ -592,6 +594,9 @@
   .skuCard {
     flex-direction: column;
     height: auto;
+    /* מניעת גלישה מחוץ לתא ה-grid - הכרטיסייה לא תגדל מעבר לרוחב המיועד */
+    min-width: 0;
+    overflow: hidden;
   }
 
   .skuImages {
@@ -612,15 +617,39 @@
   }
 
   .skuContent {
-    padding: 1rem;
+    padding: 0.75rem;
+    /* מניעת גלישה של התוכן מהכרטיסייה */
+    min-width: 0;
+    overflow: hidden;
   }
 
   .skuActions {
-    grid-template-columns: 1fr;
+    /* תיקון: skuActions הוא flex container - grid-template-columns לא תקף */
+    flex-wrap: wrap;
   }
 
   .editRow {
-    grid-template-columns: 1fr;
+    /* תיקון: editRow הוא flex container - grid-template-columns לא תקף */
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* שדה תווית + קלט - במובייל יציגו בעמודה (תווית מעל קלט) */
+  .editFieldHalf {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+
+  /* תווית השדה - מאפשרת עטיפת טקסט במובייל */
+  .editLabel {
+    white-space: normal;
+  }
+
+  /* שדה קלט - רוחב מלא במובייל ולא 70px קבוע */
+  .input {
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 
