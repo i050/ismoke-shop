@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "build": "tsc",
+    "postbuild": "cp -r src/data dist/data",
     "dev": "nodemon --exec ts-node src/server.ts",
     "seed": "ts-node src/seedUsers.ts",
     "seed:products": "ts-node src/seedProducts.ts",
