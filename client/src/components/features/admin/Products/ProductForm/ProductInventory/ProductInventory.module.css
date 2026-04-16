@@ -252,6 +252,9 @@
   border-radius: var(--border-radius-md);
   border: 1px solid var(--color-border);
   transition: all 0.2s ease;
+  /* מניעת גלישה מחוץ לכרטיסייה - חובה בפריט grid */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .skuItem:hover {
@@ -283,6 +286,14 @@
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   text-align: center;
+  /* מניעת גלישה של תוכן העמודה */
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ביטול margin-bottom מיותר על Input בתוך שורת skuItem */
+.skuInputNoMargin {
+  margin-bottom: 0;
 }
 
 .skuStatus {
@@ -454,6 +465,11 @@
   .skuItem {
     grid-template-columns: 1fr;
     gap: 0.5rem;
+  }
+
+  /* במובייל - שדה הקלט יתפוס רוחב מלא ללא גלישה */
+  .skuStock {
+    width: 100%;
   }
 
   .skuStock,

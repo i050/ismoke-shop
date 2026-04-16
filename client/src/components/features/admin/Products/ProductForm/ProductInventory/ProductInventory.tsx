@@ -255,6 +255,7 @@ const ProductInventory: React.FC<ProductInventoryProps> = ({
                           }}
                           aria-label={`מלאי עבור ${skuInfo.name}`}
                           disabled={disabled}
+                          className={styles.skuInputNoMargin}
                         />
                       ) : (
                         <>{skuInfo.stockQuantity} יחידות</>
