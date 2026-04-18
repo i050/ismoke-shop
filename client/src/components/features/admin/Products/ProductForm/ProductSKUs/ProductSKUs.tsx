@@ -866,15 +866,38 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   }, [value]);
 
   /**
-   * מעבר למצב עריכה מרובה
+   * מעבר למצב עריכה מרובה - עם סימון אוטומטי של כל הגרסאות הקיימות
+   * ההגיון: כל ה-SKUs הקיימים כבר פעילים, אז ברירת המחדל היא "הכל נבחר"
+   * המשתמש יכול לבטל בחירה ממה שלא מעניין אותו לערוך
    */
   const handleEnterBulkEditMode = useCallback(() => {
+    // בניית כל הקומבינציות הקיימות מתוך ה-SKUs הפעילים
+    const existingCombinations: Combination[] = [];
+    
+    value.forEach(sku => {
+      // חילוץ ערך ראשי - זהה ללוגיקה של existingPrimaryAxisValues
+      const primary = sku.colorHex ? (sku.color || sku.colorHex) : sku.variantName;
+      if (!primary) return;
+      
+      // חילוץ ערך משני - זהה ללוגיקה של existingSecondaryAxisValues
+      const secondary = sku.attributes?.size || sku.subVariantName || '';
+      
+      // מניעת כפילויות
+      const alreadyExists = existingCombinations.some(
+        c => c.primary === primary && c.secondary === secondary
+      );
+      if (!alreadyExists) {
+        existingCombinations.push({ primary, secondary });
+      }
+    });
+    
     setIsBulkEditMode(true);
-    setBulkEditCombinations([]);
-    setIsBulkEditPanelOpen(false);
+    setBulkEditCombinations(existingCombinations);
+    // פתיחת הפאנל אוטומטית כי יש בחירות
+    setIsBulkEditPanelOpen(existingCombinations.length > 0);
     // 🔧 איפוס דגל הסגירה הידנית
     userClosedBulkEdit.current = false;
-  }, []);
+  }, [value]);
 
   /**
    * יציאה ממצב עריכה מרובה
@@ -1436,7 +1459,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
           </p>
         </div>
 
-        {/* כפתור ניהול וריאנטים - הוספה, עריכה ומחיקה */}
+        {/* כפתורי ניהול וריאנטים - ניהול גירסאות + עריכה מרובה */}
         {variantFlowStep === 'manage' && value.length > 0 && !isBulkEditMode && (
           <div className={styles.headerActions}>
             <button
@@ -1446,6 +1469,15 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             >
               <Icon name="Settings" size={18} />
               <span>ניהול גירסאות</span>
+            </button>
+            {/* כפתור כניסה לעריכה מרובה - עדכון מחיר/מלאי לכמה גרסאות בבת אחת */}
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleEnterBulkEditMode}
+            >
+              <Icon name="Edit" size={18} />
+              <span>עריכה מרובה</span>
             </button>
           </div>
         )}
