@@ -783,6 +783,66 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   // ============================================================================
 
   /**
+   * חילוץ ערכי וריאנט מתוך שם ה-SKU למבני נתונים ישנים
+   * במצב חד-צירי השם הוא הערך הראשי בלבד, ובדו-צירי המבנה הוא "ראשי - משני"
+   */
+  const extractBulkEditValuesFromName = useCallback((sku: SKUFormData) => {
+    const trimmedName = sku.name?.trim();
+    if (!trimmedName) {
+      return { primary: null, secondary: null };
+    }
+
+    if (trimmedName.includes(' - ')) {
+      const [primaryName, secondaryName] = trimmedName.split(' - ');
+      return {
+        primary: primaryName?.trim() || null,
+        secondary: secondaryName?.trim() || null,
+      };
+    }
+
+    return {
+      primary: trimmedName,
+      secondary: null,
+    };
+  }, []);
+
+  /**
+   * חילוץ אחיד של ערכי הצירים מ-SKU קיים עבור עריכה מרובה
+   * שומר על הלוגיקה הקיימת בדו-צירי, ומוסיף fallbacks בטוחים לנתוני edit/legacy
+   */
+  const getBulkEditAxisValues = useCallback((sku: SKUFormData) => {
+    /** קריאת ערך attributes לפי תווית הציר, רק אם הערך קיים כמחרוזת */
+    const readAttributeValue = (label?: string | null): string | null => {
+      if (!label) return null;
+
+      const attributeValue = sku.attributes?.[label.toLowerCase()];
+      if (typeof attributeValue !== 'string') return null;
+
+      const trimmedValue = attributeValue.trim();
+      return trimmedValue || null;
+    };
+
+    const valuesFromName = extractBulkEditValuesFromName(sku);
+
+    // שמירה על ההתנהגות הקיימת: אם יש colorHex, הציר הראשי נשאר צבע כמו היום
+    const primaryValue = sku.colorHex
+      ? sku.color || sku.colorHex || null
+      : sku.variantName || readAttributeValue(primaryVariantLabel) || valuesFromName.primary;
+
+    // שמירה על ההתנהגות הקיימת: המשני מגיע קודם מ-size/subVariantName ורק אז מ-fallbacks
+    const secondaryValue = sku.attributes?.size
+      || sku.subVariantName
+      || readAttributeValue(secondaryVariantLabel)
+      || valuesFromName.secondary
+      || '';
+
+    return {
+      primary: typeof primaryValue === 'string' && primaryValue.trim() ? primaryValue.trim() : null,
+      secondary: typeof secondaryValue === 'string' ? secondaryValue.trim() : '',
+    };
+  }, [extractBulkEditValuesFromName, primaryVariantLabel, secondaryVariantLabel]);
+
+  /**
    * חישוב ערכי ציר ראשי מ-SKUs קיימים
    */
   const existingPrimaryAxisValues = useMemo((): AxisValue[] => {
@@ -791,8 +851,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     const uniqueValues = new Map<string, AxisValue>();
     
     value.forEach(sku => {
-      // זיהוי ערך ראשי לפי סוג
-      const primaryValue = sku.colorHex ? sku.color || sku.colorHex : sku.variantName;
+      // שימוש בחילוץ מנורמל כדי לכסות גם נתוני edit/legacy בציר יחיד
+      const { primary: primaryValue } = getBulkEditAxisValues(sku);
       if (!primaryValue) return;
       
       if (!uniqueValues.has(primaryValue)) {
@@ -805,7 +865,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     });
     
     return Array.from(uniqueValues.values());
-  }, [value]);
+  }, [value, getBulkEditAxisValues]);
 
   /**
    * חישוב ערכי ציר משני מ-SKUs קיימים
@@ -816,8 +876,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     const uniqueValues = new Map<string, AxisValue>();
     
     value.forEach(sku => {
-      // זיהוי ערך משני - מ-attributes.size או subVariantName
-      const secondaryValue = sku.attributes?.size || sku.subVariantName;
+      // שימוש בחילוץ מנורמל כדי לא לשבור מצב חד-צירי בעריכת מוצר קיים
+      const { secondary: secondaryValue } = getBulkEditAxisValues(sku);
       if (!secondaryValue) return;
       
       if (!uniqueValues.has(secondaryValue)) {
@@ -829,7 +889,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     });
     
     return Array.from(uniqueValues.values());
-  }, [value]);
+  }, [value, getBulkEditAxisValues]);
 
   /**
    * תוויות צירים לעריכה מרובה
@@ -853,7 +913,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   const bulkEditPrimaryValuesMap = useMemo(() => {
     const map = new Map<string, { displayName: string; hex?: string; family?: string }>();
     value.forEach(sku => {
-      const primaryValue = sku.colorHex ? sku.color || sku.colorHex : sku.variantName;
+      const { primary: primaryValue } = getBulkEditAxisValues(sku);
       if (primaryValue && !map.has(primaryValue)) {
         map.set(primaryValue, {
           displayName: primaryValue,
@@ -863,7 +923,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       }
     });
     return map;
-  }, [value]);
+  }, [value, getBulkEditAxisValues]);
 
   /**
    * מעבר למצב עריכה מרובה - עם סימון אוטומטי של כל הגרסאות הקיימות
@@ -875,12 +935,9 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     const existingCombinations: Combination[] = [];
     
     value.forEach(sku => {
-      // חילוץ ערך ראשי - זהה ללוגיקה של existingPrimaryAxisValues
-      const primary = sku.colorHex ? (sku.color || sku.colorHex) : sku.variantName;
+      // שימוש בחילוץ מנורמל כדי לשמר סימון נכון גם במוצר חד-צירי
+      const { primary, secondary } = getBulkEditAxisValues(sku);
       if (!primary) return;
-      
-      // חילוץ ערך משני - זהה ללוגיקה של existingSecondaryAxisValues
-      const secondary = sku.attributes?.size || sku.subVariantName || '';
       
       // מניעת כפילויות
       const alreadyExists = existingCombinations.some(
@@ -897,7 +954,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     setIsBulkEditPanelOpen(existingCombinations.length > 0);
     // 🔧 איפוס דגל הסגירה הידנית
     userClosedBulkEdit.current = false;
-  }, [value]);
+  }, [value, getBulkEditAxisValues]);
 
   /**
    * יציאה ממצב עריכה מרובה
