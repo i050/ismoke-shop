@@ -680,6 +680,10 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
           const [variant, subVariant] = sku.name.split(' - ');
           return { variantName: variant.trim(), subVariantName: subVariant.trim() };
         }
+        // במוצר חד-צירי שם ה-SKU הוא הערך הראשי עצמו
+        if (sku.name?.trim()) {
+          return { variantName: sku.name.trim(), subVariantName: null };
+        }
         return { variantName: null, subVariantName: null };
       };
       
@@ -1001,6 +1005,10 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         if (sku.name && sku.name.includes(' - ')) {
           const [variant, subVariant] = sku.name.split(' - ');
           return { variantName: variant.trim(), subVariantName: subVariant.trim() };
+        }
+        // במוצר חד-צירי שם ה-SKU הוא הערך הראשי עצמו
+        if (sku.name?.trim()) {
+          return { variantName: sku.name.trim(), subVariantName: null };
         }
         return { variantName: null, subVariantName: null };
       };
