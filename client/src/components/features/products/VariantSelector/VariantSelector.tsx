@@ -56,6 +56,15 @@ const hasNonEmptyString = (value: unknown): value is string => {
   return typeof value === 'string' && value.trim().length > 0;
 };
 
+const normalizeAxisKey = (value?: string | null): string => {
+  return typeof value === 'string' ? value.trim().toLowerCase().replace(/\s+/g, '') : '';
+};
+
+const isColorAxisLabel = (value?: string | null): boolean => {
+  const normalized = normalizeAxisKey(value);
+  return normalized === 'צבע' || normalized === 'color';
+};
+
 const hasColorAttributeValue = (sku: Sku): boolean => {
   const attributes = (sku as any).attributes;
   return Boolean(attributes?.['צבע'] || attributes?.color);
@@ -424,6 +433,15 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     return null;
   }
 
+  const hasColorVariant = useMemo(() => {
+    return skus.some(sku => 
+      (sku as any).color || 
+      (sku as any).colorHex || 
+      (sku as any).colorFamily ||
+      hasColorAttributeValue(sku)
+    );
+  }, [skus]);
+
   // 🔧 מוצר עם SKU בודד בלבד - לא צריך להציג בורר
   // (אבל אם יש יותר מ-SKU אחד - תמיד צריך להציג בורר)
   if (skus.length === 1) {
@@ -433,7 +451,43 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   // ============================================================================
   // 🆕 הכנה לוריאנטים מותאמים (custom): זיהוי צירים וארגון קבוצות
   // ============================================================================
-  const hasCustomSecondaryAxis = hasMeaningfulSecondaryAxis;
+  const hasCustomSubVariantAxis = useMemo(() => {
+    return skus.some(sku => hasNonEmptyString((sku as any).subVariantName));
+  }, [skus]);
+
+  const hasCustomNonColorAttributeAxis = useMemo(() => {
+    return skus.some(sku => {
+      return Object.entries((sku as any).attributes || {}).some(([key, value]) => {
+        if (!hasNonEmptyString(value)) {
+          return false;
+        }
+
+        if (COLOR_METADATA_ATTRIBUTE_KEYS.has(key.toLowerCase())) {
+          return false;
+        }
+
+        return !isColorAxisLabel(key);
+      });
+    });
+  }, [skus]);
+
+  const hasDuplicatedColorAxisLabels =
+    isColorAxisLabel(primaryVariantLabel) &&
+    (
+      !hasNonEmptyString(secondaryVariantLabel) ||
+      normalizeAxisKey(primaryVariantLabel) === normalizeAxisKey(secondaryVariantLabel) ||
+      isColorAxisLabel(secondaryVariantLabel) ||
+      isColorAxisLabel(secondaryVariantAttribute)
+    );
+
+  const shouldUseSingleAxisColorButtonsInCustomMode =
+    variantType === 'custom' &&
+    hasColorVariant &&
+    hasDuplicatedColorAxisLabels &&
+    !hasCustomSubVariantAxis &&
+    !hasCustomNonColorAttributeAxis;
+
+  const hasCustomSecondaryAxis = hasMeaningfulSecondaryAxis && !shouldUseSingleAxisColorButtonsInCustomMode;
 
   const customVariantGroups = useMemo(() => {
     // קיבוץ לפי variantName (ציר ראשי)
@@ -475,6 +529,77 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   // עבור variantType === 'custom' - מציג dropdown במקום כפתורי צבע
   if (variantType === 'custom') {
     // 🎯 עדכון: אם אחד הצירים הוא צבע, נציג אותו ככפתורים גם ב-custom mode
+
+    if (shouldUseSingleAxisColorButtonsInCustomMode) {
+      const primaryLabelText = primaryVariantLabel || 'צבע';
+
+      return (
+        <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
+          <div className={styles.variantOptions}>
+            {!compactMode && <h3 className={styles.variantTitle}>{primaryLabelText}:</h3>}
+            {customVariantGroups.slice(0, showAllColors ? customVariantGroups.length : (maxColors || customVariantGroups.length)).map((group, index) => {
+              const representativeSku = group.skus[0];
+              const colorHex = getSkuColor(representativeSku);
+              const colorName = getSkuColorName(representativeSku);
+              const colorCode = getColorCode(colorHex);
+              const isSelected = group.skus.some(sku => sku.sku === selectedSku);
+
+              return (
+                <Button
+                  key={`custom-single-color-${group.variantName}-${index}`}
+                  variant={'ghost'}
+                  size="sm"
+                  className={`${styles.variantButton} ${
+                    isSelected ? styles.variantActive : ''
+                  } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
+                  onClick={() => onSkuChange(representativeSku.sku)}
+                  style={{
+                    ['--variant-color' as any]: colorCode,
+                    ['--variant-color-rgba' as any]: hexToRgba(colorCode, 0.12),
+                  }}
+                  title={`בחר ${primaryLabelText} ${group.variantName}`}
+                >
+                  {showColorPreview && !compactMode && (
+                    <div className={styles.colorPreview} />
+                  )}
+
+                  {!compactMode && (() => {
+                    const skuColorName = (representativeSku as any).color;
+                    const skuColorFamily = (representativeSku as any).colorFamily;
+                    const specificColorImages = skuColorName && colorImages[skuColorName];
+                    const familyImages = skuColorFamily && colorFamilyImages[skuColorFamily];
+                    const imageToShow = specificColorImages?.[0] || familyImages?.[0] || representativeSku.images?.[0];
+
+                    return imageToShow ? (
+                      <img
+                        src={getImageUrl(imageToShow)}
+                        alt={`${group.variantName} variant`}
+                        className={styles.variantImage}
+                      />
+                    ) : (
+                      <span className={styles.variantColorName}>{colorName || group.variantName || getColorDisplayName(colorHex)}</span>
+                    );
+                  })()}
+                </Button>
+              );
+            })}
+            {maxColors && customVariantGroups.length > maxColors && !showAllColors && (
+              <span
+                className={styles.moreColorsIndicator}
+                title={`לחץ להצגת כל ${customVariantGroups.length} הצבעים`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAllColors(true);
+                }}
+              >
+                +{customVariantGroups.length - maxColors}
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     const isPrimaryAxisColor = customVariantGroups.length > 1 && customVariantGroups.every(g => {
       if (!g.skus[0]) return false;
@@ -777,14 +902,6 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
 
   // 🔍 **זיהוי אוטומטי: האם אחד מהצירים הוא צבע**
   // בדיקה אם לפחות SKU אחד מכיל color/colorHex/colorFamily
-  const hasColorVariant = useMemo(() => {
-    return skus.some(sku => 
-      (sku as any).color || 
-      (sku as any).colorHex || 
-      (sku as any).colorFamily
-    );
-  }, [skus]);
-
   // 🔍 **קביעת מצב התצוגה:**
   // מצב פשוט רק אם יש SKU אחד בסה"כ
   // אם יש יותר מ-SKU אחד - תמיד מצב היררכי (קיבוץ לפי צבע)
