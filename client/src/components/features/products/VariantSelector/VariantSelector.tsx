@@ -87,6 +87,79 @@ const hasMeaningfulSecondaryAxisData = (sku: Sku): boolean => {
   });
 };
 
+const extractVariantPartsFromName = (name?: string): { primary: string | null; secondary: string | null } => {
+  if (!hasNonEmptyString(name)) {
+    return { primary: null, secondary: null };
+  }
+
+  const parts = name
+    .split(' - ')
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return { primary: null, secondary: null };
+  }
+
+  if (parts.length === 1) {
+    return { primary: parts[0], secondary: null };
+  }
+
+  return {
+    primary: parts[0],
+    secondary: parts.slice(1).join(' - '),
+  };
+};
+
+const getSecondaryAxisDisplayValue = (sku: Sku, preferredAttributeKey?: string | null): string => {
+  const skuAny = sku as any;
+  const attributes = skuAny.attributes || {};
+  const nameParts = extractVariantPartsFromName(sku.name);
+  const primaryCandidates = new Set<string>();
+
+  if (hasNonEmptyString(skuAny.color)) {
+    primaryCandidates.add(skuAny.color.trim());
+  }
+  if (hasNonEmptyString(skuAny.variantName)) {
+    primaryCandidates.add(skuAny.variantName.trim());
+  }
+  if (nameParts.primary) {
+    primaryCandidates.add(nameParts.primary.trim());
+  }
+
+  const isMeaningfulSecondaryValue = (value: unknown): value is string => {
+    return hasNonEmptyString(value) && !primaryCandidates.has(value.trim());
+  };
+
+  if (preferredAttributeKey && isMeaningfulSecondaryValue(attributes[preferredAttributeKey])) {
+    return attributes[preferredAttributeKey].trim();
+  }
+
+  if (hasNonEmptyString(skuAny.subVariantName)) {
+    return skuAny.subVariantName.trim();
+  }
+
+  for (const [key, value] of Object.entries(attributes)) {
+    if (preferredAttributeKey && key === preferredAttributeKey) {
+      continue;
+    }
+
+    if (COLOR_METADATA_ATTRIBUTE_KEYS.has(key.toLowerCase())) {
+      continue;
+    }
+
+    if (isMeaningfulSecondaryValue(value)) {
+      return value.trim();
+    }
+  }
+
+  if (nameParts.secondary) {
+    return nameParts.secondary;
+  }
+
+  return sku.name || sku.sku;
+};
+
 // הגדרת קומפוננטת VariantSelector
 const VariantSelector: React.FC<VariantSelectorProps> = ({
   skus,
@@ -633,18 +706,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   title={`בחר ${secondaryLabelText}`}
                 >
                   {customSecondaryOptions.map((sku, idx) => {
-                    const skuAny = sku as any;
-                    let secondaryDisplayValue: string;
-
-                    // עדיפות ל-subVariantName, אחרת attributes, אחרת name
-                    if (skuAny.subVariantName) {
-                      secondaryDisplayValue = skuAny.subVariantName;
-                    } else if (skuAny.attributes && Object.keys(skuAny.attributes).length > 0) {
-                      const attributeKey = Object.keys(skuAny.attributes)[0];
-                      secondaryDisplayValue = skuAny.attributes[attributeKey];
-                    } else {
-                      secondaryDisplayValue = skuAny.name || sku.name;
-                    }
+                    const secondaryDisplayValue = getSecondaryAxisDisplayValue(sku);
 
                     return (
                       <option key={`secondary-${sku.sku}-${idx}`} value={sku.sku}>
@@ -1098,17 +1160,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   title={`בחר ${getSecondaryAttributeLabel()}`}
                 >
                   {secondaryOptions.map((sku, idx) => {
-                    const skuAny = sku as any;
-                    let secondaryDisplayValue: string;
-                    
-                    if (skuAny.subVariantName) {
-                      secondaryDisplayValue = skuAny.subVariantName;
-                    } else if (skuAny.attributes && Object.keys(skuAny.attributes).length > 0) {
-                      const attributeKey = Object.keys(skuAny.attributes)[0];
-                      secondaryDisplayValue = skuAny.attributes[attributeKey];
-                    } else {
-                      secondaryDisplayValue = skuAny.name;
-                    }
+                    const secondaryDisplayValue = getSecondaryAxisDisplayValue(sku);
                     
                     return (
                       <option key={`secondary-${sku.sku}-${idx}`} value={sku.sku}>
@@ -1284,9 +1336,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   title={`בחר ${getSecondaryAttributeLabel()}`}
                 >
                   {selectedColorGroup!.skus.map((sku, index) => {
-                    const displayValue = secondaryVariantAttribute && sku.attributes?.[secondaryVariantAttribute]
-                      ? sku.attributes[secondaryVariantAttribute]
-                      : sku.name || sku.sku;
+                    const displayValue = getSecondaryAxisDisplayValue(sku, secondaryVariantAttribute);
                     return (
                       <option key={`opt-${sku.sku}-${index}`} value={sku.sku}>
                         {displayValue}
@@ -1306,9 +1356,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
               <div className={styles.secondaryVariantOptions}>
                 {selectedColorGroup!.skus.map((sku, index) => {
                   const isSelected = sku.sku === selectedSku;
-                  const displayValue = secondaryVariantAttribute && sku.attributes?.[secondaryVariantAttribute]
-                    ? sku.attributes[secondaryVariantAttribute]
-                    : sku.name || sku.sku;
+                  const displayValue = getSecondaryAxisDisplayValue(sku, secondaryVariantAttribute);
                   
                   return (
                     <button
