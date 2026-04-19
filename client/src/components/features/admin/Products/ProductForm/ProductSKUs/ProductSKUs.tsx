@@ -926,37 +926,6 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   }, [value, getBulkEditAxisValues]);
 
   /**
-   * מעבר למצב עריכה מרובה - עם סימון אוטומטי של כל הגרסאות הקיימות
-   * ההגיון: כל ה-SKUs הקיימים כבר פעילים, אז ברירת המחדל היא "הכל נבחר"
-   * המשתמש יכול לבטל בחירה ממה שלא מעניין אותו לערוך
-   */
-  const handleEnterBulkEditMode = useCallback(() => {
-    // בניית כל הקומבינציות הקיימות מתוך ה-SKUs הפעילים
-    const existingCombinations: Combination[] = [];
-    
-    value.forEach(sku => {
-      // שימוש בחילוץ מנורמל כדי לשמר סימון נכון גם במוצר חד-צירי
-      const { primary, secondary } = getBulkEditAxisValues(sku);
-      if (!primary) return;
-      
-      // מניעת כפילויות
-      const alreadyExists = existingCombinations.some(
-        c => c.primary === primary && c.secondary === secondary
-      );
-      if (!alreadyExists) {
-        existingCombinations.push({ primary, secondary });
-      }
-    });
-    
-    setIsBulkEditMode(true);
-    setBulkEditCombinations(existingCombinations);
-    // פתיחת הפאנל אוטומטית כי יש בחירות
-    setIsBulkEditPanelOpen(existingCombinations.length > 0);
-    // 🔧 איפוס דגל הסגירה הידנית
-    userClosedBulkEdit.current = false;
-  }, [value, getBulkEditAxisValues]);
-
-  /**
    * יציאה ממצב עריכה מרובה
    */
   const handleExitBulkEditMode = useCallback(() => {
@@ -1051,6 +1020,27 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       
       // זיהוי המאפיינים הקיימים
       const existingAttributes: SelectedAttribute[] = [];
+      /** קומבינציות קיימות לטעינה חזרה לרשת הניהול */
+      const existingCombinations: Combination[] = [];
+      
+      /** הוספת קומבינציה קיימת בצורה בטוחה וללא כפילויות */
+      const addExistingCombination = (primary: string | null | undefined, secondary: string | null | undefined = '') => {
+        const normalizedPrimary = typeof primary === 'string' ? primary.trim() : '';
+        const normalizedSecondary = typeof secondary === 'string' ? secondary.trim() : '';
+        
+        if (!normalizedPrimary) return;
+        
+        const alreadyExists = existingCombinations.some(
+          combo => combo.primary === normalizedPrimary && combo.secondary === normalizedSecondary
+        );
+        
+        if (!alreadyExists) {
+          existingCombinations.push({
+            primary: normalizedPrimary,
+            secondary: normalizedSecondary,
+          });
+        }
+      };
       
       // 🎯 הבדיקה המרכזית: האם יש colorHex? זה סימן ודאי שצבע מעורב!
       const hasColorHex = value.some(sku => !!(sku as any).colorHex);
@@ -1089,6 +1079,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       // ============================================================
       if (hasColorHex && hasPrimaryNonColor) {
         console.log('🎯 Branch 1: Mixed (Primary non-color + Secondary color)');
+        const normalizedSecondaryValues = new Map<string, string>();
         
         // ===== ציר ראשי: variantName (טעם, מידה וכו') =====
         const uniqueVariantNames = new Set(
@@ -1182,9 +1173,11 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             }
             
             if (matchedColor) {
+              normalizedSecondaryValues.set(colorFromSku, matchedColor.value);
               matchedColors.push(matchedColor);
               console.log('✅ התאמת צבע:', colorFromSku, '→', matchedColor.value);
             } else {
+              normalizedSecondaryValues.set(colorFromSku, colorFromSku);
               console.warn('⚠️ לא נמצאה התאמה:', colorFromSku, 'hex:', hex);
               matchedColors.push({
                 value: colorFromSku,
@@ -1201,12 +1194,22 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             selectedValues: matchedColors,
           });
         }
+
+        // טעינת כל ה-SKUs הקיימים לקומבינציות של create flow (ראשי = וריאנט, משני = צבע)
+        value.forEach(sku => {
+          const extracted = extractVariantsFromName(sku);
+          const primary = (sku as any).variantName || extracted.variantName;
+          const rawSecondary = (sku as any).color || (sku as any).subVariantName || extracted.subVariantName;
+          const secondary = rawSecondary ? (normalizedSecondaryValues.get(rawSecondary) || rawSecondary) : '';
+          addExistingCombination(primary, secondary);
+        });
       }
       // ============================================================
       // 🎯 תרחיש 2: יש colorHex בלי ציר ראשי אחר (צבע בלבד)
       // ============================================================
       else if (hasColorHex) {
         console.log('🎯 Branch 2: Color only (no primary variant)');
+        const normalizedPrimaryValues = new Map<string, string>();
         
         const uniqueColors = new Map<string, { hex?: string; family?: string }>();
         value.forEach(sku => {
@@ -1244,6 +1247,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
               }
             }
             
+            normalizedPrimaryValues.set(colorFromSku, matchedColor?.value || colorFromSku);
             matchedColors.push(matchedColor || {
               value: colorFromSku,
               displayName: colorFromSku,
@@ -1295,6 +1299,18 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             });
           }
         }
+
+        // טעינת כל ה-SKUs הקיימים לקומבינציות של create flow (ראשי = צבע, משני = תת-וריאנט אם קיים)
+        value.forEach(sku => {
+          const extracted = extractVariantsFromName(sku);
+          const rawPrimary = (sku as any).color;
+          const primary = rawPrimary ? (normalizedPrimaryValues.get(rawPrimary) || rawPrimary) : null;
+          const secondary = (sku as any).subVariantName
+            || sku.attributes?.[secondaryVariantLabel?.toLowerCase() || '']
+            || extracted.subVariantName
+            || '';
+          addExistingCombination(primary, secondary);
+        });
       }
       // ============================================================
       // 🎯 תרחיש 3: אין colorHex - Custom Variants (טקסט בלבד)
@@ -1345,6 +1361,14 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             });
           }
         }
+
+        // טעינת כל ה-SKUs הקיימים לקומבינציות של create flow (ראשי = וריאנט, משני = תת-וריאנט אם קיים)
+        value.forEach(sku => {
+          const extracted = extractVariantsFromName(sku);
+          const primary = (sku as any).variantName || extracted.variantName;
+          const secondary = (sku as any).subVariantName || extracted.subVariantName || '';
+          addExistingCombination(primary, secondary);
+        });
       }
       
       console.log('🎨 Final existingAttributes:', existingAttributes.map(a => ({
@@ -1355,7 +1379,8 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       
       // 🎯 עדכון ה-state עם המבנה הקיים
       setSelectedVariantAttributes(existingAttributes);
-      setSelectedCombinations([]); // נאפס את הקומבינציות - המשתמש יבחר חדשות
+      // טעינת הקומבינציות הקיימות כדי שהרשת תשקף את מצב המוצר בפועל
+      setSelectedCombinations(existingCombinations);
       setIsAutoFillOpen(false);
       // 🔧 איפוס דגל הסגירה הידנית
       userClosedAutoFill.current = false;
@@ -1516,7 +1541,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
           </p>
         </div>
 
-        {/* כפתורי ניהול וריאנטים - ניהול גירסאות + עריכה מרובה */}
+        {/* כפתור ניהול וריאנטים - חזרה לזרימת הניהול הקיימת */}
         {variantFlowStep === 'manage' && value.length > 0 && !isBulkEditMode && (
           <div className={styles.headerActions}>
             <button
@@ -1526,15 +1551,6 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             >
               <Icon name="Settings" size={18} />
               <span>ניהול גירסאות</span>
-            </button>
-            {/* כפתור כניסה לעריכה מרובה - עדכון מחיר/מלאי לכמה גרסאות בבת אחת */}
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={handleEnterBulkEditMode}
-            >
-              <Icon name="Edit" size={18} />
-              <span>עריכה מרובה</span>
             </button>
           </div>
         )}
