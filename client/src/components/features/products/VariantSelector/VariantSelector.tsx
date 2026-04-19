@@ -45,6 +45,48 @@ interface ColorGroup {
   }>;
 }
 
+const COLOR_METADATA_ATTRIBUTE_KEYS = new Set([
+  'צבעhex',
+  'צבעfamily',
+  'colorhex',
+  'colorfamily',
+]);
+
+const hasNonEmptyString = (value: unknown): value is string => {
+  return typeof value === 'string' && value.trim().length > 0;
+};
+
+const hasColorAttributeValue = (sku: Sku): boolean => {
+  const attributes = (sku as any).attributes;
+  return Boolean(attributes?.['צבע'] || attributes?.color);
+};
+
+const hasMeaningfulSecondaryAxisData = (sku: Sku): boolean => {
+  const skuAny = sku as any;
+
+  if (hasNonEmptyString(skuAny.subVariantName)) {
+    return true;
+  }
+
+  const primaryValue = (
+    (hasNonEmptyString(skuAny.variantName) && skuAny.variantName) ||
+    (hasNonEmptyString(sku.name) && sku.name) ||
+    ''
+  ).trim();
+
+  return Object.entries(skuAny.attributes || {}).some(([key, value]) => {
+    if (!hasNonEmptyString(value)) {
+      return false;
+    }
+
+    if (COLOR_METADATA_ATTRIBUTE_KEYS.has(key.toLowerCase())) {
+      return false;
+    }
+
+    return !primaryValue || value.trim() !== primaryValue;
+  });
+};
+
 // הגדרת קומפוננטת VariantSelector
 const VariantSelector: React.FC<VariantSelectorProps> = ({
   skus,
@@ -231,21 +273,25 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     return colorHex;
   };
 
-  // 🆕 זיהוי מבנה הוריאנטים: האם יש variantName שמשתנה?
-  // ⚠️ חשוב: כשצבע הוא ראשי, variantName מכיל את שם הצבע!
-  // לכן צריך לבדוק: האם יש attributes['צבע']? אם כן = צבע משני = יש variantName אמיתי
-  // אם אין attributes['צבע'] = צבע ראשי = variantName הוא הצבע עצמו, לא ציר נפרד
-  const hasVariantNameAxis = useMemo(() => {
-    // בדיקה אם יש צבע ב-attributes (סימן שהצבע משני)
-    const hasColorInAttributes = skus.some(sku => !!(sku as any).attributes?.['צבע']);
-    if (hasColorInAttributes) {
-      // צבע משני → יש variantName אמיתי כציר ראשי
-      const variantNames = new Set(skus.map(sku => (sku as any).variantName).filter(Boolean));
-      return variantNames.size > 1;
-    }
-    // צבע ראשי או אין צבע → אין ציר variantName נפרד
-    return false;
+  // 🆕 זיהוי אם באמת קיים ציר משני בנתוני ה-SKU.
+  // כך מוצר חד-צירי ישן, ששמר בטעות attribute של הציר הראשי,
+  // לא יזוהה כמוצר דו-צירי.
+  const hasMeaningfulSecondaryAxis = useMemo(() => {
+    return skus.some(hasMeaningfulSecondaryAxisData);
   }, [skus]);
+
+  // 🆕 זיהוי מבנה הוריאנטים: האם יש variantName שמשתנה?
+  // רק אם יש גם צבע ב-attributes וגם ציר משני אמיתי,
+  // נפרש את variantName כציר ראשי נפרד.
+  const hasVariantNameAxis = useMemo(() => {
+    const hasColorInAttributes = skus.some(hasColorAttributeValue);
+    if (!hasColorInAttributes || !hasMeaningfulSecondaryAxis) {
+      return false;
+    }
+
+    const variantNames = new Set(skus.map(sku => (sku as any).variantName).filter(Boolean));
+    return variantNames.size > 1;
+  }, [skus, hasMeaningfulSecondaryAxis]);
 
   // 🆕 קיבוץ SKUs - אם יש variantName קבץ לפיו, אחרת לפי צבע
   const colorGroups = useMemo<ColorGroup[]>(() => {
@@ -314,13 +360,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
   // ============================================================================
   // 🆕 הכנה לוריאנטים מותאמים (custom): זיהוי צירים וארגון קבוצות
   // ============================================================================
-  const hasCustomSecondaryAxis = useMemo(() => {
-    // זיהוי אם קיים ציר משני אמיתי (subVariantName או attributes)
-    return skus.some(sku => {
-      const skuAny = sku as any;
-      return Boolean(skuAny.subVariantName) || (skuAny.attributes && Object.keys(skuAny.attributes).length > 0);
-    });
-  }, [skus]);
+  const hasCustomSecondaryAxis = hasMeaningfulSecondaryAxis;
 
   const customVariantGroups = useMemo(() => {
     // קיבוץ לפי variantName (ציר ראשי)
@@ -811,7 +851,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       const firstSku = skus[0] as any;
       
       // אם יש variantName + attributes → הציר הראשי הוא ה-attribute
-      if (firstSku.variantName && firstSku.attributes && Object.keys(firstSku.attributes).length > 0) {
+      if (hasMeaningfulSecondaryAxis && firstSku.variantName && firstSku.attributes && Object.keys(firstSku.attributes).length > 0) {
         const attributeKey = Object.keys(firstSku.attributes)[0];
         // אם המפתח הוא בעברית - נחזיר אותו
         if (/[\u0590-\u05FF]/.test(attributeKey)) {
@@ -842,7 +882,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       const firstSku = skus[0] as any;
       
       // אם יש variantName + attributes → הציר המשני הוא variantName
-      if (firstSku.variantName && firstSku.attributes && Object.keys(firstSku.attributes).length > 0) {
+      if (hasMeaningfulSecondaryAxis && firstSku.variantName && firstSku.attributes && Object.keys(firstSku.attributes).length > 0) {
         return 'דגם'; // או "התנגדות סלילים" אם זה מוגדר ב-secondaryVariantLabel
       }
     }
@@ -869,7 +909,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
         
         // בדיקה אם יש attributes + variantName (מבנה של 2 צירים)
         const skuAny = sku as any;
-        if (skuAny.variantName && skuAny.attributes && Object.keys(skuAny.attributes).length > 0) {
+        if (skuAny.variantName && hasMeaningfulSecondaryAxisData(sku)) {
           // יש שני צירים: variantName הוא הציר הראשי, וה-subVariantName/attributes הם המשניים
           primaryValue = skuAny.variantName;
         } else {
@@ -909,6 +949,10 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       const group = primaryAxisGroups.find(g => g.primaryValue === selectedPrimaryValue);
       return group?.skus || [];
     }, [primaryAxisGroups, selectedPrimaryValue]);
+
+    const hasSecondaryAxisInNonColorMode = useMemo(() => {
+      return secondaryOptions.some(hasMeaningfulSecondaryAxisData);
+    }, [secondaryOptions]);
 
     // 🆕 בדיקה אם הציר המשני הוא צבע (לפי נוכחות color/colorHex ב-SKUs)
     const isSecondaryAxisColorInNonColorMode = useMemo(() => {
@@ -970,7 +1014,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
         )}
 
         {/* ציר משני: כפתורי צבע או dropdown */}
-        {secondaryOptions.length > 0 && (
+        {hasSecondaryAxisInNonColorMode && secondaryOptions.length > 0 && (
           isSecondaryAxisColorInNonColorMode ? (
             /* 🎯 אם הציר המשני הוא צבע - הצג כפתורי צבע (עם תמיכה ב-compactMode לכרטיסייה) */
             <div className={compactMode ? undefined : styles.secondaryVariantSection}>

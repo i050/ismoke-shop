@@ -348,6 +348,18 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
       const finalStock = override?.stock !== undefined ? override.stock : initialStock;
       const finalStatus = override?.status !== undefined ? override.status : isActive;
       
+      // 🎯 בדיקה: האם הציר הראשי הוא צבע?
+      const isPrimaryColor = variantType === 'color';
+      
+      // 🆕 בדיקה: האם הציר המשני הוא צבע?
+      const isSecondaryColor = !is1DMode && secondaryInfo?.hex; // אם יש hex בציר משני = זה צבע
+
+      // במוצר חד-צירי צבעוני לא שומרים את הצבע גם ב-attributes,
+      // כדי לא ליצור מבנה שנראה בטעות כמו צבע כציר משני.
+      const skuAttributes = is1DMode
+        ? (isPrimaryColor ? {} : { [primaryLabel.toLowerCase()]: combo.primary })
+        : { [secondaryLabel.toLowerCase()]: combo.secondary };
+
       // בניית אובייקט SKU
       const sku: SKUFormData = {
         sku: skuCode,
@@ -356,17 +368,9 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
         stockQuantity: finalStock,
         isActive: finalStatus,
         images: [],
-        attributes: is1DMode 
-          ? { [primaryLabel.toLowerCase()]: combo.primary }
-          : { [secondaryLabel.toLowerCase()]: combo.secondary },
+        attributes: skuAttributes,
         colorFamilySource: 'auto',
       };
-      
-      // 🎯 בדיקה: האם הציר הראשי הוא צבע?
-      const isPrimaryColor = variantType === 'color';
-      
-      // 🆕 בדיקה: האם הציר המשני הוא צבע?
-      const isSecondaryColor = !is1DMode && secondaryInfo?.hex; // אם יש hex בציר משני = זה צבע
       
       // מקרה 1: צבע בציר ראשי
       if (isPrimaryColor) {

@@ -137,7 +137,7 @@ interface ProductSKUsProps {
   /** 🆕 תווית הוריאנט המשני */
   secondaryVariantLabel?: string;
   /** 🆕 callback לשינוי תווית משנית */
-  onSecondaryVariantLabelChange?: (label: string) => void;
+  onSecondaryVariantLabelChange?: (label: string | null) => void;
 
   /** 🆕 חשיפת צבעים שנבחרו בזרימת הוריאנטים (לפני יצירת SKUs) */
   onDraftColorsChange?: (colors: Array<{ color: string; colorHex?: string; colorFamily?: string }>) => void;
@@ -161,6 +161,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   primaryVariantLabel, // ✅ הוספת ערך ציר ראשי
   onPrimaryVariantLabelChange,
   secondaryVariantLabel, // ✅ הוספת ערך ציר משני
+  onSecondaryVariantAttributeChange,
   onSecondaryVariantLabelChange,
   onVariantTypeChange,
 }) => {
@@ -668,11 +669,32 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   const handleAutoFillGenerate = useCallback((skus: SKUFormData[]) => {
     // 🎯 זיהוי האם זה מצב עריכה או יצירה
     const isEditMode = value.length > 0;
+    const isColorFlow = selectedVariantAttributes[0]?.attribute.valueType === 'color';
+    const hasSecondaryAxis = selectedVariantAttributes.length > 1;
+
+    // במוצר חד-צירי צבעוני מנקים מפתחות צבע מיותרים מ-attributes,
+    // כדי שמוצרים קיימים וגם חדשים ישמרו במבנה עקבי.
+    const sanitizeSingleAxisColorSku = (sku: SKUFormData): SKUFormData => {
+      if (!isColorFlow || hasSecondaryAxis || !sku.attributes) {
+        return sku;
+      }
+
+      const nextAttributes = { ...sku.attributes } as Record<string, string | undefined>;
+      delete nextAttributes['צבע'];
+      delete nextAttributes['color'];
+      delete nextAttributes['צבעHex'];
+      delete nextAttributes['צבעFamily'];
+      delete nextAttributes['colorHex'];
+      delete nextAttributes['colorFamily'];
+
+      return {
+        ...sku,
+        attributes: Object.keys(nextAttributes).length > 0 ? nextAttributes : undefined,
+      };
+    };
     
     if (isEditMode) {
       // 🔧 מצב עריכה - merge חכם
-      
-      const isColorFlow = selectedVariantAttributes[0]?.attribute.valueType === 'color';
       
       // 🔧 פונקציה לחילוץ variantName/subVariantName מה-name
       const extractVariantsFromName = (sku: SKUFormData) => {
@@ -738,7 +760,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             }
           }
           // SKU קיים ונבחר - שומרים אותו עם הנתונים הקיימים
-          finalSkus.push(existingSku);
+          finalSkus.push(sanitizeSingleAxisColorSku(existingSku));
           newSkusMap.delete(key); // מסירים מרשימת החדשים
         }
         // אם לא נבחר - לא מוסיפים (מחיקה)
@@ -746,17 +768,14 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       
       // 2️⃣ הוספת SKUs חדשים (שלא היו קיימים)
       newSkusMap.forEach(newSku => {
-        finalSkus.push(newSku);
+        finalSkus.push(sanitizeSingleAxisColorSku(newSku));
       });
       
       onChange(finalSkus);
     } else {
       // 🆕 מצב יצירה - פשוט מוסיפים
-      onChange([...value, ...skus]);
+      onChange([...value, ...skus].map(sanitizeSingleAxisColorSku));
     }
-    
-    // 🆕 שמירת שמות הצירים ל-Product
-    const isColorFlow = selectedVariantAttributes[0]?.attribute.valueType === 'color';
     
     // שמירת סוג הוריאנט
     if (onVariantTypeChange) {
@@ -767,10 +786,17 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     if (onPrimaryVariantLabelChange && selectedVariantAttributes[0]) {
       onPrimaryVariantLabelChange(selectedVariantAttributes[0].attribute.name);
     }
+
+    // שמירת מפתח הציר המשני או ניקויו כשעוברים למוצר חד-צירי.
+    if (onSecondaryVariantAttributeChange) {
+      onSecondaryVariantAttributeChange(
+        selectedVariantAttributes[1]?.attribute.name.toLowerCase() || null
+      );
+    }
     
-    // שמירת שם הציר המשני (אם יש)
-    if (onSecondaryVariantLabelChange && selectedVariantAttributes[1]) {
-      onSecondaryVariantLabelChange(selectedVariantAttributes[1].attribute.name);
+    // שמירת שם הציר המשני או ניקויו כשאין ציר שני.
+    if (onSecondaryVariantLabelChange) {
+      onSecondaryVariantLabelChange(selectedVariantAttributes[1]?.attribute.name || null);
     }
     
     setVariantFlowStep('manage');
@@ -780,7 +806,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     setIsAutoFillOpen(false);
     // 🔧 איפוס דגל הסגירה הידנית
     userClosedAutoFill.current = false;
-  }, [value, onChange, selectedVariantAttributes, onVariantTypeChange, onPrimaryVariantLabelChange, onSecondaryVariantLabelChange]);
+  }, [value, onChange, selectedVariantAttributes, onVariantTypeChange, onPrimaryVariantLabelChange, onSecondaryVariantAttributeChange, onSecondaryVariantLabelChange]);
 
   // ============================================================================
   // 🆕 Bulk Edit - עריכה מרובה של וריאנטים קיימים
@@ -1053,11 +1079,46 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       // 🎯 הבדיקה המרכזית: האם יש colorHex? זה סימן ודאי שצבע מעורב!
       const hasColorHex = value.some(sku => !!(sku as any).colorHex);
       
-      // 🔍 זיהוי מיקום הצבע (ראשי או משני) לפי ה-SKU עצמו
-      // 🎯 הפתרון הנכון והוודאי:
-      // - כשהצבע משני → ב-AutoFillPanel נוסף attributes['צבע']
-      // - כשהצבע ראשי → אין attributes['צבע']
-      const hasColorInAttributes = !!(firstSku.attributes?.['צבע']);
+      // 🔍 זיהוי ציר משני אמיתי:
+      // מוצר חד-צירי ישן עלול להכיל attributes['צבע'] למרות שהצבע הוא הציר הראשי.
+      // לכן בודקים לא רק את קיום המפתח, אלא גם האם יש באמת ערך משני נפרד.
+      const hasMeaningfulSecondaryData = value.some(sku => {
+        const extracted = extractVariantsFromName(sku);
+        const rawSubVariant = (sku as any).subVariantName || extracted.subVariantName;
+        if (typeof rawSubVariant === 'string' && rawSubVariant.trim().length > 0) {
+          return true;
+        }
+
+        const primaryValue = String(
+          (sku as any).color ||
+          (sku as any).variantName ||
+          extracted.variantName ||
+          sku.name ||
+          ''
+        ).trim();
+
+        return Object.entries(sku.attributes || {}).some(([key, attributeValue]) => {
+          if (typeof attributeValue !== 'string' || attributeValue.trim().length === 0) {
+            return false;
+          }
+
+          const normalizedKey = key.toLowerCase();
+          if (
+            normalizedKey === 'צבעhex' ||
+            normalizedKey === 'צבעfamily' ||
+            normalizedKey === 'colorhex' ||
+            normalizedKey === 'colorfamily'
+          ) {
+            return false;
+          }
+
+          return attributeValue.trim() !== primaryValue;
+        });
+      });
+
+      const hasColorInAttributes = hasMeaningfulSecondaryData && value.some(
+        sku => !!(sku.attributes?.['צבע'] || (sku.attributes as any)?.color)
+      );
       
       // הציר הראשי הוא לא-צבע אם:
       // 1. יש צבע ב-attributes (= צבע משני)
