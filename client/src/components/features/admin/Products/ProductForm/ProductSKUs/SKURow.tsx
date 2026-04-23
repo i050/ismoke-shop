@@ -7,6 +7,7 @@ import styles from './SKURow.module.css';
 import { detectColorFamily } from '../../../../../../utils/colorUtils';
 import SKUImageManager from './SKUImageManager';
 import { getColorNameHebrew } from '../../../../../../utils/colorUtils';
+import { PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES } from '../../../../../../config/imageUpload';
 import { ColorSelect } from '@/components/ui/ColorSelect';
 import { Collapsible } from '@/components/ui/Collapsible';
 import { FilterAttributeService } from '../../../../../../services/filterAttributeService';
@@ -286,7 +287,7 @@ const SKURow: React.FC<SKURowProps> = ({
           }}
           onUpload={onUploadImages}
           maxImages={10}
-          maxFileSize={5 * 1024 * 1024}
+          maxFileSize={PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES}
         />
       )}
       </>
@@ -380,7 +381,7 @@ const SKURow: React.FC<SKURowProps> = ({
         }}
         onUpload={onUploadImages}
         maxImages={10}
-        maxFileSize={5 * 1024 * 1024}
+        maxFileSize={PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES}
       />
     )}
     </>

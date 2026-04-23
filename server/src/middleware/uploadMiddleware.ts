@@ -3,7 +3,7 @@
  * 
  * מטרה: העלאת תמונות מאובטחת ומוגבלת
  * - File type validation (רק תמונות)
- * - File size validation (מקסימום 10MB)
+ * - File size validation (מגבלה ניתנת לקונפיגורציה)
  * - Memory storage - Sharp יעבד את ה-Buffer
  * - העלאה ל-DigitalOcean Spaces דרך imageProcessingService
  */
@@ -49,7 +49,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: IMAGE_PROCESSING_CONFIG.maxFileSize, // 10MB ברירת מחדל
+    fileSize: IMAGE_PROCESSING_CONFIG.maxFileSize, // ברירת מחדל נקבעת ב-imageConfig
     files: 10, // מקסימום 10 קבצים בבקשה אחת
   },
 });

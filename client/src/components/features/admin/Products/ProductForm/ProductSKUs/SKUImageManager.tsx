@@ -4,6 +4,7 @@
 
 import React from 'react';
 import ImageGalleryManager from '../../../../../ui/ImageGalleryManager';
+import { PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES } from '../../../../../../config/imageUpload';
 import type { IImage } from '../../../../../../types/Product';
 
 /**
@@ -31,7 +32,7 @@ interface SKUImageManagerProps {
   
   // הגדרות
   maxImages?: number;           // ברירת מחדל: 10
-  maxFileSize?: number;         // ברירת מחדל: 5MB
+  maxFileSize?: number;         // ברירת מחדל: לפי קונפיגורציית העלאה
 }
 
 /**
@@ -48,7 +49,7 @@ const SKUImageManager: React.FC<SKUImageManagerProps> = ({
   onSave,
   onUpload,
   maxImages = 10,
-  maxFileSize = 5 * 1024 * 1024, // 5MB
+  maxFileSize = PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES,
 }) => {
   return (
     <ImageGalleryManager

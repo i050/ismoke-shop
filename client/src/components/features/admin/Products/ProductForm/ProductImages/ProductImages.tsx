@@ -180,7 +180,7 @@ const ProductImages: React.FC<ProductImagesProps> = ({
             פיקסלים לפחות)
           </li>
           <li>
-            <strong>פורמטים נתמכים:</strong> JPG, PNG, WEBP (עד 5MB לתמונה)
+            <strong>פורמטים נתמכים:</strong> JPG, PNG, WEBP (בהתאם למגבלת ההעלאה שהוגדרה במערכת)
           </li>
           <li>
             <strong>מספר תמונות:</strong> ניתן להעלות עד {maxImages} תמונות

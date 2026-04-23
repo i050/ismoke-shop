@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { Icon } from '../Icon';
 import { Button } from '../Button';
 import { useConfirm } from '../../../hooks/useConfirm';
+import { PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES } from '../../../config/imageUpload';
 import styles from './ImageUploader.module.css';
 
 /**
@@ -19,7 +20,7 @@ export interface ImageUploaderProps {
   onReorder: (fromIndex: number, toIndex: number) => void;
   /** מספר מקסימלי של תמונות */
   maxImages?: number;
-  /** גודל מקסימלי לקובץ בבתים (ברירת מחדל 5MB) */
+  /** גודל מקסימלי לקובץ בבתים (ברירת מחדל לפי הקונפיגורציה) */
   maxFileSize?: number;
   /** האם להציג progress bar */
   showProgress?: boolean;
@@ -38,7 +39,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   onDelete,
   onReorder,
   maxImages = 10,
-  maxFileSize = 5 * 1024 * 1024, // 5MB
+  maxFileSize = PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES,
   showProgress = false,
   uploadProgress = 0,
 }) => {

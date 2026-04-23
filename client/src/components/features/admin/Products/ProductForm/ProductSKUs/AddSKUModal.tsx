@@ -11,6 +11,7 @@ import type { SKUFormData } from '../../../../../../schemas/productFormSchema';
 import { defaultSKUValues } from '../../../../../../schemas/productFormSchema';
 import { FilterAttributeService } from '../../../../../../services/filterAttributeService';
 import type { FilterAttribute } from '../../../../../../services/filterAttributeService';
+import { PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES } from '../../../../../../config/imageUpload';
 import styles from './AddSKUModal.module.css';
 import { detectColorFamily } from '../../../../../../utils/colorUtils';
 import { Palette, FileText, DollarSign, Image as ImageIcon } from 'lucide-react';
@@ -689,7 +690,7 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
             }}
             onUpload={onUploadImages ? (files) => onUploadImages(files, newSKU.sku) : undefined}
             maxImages={5}
-            maxFileSize={5 * 1024 * 1024}
+            maxFileSize={PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES}
             deleteMode="hard"
             allowReorder={true}
             showPrimaryBadge={false}

@@ -44,6 +44,7 @@ DO_SPACES_CDN_URL=https://ismoke-images.fra1.cdn.digitaloceanspaces.com
 #### Image Processing Settings - חובה! 🔴
 
 ```env
+IMAGE_MAX_FILE_SIZE_MB=60
 IMAGE_QUALITY=85
 IMAGE_FORMAT=webp
 IMAGE_THUMBNAIL_SIZE=200
@@ -100,6 +101,7 @@ CLOUDINARY_API_SECRET=1BYzVrksxafB4veFe4RwN_NFyBU
 - [ ] `DO_SPACES_CDN_URL`
 - [ ] `IMAGE_QUALITY`
 - [ ] `IMAGE_FORMAT`
+- [ ] `IMAGE_MAX_FILE_SIZE_MB`
 - [ ] `IMAGE_THUMBNAIL_SIZE`
 - [ ] `IMAGE_MEDIUM_SIZE`
 - [ ] `IMAGE_LARGE_SIZE`

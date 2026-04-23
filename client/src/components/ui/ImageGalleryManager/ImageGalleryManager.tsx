@@ -9,6 +9,7 @@ import ConfirmDialog from '../ConfirmDialog';
 import { Icon } from '../Icon';
 import { Button } from '../Button';
 import { useConfirm } from '../../../hooks/useConfirm';
+import { PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES } from '../../../config/imageUpload';
 import { getImageUrl } from '../../../utils/imageUtils'; // ✅ ייבוא הפונקציה החדשה
 import type { IImage } from '../../../types/Product';
 import styles from './ImageGalleryManager.module.css';
@@ -53,7 +54,7 @@ export interface ImageGalleryManagerProps {
   showProgress?: boolean;      // הצג progress bar? (default: true)
   showPrimaryBadge?: boolean;  // הצג תווית "ראשי" לתמונה הראשונה? (default: true)
   maxImages?: number;          // מספר תמונות מקסימלי (default: 10)
-  maxFileSize?: number;        // גודל קובץ מקסימלי בבתים (default: 5MB)
+  maxFileSize?: number;        // גודל קובץ מקסימלי בבתים (ברירת מחדל: לפי קונפיגורציה)
   
   // === Modal Props (רק אם mode='modal') ===
   isOpen?: boolean;            // האם המודאל פתוח?
@@ -92,7 +93,7 @@ const ImageGalleryManager: React.FC<ImageGalleryManagerProps> = ({
   showProgress = true,
   showPrimaryBadge = true,
   maxImages = 10,
-  maxFileSize = 5 * 1024 * 1024, // 5MB
+  maxFileSize = PRODUCT_IMAGE_UPLOAD_MAX_FILE_SIZE_BYTES,
   isOpen = true,
   onClose,
   title = 'ניהול תמונות',

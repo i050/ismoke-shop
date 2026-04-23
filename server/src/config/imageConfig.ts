@@ -42,6 +42,21 @@ export const IMAGE_SIZES = {
  */
 export type ImageSize = keyof typeof IMAGE_SIZES;
 
+// ברירת מחדל מתונה לקבצי מקור כבדים, עם אפשרות שליטה דרך הסביבה.
+const DEFAULT_IMAGE_MAX_FILE_SIZE_MB = 60;
+
+// פרסור בטוח של מגבלת הגודל כדי למנוע ערכים לא תקינים בזמן עליית השרת.
+const parsedImageMaxFileSizeMb = Number.parseInt(
+  process.env.IMAGE_MAX_FILE_SIZE_MB || `${DEFAULT_IMAGE_MAX_FILE_SIZE_MB}`,
+  10
+);
+
+// ערך מנורמל שמשמש את כל מנגנון הוולידציה וההעלאה.
+const normalizedImageMaxFileSizeMb =
+  Number.isFinite(parsedImageMaxFileSizeMb) && parsedImageMaxFileSizeMb > 0
+    ? parsedImageMaxFileSizeMb
+    : DEFAULT_IMAGE_MAX_FILE_SIZE_MB;
+
 /**
  * הגדרות איכות ופורמט
  */
@@ -52,8 +67,8 @@ export const IMAGE_PROCESSING_CONFIG = {
   /** איכות דחיסה (1-100) - 85 הוא sweet spot */
   quality: parseInt(process.env.IMAGE_QUALITY || '85'),
   
-  /** גודל מקסימלי לקובץ מקור (10MB) */
-  maxFileSize: 10 * 1024 * 1024, // 10MB
+  /** גודל מקסימלי לקובץ מקור, ניתן לשינוי דרך IMAGE_MAX_FILE_SIZE_MB */
+  maxFileSize: normalizedImageMaxFileSizeMb * 1024 * 1024,
   
   /** פורמטים מותרים להעלאה */
   allowedMimeTypes: [
