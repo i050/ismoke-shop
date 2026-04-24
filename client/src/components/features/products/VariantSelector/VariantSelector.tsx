@@ -850,6 +850,17 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       );
     }
 
+    // 🎯 ציר יחיד לא-צבעוני בכרטיס מוצר: מסתירים לגמרי את הבוחר
+    // כדי למנוע רעש חזותי מיותר (label + dropdown טקסטואלי).
+    // הבחירה בפועל תיעשה ב-PDP או ב-AddToCartPopover.
+    // תנאי: גם compactMode וגם cardMode אמת - רק ProductCard שולח את שניהם.
+    // לא משפיע על ציר-צבע חד-צירי (שמטופל קודם ב-shouldUseSingleAxisColorButtonsInCustomMode),
+    // לא משפיע על מוצרים דו-ציריים (שחוזרים מוקדם יותר ב-hasCustomSecondaryAxis),
+    // ולא משפיע על PDP / AddToCartPopover (שם compactMode=false).
+    if (compactMode && cardMode) {
+      return null;
+    }
+
     // אם יש ציר אחד בלבד → מציג דרופדאון יחיד (התנהגות קודמת)
     return (
       <div className={`${styles.variantSection} ${cardMode ? styles.cardMode : ''}`}>
