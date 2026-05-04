@@ -28,6 +28,7 @@ import {
 } from '../../store/slices/categoriesSlice';
 // ייבוא פעולת הוספה לסל
 import { addItemToCart } from '../../store/slices/cartSlice';
+import { getFirstInStockSku } from '../../utils/inventoryUtils';
 
 /**
  * עמוד "כל המוצרים" - פריסה דו-אזורית:
@@ -197,11 +198,11 @@ const ProductsPage: React.FC = () => {
       quantity,
     });
     
-    // אם לא נשלח SKU אבל יש SKUs, קח את הראשון
+    // אם לא נשלח SKU אבל יש SKUs, נבחר קודם וריאנט שיש לו מלאי.
     let skuToUse = sku;
     if (!skuToUse && product.skus && product.skus.length > 0) {
-      skuToUse = product.skus[0].sku;
-      debugPageLog('ℹ️ לא נשלח SKU, משתמש בראשון:', skuToUse);
+      skuToUse = getFirstInStockSku(product.skus)?.sku;
+      debugPageLog('ℹ️ לא נשלח SKU, משתמש ב-SKU מועדף:', skuToUse);
     }
     
     // שליחת הפעולה ל-Redux עם הכמות שנבחרה

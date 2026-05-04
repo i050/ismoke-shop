@@ -22,6 +22,7 @@ import { ProductService } from '../../../../services/productService';
 // Phase 1.4: ייבוא פונקציות עזר לטיפול בתמונות
 import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה עם בחירת גודל
 import { resolveSkuPricing } from '../../../../utils/pricingHierarchy';
+import { getFirstInStockSku } from '../../../../utils/inventoryUtils';
 import { useProductsRealtimeContext } from '../ProductsRealtime';
 // הסרת תלויות ב-Framer Motion - נחזור לאנימציות מבוססות CSS במודול
 
@@ -81,15 +82,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
   // 🆕 אם יש initialColorFamily (מסינון לפי צבע) - מוצא SKU תואם כדי להציג את הצבע שסוננו לפיו
   const [selectedSku, setSelectedSku] = useState<string | null>(() => {
     if (!product.skus || product.skus.length === 0) return null;
-    // אם יש משפחת צבע מסינון, נבחר את ה-SKU הראשון שתואם לה
+    // אם יש משפחת צבע מסינון, נבחר SKU תואם בעדיפות לזה שיש לו מלאי
     if (initialColorFamily) {
-      const matchingSku = product.skus.find(
+      const matchingSkus = product.skus.filter(
         s => (s as any).colorFamily === initialColorFamily
       );
+      const matchingSku = getFirstInStockSku(matchingSkus);
       if (matchingSku) return matchingSku.sku;
     }
-    // ברירת מחדל: SKU ראשון
-    return product.skus[0].sku;
+    // ברירת מחדל: SKU ראשון שיש לו מלאי, עם נפילה לראשון אם כולם אזלו.
+    return getFirstInStockSku(product.skus)?.sku || null;
   });
   
   // חישוב כמה יחידות מה-SKU הנבחר נמצאות בעגלה של המשתמש

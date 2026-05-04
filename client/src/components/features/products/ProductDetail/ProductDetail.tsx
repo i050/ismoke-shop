@@ -12,6 +12,7 @@ import StockAlertButton from '../StockAlertButton';
 import type { Product } from '../../../../types';
 import { ProductService } from '../../../../services/productService';
 import { resolveSkuPricing } from '../../../../utils/pricingHierarchy';
+import { getFirstInStockSku } from '../../../../utils/inventoryUtils';
 import { useAppDispatch, useAppSelector } from '../../../../hooks/reduxHooks';
 import { addItemToCart, openMiniCart } from '../../../../store/slices/cartSlice';
 import styles from './ProductDetail.module.css';
@@ -67,9 +68,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
         
         
         setProduct(productData);
-        // הגדרת SKU ברירת מחדל (הראשון ברשימה)
+        // הגדרת SKU ברירת מחדל לפי מלאי כדי לא לפתוח את הדף על וריאנט שאזל.
         if (productData.skus && productData.skus.length > 0) {
-          setSelectedSku(productData.skus[0].sku);
+          setSelectedSku(getFirstInStockSku(productData.skus)?.sku || null);
         }
         setError(null);
         setTransientBanner(null);

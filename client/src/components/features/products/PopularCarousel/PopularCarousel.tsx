@@ -8,6 +8,7 @@ import { ApiError } from '../../../../utils/ApiError';
 import { ProductService } from '../../../../services/productService';
 import { useAppDispatch } from '../../../../hooks/reduxHooks';
 import { addItemToCart } from '../../../../store/slices/cartSlice';
+import { getFirstInStockSku } from '../../../../utils/inventoryUtils';
 
 const PopularCarousel: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -17,8 +18,8 @@ const PopularCarousel: React.FC = () => {
 
   const handleAddToCart = (product: Product, sku?: string, quantity: number = 1) => {
     if (!sku && product.skus && product.skus.length > 0) {
-      // אם לא נשלח SKU אבל יש SKUs, קח את הראשון
-      sku = product.skus[0].sku;
+      // אם לא נשלח SKU אבל יש SKUs, נבחר קודם וריאנט שיש לו מלאי.
+      sku = getFirstInStockSku(product.skus)?.sku;
     }
     dispatch(addItemToCart({
       productId: product._id,

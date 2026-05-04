@@ -8,6 +8,7 @@ import { ApiError } from '../../../../utils/ApiError';
 import { ProductService } from '../../../../services/productService';
 import { useAppDispatch } from '../../../../hooks/reduxHooks';
 import { addItemToCart } from '../../../../store/slices/cartSlice';
+import { getFirstInStockSku } from '../../../../utils/inventoryUtils';
 
 interface PopularGridProps {
   /** כמה מוצרים להציג בהתחלה */
@@ -40,8 +41,8 @@ const PopularGrid: React.FC<PopularGridProps> = ({
   // פונקציה להוספת מוצר לסל
   const handleAddToCart = (product: Product, sku?: string) => {
     if (!sku && product.skus && product.skus.length > 0) {
-      // אם לא נשלח SKU אבל יש SKUs, קח את הראשון
-      sku = product.skus[0].sku;
+      // אם לא נשלח SKU אבל יש SKUs, נבחר קודם וריאנט שיש לו מלאי.
+      sku = getFirstInStockSku(product.skus)?.sku;
     }
     dispatch(addItemToCart({
       productId: product._id,

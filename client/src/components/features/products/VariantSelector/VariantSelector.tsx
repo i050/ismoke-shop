@@ -11,6 +11,7 @@ import type { Sku, VariantType } from '../../../../types/Product';
 import { getImageUrl } from '../../../../utils/imageUtils';
 // ייבוא פונקציות המרת צבעים
 import { getColorNameHebrew } from '../../../../utils/colorUtils';
+import { getFirstInStockSku } from '../../../../utils/inventoryUtils';
 
 // הגדרת הממשק של הקומפוננטה
 interface VariantSelectorProps {
@@ -635,10 +636,11 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
 
       const handlePrimaryChange = (primaryValue: string) => {
         setSelectedCustomPrimaryValue(primaryValue);
-        // בחר אוטומטית SKU ראשון בקבוצה החדשה
+        // בחר אוטומטית SKU מועדף לפי מלאי בקבוצה החדשה.
         const newGroup = customVariantGroups.find(g => g.variantName === primaryValue);
         if (newGroup && newGroup.skus.length > 0) {
-          onSkuChange(newGroup.skus[0].sku);
+          const preferredSku = getFirstInStockSku(newGroup.skus);
+          if (preferredSku) onSkuChange(preferredSku.sku);
         }
       };
 
@@ -878,7 +880,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
             >
               {customVariantGroups.length === 1 && customVariantGroups[0].skus.length === 1 ? (
                 // אם יש רק SKU אחד - הצג אותו ישירות
-                <option value={customVariantGroups[0].skus[0].sku}>
+                <option value={getFirstInStockSku(customVariantGroups[0].skus)?.sku || ''}>
                   {customVariantGroups[0].variantName}
                 </option>
               ) : (
@@ -886,7 +888,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                 customVariantGroups.map(group => (
                   group.skus.length === 1 ? (
                     // וריאנט עם SKU בודד
-                    <option key={group.skus[0].sku} value={group.skus[0].sku}>
+                    <option key={getFirstInStockSku(group.skus)?.sku || group.variantName} value={getFirstInStockSku(group.skus)?.sku || ''}>
                       {group.variantName}
                     </option>
                   ) : (
@@ -1168,10 +1170,11 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
     // 🎯 פונקציה לטיפול בשינוי הציר הראשי
     const handlePrimaryChange = (primaryValue: string) => {
       setSelectedPrimaryValue(primaryValue);
-      // בחר אוטומטית את ה-SKU הראשון בקבוצה החדשה
+      // בחר אוטומטית את ה-SKU המועדף לפי מלאי בקבוצה החדשה.
       const newGroup = primaryAxisGroups.find(g => g.primaryValue === primaryValue);
       if (newGroup && newGroup.skus.length > 0) {
-        onSkuChange(newGroup.skus[0].sku);
+        const preferredSku = getFirstInStockSku(newGroup.skus);
+        if (preferredSku) onSkuChange(preferredSku.sku);
       }
     };
 
@@ -1331,9 +1334,10 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
               } ${showColorPreview ? styles.withColorPreview : ''} ${compactMode ? styles.compactMode : ''}`}
               onClick={() => {
                 setSelectedColor(group.color);
-                // בחירת SKU ראשון של הצבע (אוטומטית)
+                // בחירת SKU מועדף לפי מלאי בתוך הצבע שנבחר.
                 if (group.skus.length > 0) {
-                  onSkuChange(group.skus[0].sku);
+                  const preferredSku = getFirstInStockSku(group.skus);
+                  if (preferredSku) onSkuChange(preferredSku.sku);
                 }
               }}
               style={{

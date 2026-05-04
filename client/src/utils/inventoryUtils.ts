@@ -21,6 +21,16 @@ export const calculateTotalStock = (skus: Array<{ stockQuantity?: number | null 
 };
 
 /**
+ * בחירת SKU מועדף לתצוגה: קודם SKU שיש לו מלאי, ואם אין כזה חוזרים לראשון ברשימה.
+ */
+export const getFirstInStockSku = <T extends { stockQuantity?: number | null }>(
+  skus: T[] | null | undefined
+): T | undefined => {
+  if (!skus || skus.length === 0) return undefined;
+  return skus.find((sku) => (sku.stockQuantity ?? 0) > 0) || skus[0];
+};
+
+/**
  * קבלת סטטוס מלאי לפי כמות ורף אזהרה
  */
 export const getStockStatus = (
