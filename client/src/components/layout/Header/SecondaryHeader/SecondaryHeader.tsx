@@ -75,7 +75,12 @@ const SecondaryHeader: React.FC = () => {
         ) : (
           /* לולאה על כל הקטגוריות להצגתן כקישורים */
           categories.map((cat) => (
-            <div key={cat._id} className={styles.categoryItem}>
+            <div
+              key={cat._id}
+              className={styles.categoryItem}
+              onMouseEnter={() => setOpenDropdown(cat._id)}
+              onMouseLeave={() => setOpenDropdown(null)}
+            >
               {/* כפתור הקטגוריה עם hover לפתיחת dropdown וניווט בלחיצה */}
               <Button
                 variant="ghost"
@@ -85,23 +90,17 @@ const SecondaryHeader: React.FC = () => {
                   dispatch(resetFilterTree()); // איפוס עץ הפילטרים
                   navigate(`/products?category=${encodeURIComponent(cat.name)}`); // ניווט לדף מוצרים
                 }}
-                onMouseEnter={() => setOpenDropdown(cat._id)} // פתיחה ב-hover
                 onPointerEnter={() => {
                   // 🚀 Prefetch Products by Category כשהמשתמש מעביר עליה את העכבר
                   // זה חוסך זמן טעינה כשהמשתמש בעצם לוחץ על הקטגוריה
                   ProductService.preFetchProductsByCategory(cat.name);
                 }}
-                onMouseLeave={() => setOpenDropdown(null)} // סגירה ביציאה
               >
                 {cat.name}
               </Button>
               {/* הצגת תת-קטגוריות אם יש ו-dropdown פתוח */}
               {cat.children && cat.children.length > 0 && openDropdown === cat._id && (
-                <div 
-                  className={styles.subDropdown}
-                  onMouseEnter={() => setOpenDropdown(cat._id)} // שמור פתוח ב-hover על dropdown
-                  onMouseLeave={() => setOpenDropdown(null)} // סגור ביציאה מ-dropdown
-                >
+                <div className={styles.subDropdown}>
                   {/* לולאה על תת-קטגוריות עם קישורים לדף מוצרים */}
                   {cat.children.map((subCat) => (
                     <Button

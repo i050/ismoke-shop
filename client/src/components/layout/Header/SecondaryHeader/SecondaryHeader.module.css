@@ -33,6 +33,7 @@
   margin: 0 auto; /* מרכז את התוכן */
   padding: 0 12px; /* מרווחים קטנים יותר למניעת גלילה */
   display: flex; /* flexbox לרשימת קטגוריות */
+  align-items: stretch; /* מיישר את פריטי הקטגוריות לכל גובה ההדר */
   gap: 20px; /* מרווח בין קטגוריות */
   overflow: visible; /* אפשר ל-dropdown להופיע - זאת הבעיה! */
   flex-wrap: wrap; /* אפשר לקטגוריות לרדת שורה אם צריך */
@@ -45,6 +46,8 @@
 /* פריט קטגוריה עם מיקום יחסי ל-dropdown */
 .categoryItem {
   position: relative; /* חשוב למיקום dropdown */
+  display: flex;
+  align-items: stretch;
 }
 
 /* כפתור/קישור הקטגוריה */
@@ -58,7 +61,9 @@
   transition: color 0.2s; /* אנימציה חלקה */
   line-height: 1; /* קו גובה 1 למניעת גלישה אנכית */
   text-decoration: none; /* ללא קו תחתון לקישורים */
-  display: inline-block; /* התנהגות כמו כפתור */
+  display: inline-flex; /* מאפשר יישור אנכי יציב */
+  align-items: center;
+  height: 100%;
 }
 
 /* hover על כפתור הקטגוריה */
@@ -74,7 +79,7 @@
 /* קונטיינר לתת-קטגוריות */
 .subDropdown {
   position: absolute; /* מיקום מוחלט מתחת לכפתור */
-  top: 100%; /* מתחת לכפתור */
+  top: calc(100% - 1px); /* חופף את קו ההפרדה כדי שלא יווצר seam ל-hover */
   right: 0; /* יישור לימין */
   background: #fff; /* רקע לבן */
   border: 1px solid #e5e7eb; /* גבול דק */
