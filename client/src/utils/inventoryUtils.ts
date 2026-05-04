@@ -31,6 +31,21 @@ export const getFirstInStockSku = <T extends { stockQuantity?: number | null }>(
 };
 
 /**
+ * חישוב מלאי ל-SKU נבחר: במוצר עם SKUs לא נופלים למלאי הכללי כדי לא להציג וריאנט שאזל כזמין.
+ */
+export const getSelectedSkuStock = <T extends { sku: string; stockQuantity?: number | null }>(
+  skus: T[] | null | undefined,
+  selectedSku: string | null | undefined,
+  fallbackStock = 0
+): number => {
+  if (!skus || skus.length === 0) return fallbackStock;
+  if (!selectedSku) return 0;
+
+  const skuData = skus.find((sku) => sku.sku === selectedSku);
+  return skuData?.stockQuantity ?? 0;
+};
+
+/**
  * קבלת סטטוס מלאי לפי כמות ורף אזהרה
  */
 export const getStockStatus = (

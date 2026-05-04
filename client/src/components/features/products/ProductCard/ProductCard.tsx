@@ -22,7 +22,7 @@ import { ProductService } from '../../../../services/productService';
 // Phase 1.4: ייבוא פונקציות עזר לטיפול בתמונות
 import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה עם בחירת גודל
 import { resolveSkuPricing } from '../../../../utils/pricingHierarchy';
-import { getFirstInStockSku } from '../../../../utils/inventoryUtils';
+import { getFirstInStockSku, getSelectedSkuStock } from '../../../../utils/inventoryUtils';
 import { useProductsRealtimeContext } from '../ProductsRealtime';
 // הסרת תלויות ב-Framer Motion - נחזור לאנימציות מבוססות CSS במודול
 
@@ -106,11 +106,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   
   // חישוב המלאי הכולל של ה-SKU הנבחר
   const totalStock = React.useMemo(() => {
-    if (!selectedSku || !product.skus) {
-      return product.quantityInStock || 0;
-    }
-    const skuData = product.skus.find(s => s.sku === selectedSku);
-    return skuData?.stockQuantity ?? product.quantityInStock ?? 0;
+    return getSelectedSkuStock(product.skus, selectedSku, product.quantityInStock || 0);
   }, [selectedSku, product.skus, product.quantityInStock]);
   
   // חישוב מלאי אפקטיבי = מלאי כולל פחות מה שבעגלה שלי

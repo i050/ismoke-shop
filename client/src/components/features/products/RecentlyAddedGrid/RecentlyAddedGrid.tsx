@@ -34,9 +34,6 @@ const RecentlyAddedGrid: React.FC<RecentlyAddedGridProps> = ({
   
   // State לניהול כמות המוצרים המוצגים
   const [displayedCount, setDisplayedCount] = useState(initialCount);
-  
-  // דגל לזיהוי אם נטענו מוצרים מ-cache
-  const [isRestoredFromCache, setIsRestoredFromCache] = useState(false);
 
   // פונקציה להוספת מוצר לסל
   const handleAddToCart = (product: Product, sku?: string, quantity: number = 1) => {
@@ -53,26 +50,21 @@ const RecentlyAddedGrid: React.FC<RecentlyAddedGridProps> = ({
 
   // שחזור מצב משמור (אם קיים) או שליפת מוצרים מהשרת
   useEffect(() => {
-    // ניסיון לשחזר מצב שמור מ-sessionStorage
+    // משחזרים רק מצב תצוגה; מוצרי הבית נטענים טריים כדי לא להציג מלאי וריאנטים מיושן.
     const savedState = sessionStorage.getItem('recentlyAddedState');
     
     if (savedState) {
       try {
-        const { products: savedProducts, displayedCount: savedCount, timestamp } = JSON.parse(savedState);
+        const { displayedCount: savedCount, timestamp } = JSON.parse(savedState);
         const isFresh = Date.now() - timestamp < 5 * 60 * 1000; // 5 דקות
         
-        if (isFresh && savedProducts?.length > 0) {
-          console.log('🔄 משחזר מוצרים שנוספו לאחרונה מ-cache:', savedProducts.length, 'מוצגים:', savedCount);
-          setProducts(savedProducts);
+        if (isFresh && typeof savedCount === 'number') {
+          console.log('🔄 משחזר מצב תצוגה של מוצרים שנוספו לאחרונה:', savedCount);
           setDisplayedCount(savedCount);
-          setIsRestoredFromCache(true);
-          setLoading(false);
-          return; // לא לבצע fetch
         }
       } catch (e) {
         console.error('⚠️ שגיאה בשחזור state של מוצרים שנוספו לאחרונה:', e);
       }
-      // אם הגענו לכאן - המידע לא תקין או ישן, נמחק אותו
       sessionStorage.removeItem('recentlyAddedState');
     }
     
@@ -103,18 +95,17 @@ const RecentlyAddedGrid: React.FC<RecentlyAddedGridProps> = ({
   // שמירת מצב לפני unmount
   useEffect(() => {
     return () => {
-      // שמירה רק אם יש מוצרים ולא בטעינה
-      if (products.length > 0 && !loading) {
+      // שומרים רק מצב תצוגה, לא נתוני מוצר/מלאי שעלולים להתיישן.
+      if (!loading) {
         const stateToSave = {
-          products,
           displayedCount,
           timestamp: Date.now()
         };
         sessionStorage.setItem('recentlyAddedState', JSON.stringify(stateToSave));
-        console.log('💾 שומר מצב של מוצרים שנוספו לאחרונה:', products.length, 'מוצגים:', displayedCount);
+        console.log('💾 שומר מצב תצוגה של מוצרים שנוספו לאחרונה:', displayedCount);
       }
     };
-  }, [products, displayedCount, loading]);
+  }, [displayedCount, loading]);
 
   // פונקציה לטעינת מוצרים נוספים
   const handleLoadMore = () => {

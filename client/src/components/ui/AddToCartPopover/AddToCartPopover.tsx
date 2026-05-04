@@ -5,6 +5,7 @@ import { Button } from '@ui';
 import QuantitySelector from '../QuantitySelector/QuantitySelector';
 import VariantSelector from '../../features/products/VariantSelector';
 import type { Sku, VariantType } from '../../../types/Product';
+import { getSelectedSkuStock } from '../../../utils/inventoryUtils';
 import styles from './AddToCartPopover.module.css';
 
 interface AddToCartPopoverProps {
@@ -86,9 +87,7 @@ const AddToCartPopover = ({
   
   // 🆕 חישוב מלאי דינמי לפי SKU נבחר
   const currentStock = useMemo(() => {
-    if (!skus || !localSelectedSku) return availableStock;
-    const skuData = skus.find(s => s.sku === localSelectedSku);
-    return skuData?.stockQuantity ?? availableStock;
+    return getSelectedSkuStock(skus, localSelectedSku, availableStock);
   }, [skus, localSelectedSku, availableStock]);
 
   // 🆕 פונקציה לטיפול בשינוי SKU בתוך הפופאובר
@@ -181,7 +180,7 @@ const AddToCartPopover = ({
                 size="medium"
               />
               <p className={styles.stockInfo}>
-                {currentStock} יחידות זמינות במלאי
+                {currentStock > 0 ? `${currentStock} יחידות זמינות במלאי` : 'אזל מהמלאי'}
               </p>
             </div>
 
@@ -194,9 +193,10 @@ const AddToCartPopover = ({
                   stopEventPropagation(e);
                   handleAddToCart();
                 }}
+                disabled={currentStock <= 0}
                 className={styles.addButton}
               >
-                הוסף {quantity > 1 ? `${quantity} יחידות` : ''} לסל
+                {currentStock > 0 ? `הוסף ${quantity > 1 ? `${quantity} יחידות` : ''} לסל` : 'אזל מהמלאי'}
               </Button>
               <Button
                 variant="ghost"
