@@ -34,6 +34,37 @@ const redisOptions = {
 };
 
 /**
+ * חילוץ יעד החיבור האפקטיבי של Redis.
+ * אם REDIS_URL מוגדר, משתמשים בו גם לצורך הדיאגנוסטיקה ולא רק לצורך החיבור עצמו.
+ */
+const getRedisConnectionTarget = (): { host: string; port: number } => {
+  const fallbackHost = process.env.REDIS_HOST || 'localhost';
+  const fallbackPort = parseInt(process.env.REDIS_PORT || '6379');
+
+  if (!process.env.REDIS_URL) {
+    return {
+      host: fallbackHost,
+      port: fallbackPort,
+    };
+  }
+
+  try {
+    const redisUrl = new URL(process.env.REDIS_URL);
+    const parsedPort = Number.parseInt(redisUrl.port || '6379', 10);
+
+    return {
+      host: redisUrl.hostname || fallbackHost,
+      port: Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : fallbackPort,
+    };
+  } catch {
+    return {
+      host: fallbackHost,
+      port: fallbackPort,
+    };
+  }
+};
+
+/**
  * יצירת instance של Redis client
  * אם קיים REDIS_URL (Railway internal) - משתמש בו ישירות
  * אחרת - בונה חיבור מ-HOST/PORT/PASSWORD (Redis Cloud)
@@ -127,10 +158,12 @@ export const getRedisInfo = async (): Promise<{
   usedMemory?: string;
   connectedClients?: number;
 }> => {
+  const connectionTarget = getRedisConnectionTarget();
+
   const baseInfo = {
     connected: false,
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
+    host: connectionTarget.host,
+    port: connectionTarget.port,
   };
   
   try {

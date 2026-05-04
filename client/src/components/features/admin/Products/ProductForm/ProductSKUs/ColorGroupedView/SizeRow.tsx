@@ -27,6 +27,8 @@ interface SizeRowProps {
   disabled?: boolean;
   /** מחיר בסיס (להצגה אם אין מחיר ספציפי) */
   basePrice?: number;
+  /** מחיר לפני הנחה של המוצר, להצגת ירושה אם אין מחיר ספציפי לגרסה */
+  productCompareAtPrice?: number | null;
   /** 🆕 הסתר את עמודת המידה (למקרה ללא ציר משני) */
   hideSize?: boolean;
 }
@@ -42,6 +44,7 @@ const SizeRow: React.FC<SizeRowProps> = ({
   onDelete,
   disabled = false,
   basePrice = 0,
+  productCompareAtPrice = null,
   hideSize = false,
 }) => {
   // Handler לשינוי מלאי
@@ -61,6 +64,17 @@ const SizeRow: React.FC<SizeRowProps> = ({
     }
   }, [onUpdate]);
 
+  // Handler לשינוי מחיר לפני הנחה של הגרסה
+  const handleCompareAtPriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || size.price == null) {
+      onUpdate('compareAtPrice', null);
+    } else {
+      const numValue = parseFloat(value);
+      onUpdate('compareAtPrice', isNaN(numValue) ? null : Math.max(0, numValue));
+    }
+  }, [onUpdate, size.price]);
+
   // Handler לשינוי סטטוס
   const handleActiveToggle = useCallback(() => {
     onUpdate('isActive', !size.isActive);
@@ -68,6 +82,20 @@ const SizeRow: React.FC<SizeRowProps> = ({
 
   // מחיר להצגה - ספציפי או basePrice
   const isUsingBasePrice = size.price === null || size.price === undefined;
+  const shouldInheritProductCompareAt =
+    isUsingBasePrice && size.compareAtPrice == null && productCompareAtPrice != null;
+  const compareAtPlaceholder = isUsingBasePrice
+    ? shouldInheritProductCompareAt
+      ? `בירושה: ₪${productCompareAtPrice.toFixed(2)}`
+      : 'לא מוצג'
+    : 'מחיר מחוק';
+  const compareAtTitle = isUsingBasePrice
+    ? size.compareAtPrice != null
+      ? 'מחיר לפני הנחה של גרסה לא מוצג בלי מחיר ספציפי לגרסה'
+      : shouldInheritProductCompareAt
+        ? 'הגרסה יורשת את המחיר לפני הנחה מהמוצר כי אין לה מחיר ספציפי'
+        : 'פעיל רק כאשר לגרסה יש מחיר ספציפי'
+    : 'מחיר לפני הנחה לגרסה';
 
   return (
     <tr className={`${styles.row} ${!size.isActive ? styles.inactive : ''}`}>
@@ -115,6 +143,24 @@ const SizeRow: React.FC<SizeRowProps> = ({
               בסיס
             </span>
           )}
+        </div>
+      </td>
+
+      {/* מחיר לפני הנחה */}
+      <td className={styles.priceCell}>
+        <div className={styles.priceWrapper}>
+          <input
+            type="number"
+            className={`${styles.priceInput} ${isUsingBasePrice ? styles.usingBase : ''}`}
+            value={size.compareAtPrice ?? ''}
+            onChange={handleCompareAtPriceChange}
+            min={0}
+            step={0.01}
+            placeholder={compareAtPlaceholder}
+            disabled={disabled || isUsingBasePrice}
+            aria-label={`מחיר לפני הנחה למידה ${size.size}`}
+            title={compareAtTitle}
+          />
         </div>
       </td>
 

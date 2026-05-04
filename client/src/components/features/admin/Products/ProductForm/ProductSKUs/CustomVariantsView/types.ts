@@ -33,6 +33,8 @@ export interface VariantSku {
   subVariantName?: string;
   /** מחיר (null = מחיר בסיס) */
   price: number | null;
+  /** מחיר לפני הנחה לגרסה - תקף רק כאשר יש מחיר ספציפי */
+  compareAtPrice?: number | null;
   /** כמות במלאי */
   stockQuantity: number;
   /** תמונות */
@@ -55,7 +57,7 @@ export interface NewVariantData {
   mode: 'free' | 'linked';
   
   /** מחיר בסיס - deprecated */
-  basePrice: number;
+  basePrice: number | null;
   /** כמות התחלתית - deprecated */
   initialQuantity: number;
   
@@ -64,7 +66,7 @@ export interface NewVariantData {
   variants?: string[];
   
   /** 🆕 פרטי מלאי ומחיר לכל וריאנט */
-  variantDetails?: Record<string, { stock: number; price: number }>;
+  variantDetails?: Record<string, { stock: number; price: number | null; compareAtPrice?: number | null }>;
   
   // Linked mode:
   /** מאפיין סינון מקושר (ראשי) */

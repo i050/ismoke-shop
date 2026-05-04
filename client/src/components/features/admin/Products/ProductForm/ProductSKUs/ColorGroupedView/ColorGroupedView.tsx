@@ -37,6 +37,8 @@ interface ColorGroupedViewProps {
   onChange: (skus: SKUFormData[]) => void;
   /** מחיר בסיס מהמוצר */
   basePrice: number;
+  /** מחיר לפני הנחה מהמוצר, להצגת ירושה בגרסאות */
+  productCompareAtPrice?: number | null;
   /** שם המוצר (ל-SKU generation) */
   productName?: string;
   /** מאפיין ציר משני נבחר - null = ללא תת-וריאנט (רק צבעים) */
@@ -71,6 +73,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
   value,
   onChange,
   basePrice,
+  productCompareAtPrice = null,
   productName = '',
   secondaryAttribute = null, // ברירת מחדל: ללא תת-וריאנט
   onSecondaryAttributeChange,
@@ -343,7 +346,7 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
         sizeValue,
         skuCode,
         { 
-          basePrice, 
+          basePrice: null, // מידה חדשה יורשת את מחיר המוצר עד שמגדירים לה מחיר ספציפי
           initialQuantity: 0,
           attributeKey: secondaryConfig?.attributeKey || 'size' // 🆕 העברת מפתח המאפיין
         }
@@ -512,7 +515,10 @@ const ColorGroupedView: React.FC<ColorGroupedViewProps> = ({
               onAddSize={() => handleStartAddSize(index)}
               onUploadImages={onUploadImages}
               basePrice={basePrice}
-              disabled={disabled}              secondaryConfig={secondaryConfig}            />
+              productCompareAtPrice={productCompareAtPrice}
+              disabled={disabled}
+              secondaryConfig={secondaryConfig}
+            />
           ))}
         </div>
       ) : (

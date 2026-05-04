@@ -114,6 +114,7 @@ interface ProductSKUsProps {
   productFormData?: {
     name?: string;
     basePrice?: number;
+    compareAtPrice?: number | null;
     stockQuantity?: number;
     images?: SKUFormData['images'];
   };
@@ -165,6 +166,15 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   onSecondaryVariantLabelChange,
   onVariantTypeChange,
 }) => {
+  const productCompareAtPrice = productFormData?.compareAtPrice ?? null;
+  const normalizeSkuCompareAtPrice = useCallback((sku: SKUFormData): SKUFormData => ({
+    ...sku,
+    compareAtPrice:
+      sku.price != null && sku.compareAtPrice != null && sku.compareAtPrice > sku.price
+        ? sku.compareAtPrice
+        : null,
+  }), []);
+
   // State לעריכה
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [originalSKU, setOriginalSKU] = useState<SKUFormData | null>(null);
@@ -261,14 +271,15 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
     
     // אם זה הוריאנט הראשון - נמלא גם מחיר, מלאי ותמונות מהטופס הראשי
     if (value.length === 0) {
-      const { basePrice = 0, stockQuantity = 0, images = [] } = productFormData;
+      const { stockQuantity = 0, images = [] } = productFormData;
       // 🔧 חשוב: יוצרים עותק עמוק של מערך התמונות כדי למנוע שיתוף reference
       // זה מונע בעיה שבה שינוי תמונות ב-SKU אחד משפיע על SKUs אחרים
       const imagesCopy = images ? images.map(img => ({ ...img })) : [];
       return {
         sku: generateNextSkuCode(name, value),
         name: name || 'מוצר ברירת מחדל',
-        price: basePrice || null,
+        price: null, // SKU ללא מחיר ספציפי יורש את מחיר המוצר
+        compareAtPrice: null,
         stockQuantity: stockQuantity || 0,
         images: imagesCopy,
         attributes: {},
@@ -281,6 +292,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       sku: generateNextSkuCode(name, value),
       name: '', // שדה ריק - המשתמש ימלא
       price: null,
+      compareAtPrice: null,
       stockQuantity: 0,
       images: [], // מערך חדש ריק - לא reference!
       attributes: {},
@@ -344,12 +356,18 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
    * שמירת עריכה
    */
   const handleSave = useCallback(
-    (_index: number) => {
-      // כאן יכולה להיות ולידציה נוספת
+    (index: number) => {
+      const normalizedSku = normalizeSkuCompareAtPrice(value[index]);
+      if (normalizedSku.compareAtPrice !== value[index]?.compareAtPrice) {
+        const updated = [...value];
+        updated[index] = normalizedSku;
+        onChange(updated);
+      }
+
       setEditingIndex(null);
       setOriginalSKU(null);
     },
-    []
+    [normalizeSkuCompareAtPrice, onChange, value]
   );
 
   /**
@@ -414,10 +432,24 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
       // עדכון רגיל - רק ה-SKU הספציפי
       const updated = [...value];
       const skuToUpdate = ensureVariantFields(updated[index]); // 🔧 FIX: וידוא שדות לפני עדכון
-      updated[index] = {
+      const nextSku = {
         ...skuToUpdate,
         [field]: fieldValue,
       };
+
+      if (field === 'price') {
+        const nextPrice = fieldValue as number | null;
+        // בזמן הקלדה לא מנקים ערך זמני קטן מדי; רק מחיקת מחיר מבטלת compareAt.
+        if (nextPrice == null) {
+          nextSku.compareAtPrice = null;
+        }
+      }
+
+      if (field === 'compareAtPrice' && nextSku.price == null) {
+        nextSku.compareAtPrice = null;
+      }
+
+      updated[index] = nextSku;
       onChange(updated);
     },
     [value, onChange]
@@ -1683,6 +1715,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             primaryLabel={primaryAxisLabel}
             secondaryLabel={secondaryAxisLabel}
             basePrice={productFormData?.basePrice || 0}
+            productCompareAtPrice={productCompareAtPrice}
             productName={productFormData?.name || ''}
             onGenerate={handleAutoFillGenerate}
             primaryValuesMap={primaryValuesMap}
@@ -1742,6 +1775,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
             primaryLabel={bulkEditPrimaryLabel}
             secondaryLabel={bulkEditSecondaryLabel}
             basePrice={productFormData?.basePrice || 0}
+            productCompareAtPrice={productCompareAtPrice}
             productName={productFormData?.name || ''}
             onGenerate={() => {}} // לא בשימוש במצב edit
             primaryValuesMap={bulkEditPrimaryValuesMap}
@@ -1795,6 +1829,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
                   onCheckAvailability={handleCheckAvailability}
                   onUploadImages={onUploadImages}
                   allSkus={value}
+                  productCompareAtPrice={productCompareAtPrice}
                 />
               ))}
             </div>
@@ -1824,6 +1859,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
         existingSkus={value}
         onUploadImages={onUploadImages}
         initialSku={buildDefaultSku()}
+        productCompareAtPrice={productCompareAtPrice}
       />
 
       {/* דיאלוג מחיקה */}

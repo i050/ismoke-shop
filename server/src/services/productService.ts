@@ -844,6 +844,20 @@ export const incrementProductSalesCount = async (id: string, amount: number = 1)
  * @returns המוצר המלא עם ה-SKUs שלו
  * @throws Error אם אחד מה-SKUs כבר קיים
  */
+const normalizeSkuCompareAtPrice = <T extends Partial<ISku>>(skuData: T): T => {
+  const hasSkuPrice = skuData.price !== null && skuData.price !== undefined;
+  const hasValidCompareAtPrice =
+    hasSkuPrice &&
+    skuData.compareAtPrice !== null &&
+    skuData.compareAtPrice !== undefined &&
+    skuData.compareAtPrice > skuData.price!;
+
+  return {
+    ...skuData,
+    compareAtPrice: hasValidCompareAtPrice ? skuData.compareAtPrice : null,
+  };
+};
+
 export const createProductWithSkus = async (
   productData: Partial<IProduct>,
   skusData: Partial<ISku>[]
@@ -865,7 +879,7 @@ export const createProductWithSkus = async (
     finalSkusData = [{
       sku: baseSku,
       name: productData.name || 'Default SKU',
-      price: productData.basePrice, // משתמש במחיר הבסיס (Base Price Override Pattern)
+      price: null, // null שומר ירושה אמיתית מ-Product.basePrice
       stockQuantity: productData.quantityInStock || 0,
       // ללא שדות color/size - מוצר פשוט ללא וריאנטים
       isActive: true
@@ -875,6 +889,8 @@ export const createProductWithSkus = async (
   }
 
   // Pre-validation: בדיקת duplicates לפני יצירת transaction
+  finalSkusData = (finalSkusData || []).map(normalizeSkuCompareAtPrice);
+
   const skuCodes = finalSkusData.map((s) => s.sku || '').filter(Boolean);
   if (skuCodes.length > 0) {
     const existingSkus = await checkMultipleSkusExist(skuCodes);
@@ -989,8 +1005,10 @@ export const updateProductWithSkus = async (
   productData: Partial<IProduct>,
   skusData: Partial<ISku>[]
 ): Promise<{ product: IProduct; skus: ISku[] }> => {
+  const normalizedSkusData = (skusData || []).map(normalizeSkuCompareAtPrice);
+
   // Pre-validation: בדיקת duplicates (מלבד SKUs של מוצר זה)
-  const skuCodes = skusData.map((s) => s.sku || '').filter(Boolean);
+  const skuCodes = normalizedSkusData.map((s) => s.sku || '').filter(Boolean);
   if (skuCodes.length > 0) {
     const existingSkus = await checkMultipleSkusExist(skuCodes, productId);
     if (existingSkus.length > 0) {
@@ -1027,7 +1045,7 @@ export const updateProductWithSkus = async (
     await Sku.deleteMany({ productId }, { session });
 
     // שלב 3: יצירת SKUs חדשים
-    const skusWithProductId = skusData.map(skuData => ({
+    const skusWithProductId = normalizedSkusData.map(skuData => ({
       ...skuData,
       productId
     }));
@@ -1824,7 +1842,7 @@ export const fetchProductsWithCursor = async (
     productId: { $in: productIds },
     isActive: true // רק SKUs פעילים
   })
-    .select('_id sku productId name price stockQuantity color attributes')
+    .select('_id sku productId name price compareAtPrice stockQuantity color attributes')
     .lean();
   
   // מיפוי SKUs לפי productId

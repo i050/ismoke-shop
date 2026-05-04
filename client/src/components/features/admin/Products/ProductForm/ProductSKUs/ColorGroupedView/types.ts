@@ -26,5 +26,5 @@ export interface NewColorData {
   colorFamily?: string;
   selectedSizes: string[];
   initialQuantity: number;
-  basePrice: number;
+  basePrice: number | null;
 }

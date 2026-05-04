@@ -29,6 +29,8 @@ interface AddVariantModalProps {
   onSubmit: (data: NewVariantData) => void;
   /** מחיר בסיס מהמוצר */
   basePrice: number;
+  /** מחיר לפני הנחה מהמוצר, להצגת ירושה כשאין מחיר ספציפי לגרסה */
+  productCompareAtPrice?: number | null;
   /** תווית הוריאנט הראשי (לדוגמה: "טעם") */
   primaryVariantLabel?: string;
   /** תווית הוריאנט המשני (לדוגמה: "ניקוטין") */
@@ -56,12 +58,43 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
   onClose,
   onSubmit,
   basePrice,
+  productCompareAtPrice = null,
   primaryVariantLabel = 'וריאנט',
   labelDefinitionMode,
   selectedFilterAttribute,
   existingVariants,
   isLoading = false,
 }) => {
+  const getCompareAtPlaceholder = (
+    price?: number | null,
+    compareAtPrice?: number | null
+  ): string => {
+    if (price == null) {
+      return compareAtPrice == null && productCompareAtPrice != null
+        ? `בירושה: ₪${productCompareAtPrice.toFixed(2)}`
+        : 'לא מוצג';
+    }
+
+    return 'לפני';
+  };
+
+  const getCompareAtTitle = (
+    price?: number | null,
+    compareAtPrice?: number | null
+  ): string => {
+    if (price != null) {
+      return 'מחיר לפני הנחה לגרסה';
+    }
+
+    if (compareAtPrice != null) {
+      return 'מחיר לפני הנחה של גרסה לא מוצג בלי מחיר ספציפי לגרסה';
+    }
+
+    return productCompareAtPrice != null
+      ? 'הגרסה יורשת את המחיר לפני הנחה מהמוצר כי אין לה מחיר ספציפי'
+      : 'מחיר לפני הנחה לגרסה פעיל רק כשיש מחיר ספציפי';
+  };
+
   // ============================================================================
   // State
   // ============================================================================
@@ -74,7 +107,7 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
   const [selectedAttributeValues, setSelectedAttributeValues] = useState<string[]>([]);
   
   // 🆕 מלאי ומחיר לכל וריאנט - במקום ערכים כלליים
-  const [variantDetails, setVariantDetails] = useState<Record<string, { stock: number; price: number }>>({});
+  const [variantDetails, setVariantDetails] = useState<Record<string, { stock: number; price: number | null; compareAtPrice?: number | null }>>({});
   
   // בחירה חופשית - רשימת ערכי וריאנטים
   const [freeVariantsList, setFreeVariantsList] = useState<string[]>([]);
@@ -82,7 +115,7 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
   
   // ברירות מחדל למלאי ומחיר חדשים
   const [defaultStock, setDefaultStock] = useState(10);
-  const [defaultPrice, setDefaultPrice] = useState(basePrice);
+  const [defaultPrice, setDefaultPrice] = useState<number | null>(null);
 
   // ============================================================================
   // Effects
@@ -96,12 +129,12 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
       setFreeVariantsList([]);
       setFreeCurrentInput('');
       setDefaultStock(10);
-      setDefaultPrice(basePrice);
+      setDefaultPrice(null);
       setVariantDetails({});
       setAvailableAttributeValues([]);
       setSelectedAttributeValues([]);
     }
-  }, [isOpen, basePrice]);
+  }, [isOpen]);
 
   /**
    * 🆕 טעינת ערכים מהמאפיין הנבחר (במצב linked)
@@ -205,7 +238,7 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
     // הוספת ברירת מחדל למלאי ומחיר
     setVariantDetails(prev => ({
       ...prev,
-      [trimmed]: { stock: defaultStock, price: defaultPrice }
+      [trimmed]: { stock: defaultStock, price: defaultPrice, compareAtPrice: null }
     }));
     setFreeCurrentInput('');
   }, [freeCurrentInput, freeVariantsList, primaryVariantLabel, existingVariants, defaultStock, defaultPrice]);
@@ -359,8 +392,8 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                         <input
                           type="number"
                           placeholder="מחיר (₪)"
-                          value={defaultPrice}
-                          onChange={(e) => setDefaultPrice(parseFloat(e.target.value) || 0)}
+                      value={defaultPrice ?? ''}
+                      onChange={(e) => setDefaultPrice(e.target.value === '' ? null : parseFloat(e.target.value) || 0)}
                           min={0}
                           step="0.01"
                           disabled={isLoading}
@@ -382,7 +415,12 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                             const newStock = parseInt(e.target.value) || 0;
                             setVariantDetails(prev => ({
                               ...prev,
-                              [variant]: { ...prev[variant], stock: newStock, price: prev[variant]?.price ?? defaultPrice }
+                              [variant]: {
+                                ...prev[variant],
+                                stock: newStock,
+                                price: prev[variant]?.price ?? defaultPrice,
+                                compareAtPrice: prev[variant]?.compareAtPrice ?? null,
+                              }
                             }));
                           }}
                           min={0}
@@ -392,17 +430,49 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                           type="number"
                           className={styles.variantInput}
                           placeholder="מחיר"
-                          value={variantDetails[variant]?.price ?? defaultPrice}
-                          onChange={(e) => {
-                            const newPrice = parseFloat(e.target.value) || 0;
-                            setVariantDetails(prev => ({
-                              ...prev,
-                              [variant]: { stock: prev[variant]?.stock ?? defaultStock, price: newPrice }
+                      value={variantDetails[variant]?.price ?? defaultPrice ?? ''}
+                      onChange={(e) => {
+                        const newPrice = e.target.value === '' ? null : parseFloat(e.target.value) || 0;
+                        setVariantDetails(prev => ({
+                          ...prev,
+                          [variant]: {
+                            stock: prev[variant]?.stock ?? defaultStock,
+                            price: newPrice,
+                            compareAtPrice: newPrice == null ? null : prev[variant]?.compareAtPrice ?? null,
+                              }
                             }));
                           }}
                           min={0}
                           step="0.01"
                           disabled={isLoading}
+                        />
+                        <input
+                          type="number"
+                          className={styles.variantInput}
+                          placeholder={getCompareAtPlaceholder(
+                            variantDetails[variant]?.price ?? defaultPrice,
+                            variantDetails[variant]?.compareAtPrice
+                          )}
+                          value={variantDetails[variant]?.compareAtPrice ?? ''}
+                          onChange={(e) => {
+                        const currentPrice = variantDetails[variant]?.price ?? defaultPrice;
+                            const newCompareAtPrice = e.target.value ? parseFloat(e.target.value) : null;
+                            setVariantDetails(prev => ({
+                              ...prev,
+                              [variant]: {
+                                stock: prev[variant]?.stock ?? defaultStock,
+                                price: currentPrice,
+                                compareAtPrice: currentPrice == null ? null : newCompareAtPrice,
+                              }
+                            }));
+                          }}
+                          min={0}
+                          step="0.01"
+                      disabled={isLoading || (variantDetails[variant]?.price ?? defaultPrice) == null}
+                          title={getCompareAtTitle(
+                            variantDetails[variant]?.price ?? defaultPrice,
+                            variantDetails[variant]?.compareAtPrice
+                          )}
                         />
                         <button
                           type="button"
@@ -489,7 +559,7 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                                   // Add value and initialize its details
                                   setVariantDetails(current => ({
                                     ...current,
-                                    [value]: { stock: defaultStock, price: defaultPrice }
+                                    [value]: { stock: defaultStock, price: defaultPrice, compareAtPrice: null }
                                   }));
                                   return [...prev, value];
                                 }
@@ -512,7 +582,12 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                                     const newStock = parseInt(e.target.value) || 0;
                                     setVariantDetails(prev => ({
                                       ...prev,
-                                      [value]: { ...prev[value], stock: newStock, price: prev[value]?.price ?? defaultPrice }
+                                      [value]: {
+                                        ...prev[value],
+                                        stock: newStock,
+                                        price: prev[value]?.price ?? defaultPrice,
+                                        compareAtPrice: prev[value]?.compareAtPrice ?? null,
+                                      }
                                     }));
                                   }}
                                   min={0}
@@ -526,19 +601,56 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                                   type="number"
                                   className={styles.variantInput}
                                   placeholder="מחיר"
-                                  value={variantDetails[value]?.price ?? defaultPrice}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    const newPrice = parseFloat(e.target.value) || 0;
-                                    setVariantDetails(prev => ({
-                                      ...prev,
-                                      [value]: { stock: prev[value]?.stock ?? defaultStock, price: newPrice }
+                              value={variantDetails[value]?.price ?? defaultPrice ?? ''}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                const newPrice = e.target.value === '' ? null : parseFloat(e.target.value) || 0;
+                                setVariantDetails(prev => ({
+                                  ...prev,
+                                  [value]: {
+                                    stock: prev[value]?.stock ?? defaultStock,
+                                    price: newPrice,
+                                    compareAtPrice: newPrice == null ? null : prev[value]?.compareAtPrice ?? null,
+                                      }
                                     }));
                                   }}
                                   min={0}
                                   step="0.01"
                                   disabled={isLoading}
                                   onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              <div className={styles.inputWithLabel}>
+                                <label>לפני</label>
+                                <input
+                                  type="number"
+                                  className={styles.variantInput}
+                                  placeholder={getCompareAtPlaceholder(
+                                    variantDetails[value]?.price ?? defaultPrice,
+                                    variantDetails[value]?.compareAtPrice
+                                  )}
+                                  value={variantDetails[value]?.compareAtPrice ?? ''}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                const currentPrice = variantDetails[value]?.price ?? defaultPrice;
+                                    const newCompareAtPrice = e.target.value ? parseFloat(e.target.value) : null;
+                                    setVariantDetails(prev => ({
+                                      ...prev,
+                                      [value]: {
+                                        stock: prev[value]?.stock ?? defaultStock,
+                                        price: currentPrice,
+                                        compareAtPrice: currentPrice == null ? null : newCompareAtPrice,
+                                      }
+                                    }));
+                                  }}
+                                  min={0}
+                                  step="0.01"
+                              disabled={isLoading || (variantDetails[value]?.price ?? defaultPrice) == null}
+                                  onClick={(e) => e.stopPropagation()}
+                                  title={getCompareAtTitle(
+                                    variantDetails[value]?.price ?? defaultPrice,
+                                    variantDetails[value]?.compareAtPrice
+                                  )}
                                 />
                               </div>
                             </div>
@@ -566,8 +678,9 @@ const AddVariantModal: React.FC<AddVariantModalProps> = ({
                         <label>מחיר (₪):</label>
                         <input
                           type="number"
-                          value={defaultPrice}
-                          onChange={(e) => setDefaultPrice(parseFloat(e.target.value) || 0)}
+                      value={defaultPrice ?? ''}
+                      onChange={(e) => setDefaultPrice(e.target.value === '' ? null : parseFloat(e.target.value) || 0)}
+                      placeholder={`₪${basePrice}`}
                           min={0}
                           step="0.01"
                           disabled={isLoading}

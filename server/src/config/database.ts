@@ -10,6 +10,38 @@ import { MongoClient } from 'mongodb';
 const RS_MAX_RETRIES = 3;
 const RS_RETRY_DELAY_MS = 5000;
 
+/**
+ * פרסור בסיסי של URI כדי להבדיל בין Railway internal לבין proxy ציבורי.
+ * בלוקאלי מול proxy ציבורי חייבים להתחבר ב-directConnection ואסור לבצע reconfig של replica set.
+ */
+function getMongoConnectionStrategy(mongoUri: string): {
+  runtimeUri: string;
+  shouldEnsureReplicaSet: boolean;
+} {
+  try {
+    const parsedUrl = new URL(mongoUri);
+    const isRailwayInternalHost = parsedUrl.hostname === 'mongodb.railway.internal';
+    const isRailwayPublicProxy = parsedUrl.hostname.endsWith('.proxy.rlwy.net');
+
+    // ברירת מחדל: השרת עצמו מנהל replica set רק כשהוא מחובר בתוך Railway.
+    const shouldEnsureReplicaSet = isRailwayInternalHost;
+
+    if (isRailwayPublicProxy && parsedUrl.searchParams.get('directConnection') !== 'true') {
+      parsedUrl.searchParams.set('directConnection', 'true');
+    }
+
+    return {
+      runtimeUri: parsedUrl.toString(),
+      shouldEnsureReplicaSet,
+    };
+  } catch {
+    return {
+      runtimeUri: mongoUri,
+      shouldEnsureReplicaSet: true,
+    };
+  }
+}
+
 async function tryInitReplicaSet(mongoUri: string): Promise<boolean> {
   // חילוץ host מה-URI לשימוש ב-rs.initiate
   let host: string;
@@ -115,11 +147,18 @@ const connectDB = async () => {
     console.log('Attempting to connect to MongoDB...');
     console.log('MongoDB URI:', mongoUri.replace(/\/\/.*@/, '//***:***@'));
 
-    // שלב 1: אתחול replica set (נדרש לטרנזקציות ב-Railway)
-    await ensureReplicaSet(mongoUri);
+    const connectionStrategy = getMongoConnectionStrategy(mongoUri);
 
-    // שלב 2: חיבור רגיל עם mongoose (עכשיו יש primary אם rs הופעל)
-    const conn = await mongoose.connect(mongoUri, {
+    // שלב 1: אתחול replica set רק בתוך Railway internal.
+    if (connectionStrategy.shouldEnsureReplicaSet) {
+      await ensureReplicaSet(mongoUri);
+    } else {
+      console.log('ℹ️ MongoDB: חיבור דרך Railway Public Proxy, מדלג על ensureReplicaSet');
+    }
+
+    // שלב 2: חיבור רגיל עם mongoose.
+    // בחיבור ציבורי ללוקאלי runtimeUri כבר כולל directConnection=true.
+    const conn = await mongoose.connect(connectionStrategy.runtimeUri, {
       serverSelectionTimeoutMS: 5000,
     });
 

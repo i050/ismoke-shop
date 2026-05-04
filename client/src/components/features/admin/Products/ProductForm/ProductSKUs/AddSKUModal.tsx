@@ -35,6 +35,7 @@ interface AddSKUModalProps {
   }>>;
   /** ערכי התחלה למילוי מראש של הטופס - לשימוש בפתיחה אוטומטית */
   initialSku?: Partial<SKUFormData>;
+  productCompareAtPrice?: number | null;
 }
 
 /**
@@ -49,6 +50,7 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
   existingSkus,
   onUploadImages,
   initialSku, // ערכי התחלה למילוי מראש
+  productCompareAtPrice = null,
 }) => {
   // Hook for confirmations
   const confirm = useConfirm();
@@ -89,6 +91,19 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
   const [detectionScore, setDetectionScore] = useState<number | null>(null);
   // TODO: הצג detectionMethod ו-detectionScore ב-UI (אינדיקטור אמון)
   void detectionMethod; void detectionScore; // שמורים לעתיד
+  const hasSkuPrice = newSKU.price !== null && newSKU.price !== undefined;
+  const shouldInheritProductCompareAt =
+    !hasSkuPrice && newSKU.compareAtPrice == null && productCompareAtPrice != null;
+  const compareAtPlaceholder =
+    hasSkuPrice
+      ? 'מחיר מחוק'
+      : shouldInheritProductCompareAt
+        ? `בירושה: ₪${productCompareAtPrice.toFixed(2)}`
+        : 'פעיל רק אם יש מחיר ספציפי';
+  const compareAtHelpText =
+    shouldInheritProductCompareAt
+      ? `כרגע יוצג ללקוח מחיר לפני הנחה בירושה מהמוצר: ₪${productCompareAtPrice.toFixed(2)}`
+      : 'מוצג כמחיר מחוק רק לגרסה עם מחיר ספציפי; לא משפיע על סל או הזמנה';
 
   /**
    * 🆕 טעינת מאפייני הסינון מהשרת
@@ -255,16 +270,28 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
    */
   const handleChange = useCallback(
     (field: keyof SKUFormData, value: any) => {
-      setNewSKU((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+      setNewSKU((prev) => {
+        const updated = {
+          ...prev,
+          [field]: value,
+        };
+
+        // כאשר מחיר הגרסה נמחק, מחיר לפני הנחה של הגרסה לא תקף יותר
+        if (field === 'price' && (value === null || value === undefined)) {
+          updated.compareAtPrice = null;
+        }
+
+        return updated;
+      });
 
       // ניקוי שגיאה של השדה
       if (errors[field]) {
         setErrors((prev) => {
           const updated = { ...prev };
           delete updated[field];
+          if (field === 'price') {
+            delete updated.compareAtPrice;
+          }
           return updated;
         });
       }
@@ -389,6 +416,17 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
       }
     }
 
+    // מחיר לפני הנחה לגרסה - תקף רק אם הוגדר מחיר ספציפי לגרסה
+    if (newSKU.compareAtPrice !== null && newSKU.compareAtPrice !== undefined) {
+      if (newSKU.price === null || newSKU.price === undefined) {
+        newErrors.compareAtPrice = 'מחיר לפני הנחה לגרסה אפשרי רק כאשר יש מחיר ספציפי';
+      } else if (newSKU.compareAtPrice <= newSKU.price) {
+        newErrors.compareAtPrice = 'מחיר לפני הנחה חייב להיות גבוה ממחיר הגרסה';
+      } else if (newSKU.compareAtPrice > 999999) {
+        newErrors.compareAtPrice = 'מחיר לפני הנחה לא יכול לעלות על 999,999';
+      }
+    }
+
     // מלאי
     if (newSKU.stockQuantity < 0) {
       newErrors.stockQuantity = 'כמות במלאי לא יכולה להיות שלילית';
@@ -427,7 +465,11 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
     }
 
     console.log('✅ Validation passed - adding SKU');
-    onAdd(newSKU);
+    onAdd({
+      ...newSKU,
+      // אם אין מחיר ספציפי, אין משמעות למחיר לפני הנחה של הגרסה
+      compareAtPrice: newSKU.price == null ? null : newSKU.compareAtPrice ?? null,
+    });
     resetForm();
     onClose();
   }, [newSKU, validateForm, checkMissingAttributes, onAdd, resetForm, onClose, errors, confirm]);
@@ -656,6 +698,30 @@ const AddSKUModal: React.FC<AddSKUModalProps> = ({
             />
             <p className={styles.helperText}>
               אם לא מוגדר, ישתמש במחיר הבסיס של המוצר
+            </p>
+          </div>
+
+          {/* מחיר לפני הנחה לגרסה */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              מחיר לפני הנחה לגרסה
+              <span className={styles.optional}> (אופציונלי)</span>
+            </label>
+            <Input
+              type="number"
+              value={newSKU.compareAtPrice !== null && newSKU.compareAtPrice !== undefined ? String(newSKU.compareAtPrice) : ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleChange(
+                  'compareAtPrice',
+                  e.target.value ? parseFloat(e.target.value) : null
+                )
+              }
+              placeholder={compareAtPlaceholder}
+              error={!!errors.compareAtPrice}
+              disabled={!hasSkuPrice}
+            />
+            <p className={styles.helperText}>
+              {compareAtHelpText}
             </p>
           </div>
 

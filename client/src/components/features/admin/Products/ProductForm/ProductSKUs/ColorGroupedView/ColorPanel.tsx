@@ -38,6 +38,8 @@ interface ColorPanelProps {
   onUploadImages?: (files: File[], sku: string) => Promise<any[]>;
   /** מחיר בסיס (להצגה) */
   basePrice: number;
+  /** מחיר לפני הנחה של המוצר, להצגת ירושה */
+  productCompareAtPrice?: number | null;
   /** האם מושבת */
   disabled?: boolean;
   /** הגדרות הוריאנט המשני (null = ללא תת-וריאנט) */
@@ -57,6 +59,7 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
   onAddSize,
   onUploadImages,
   basePrice,
+  productCompareAtPrice = null,
   disabled = false,
   secondaryConfig,
 }) => {
@@ -271,6 +274,7 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
                           <th>קוד SKU</th>
                           <th>מלאי</th>
                           <th>מחיר</th>
+                          <th>לפני הנחה</th>
                           <th>סטטוס</th>
                           <th></th>
                         </tr>
@@ -283,9 +287,10 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
                             index={index}
                             onUpdate={(field, value) => handleUpdateSize(index, field, value)}
                             onDelete={() => handleDeleteSize(index)}
-                            disabled={disabled}
-                            basePrice={basePrice}
-                          />
+                  disabled={disabled}
+                  basePrice={basePrice}
+                  productCompareAtPrice={productCompareAtPrice}
+                />
                         ))}
                       </tbody>
                     </table>
@@ -312,6 +317,7 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
                           <th>קוד SKU</th>
                           <th>מלאי</th>
                           <th>מחיר</th>
+                          <th>לפני הנחה</th>
                           <th>סטטוס</th>
                         </tr>
                       </thead>
@@ -322,10 +328,11 @@ const ColorPanel: React.FC<ColorPanelProps> = ({
                           index={0}
                           onUpdate={(field, value) => handleUpdateSize(0, field, value)}
                           onDelete={() => handleDeleteSize(0)}
-                          disabled={disabled}
-                          basePrice={basePrice}
-                          hideSize={true}
-                        />
+              disabled={disabled}
+              basePrice={basePrice}
+              productCompareAtPrice={productCompareAtPrice}
+              hideSize={true}
+            />
                       </tbody>
                     </table>
                   </div>

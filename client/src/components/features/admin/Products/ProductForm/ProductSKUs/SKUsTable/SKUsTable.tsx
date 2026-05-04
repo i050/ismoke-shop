@@ -11,17 +11,21 @@ import { Icon } from '@/components/ui/Icon';
 import type { SKUFormData } from '@/schemas/productFormSchema';
 import styles from './SKUsTable.module.css';
 
+export type SKU = SKUFormData;
+
 // ==========================================
 // טיפוסים
 // ==========================================
 
-interface SKUsTableProps {
+export interface SKUsTableProps {
   /** רשימת הווריאנטים */
   skus: SKUFormData[];
   /** פונקציה לשינוי רשימת הווריאנטים */
   onChange: (skus: SKUFormData[]) => void;
   /** מחיר בסיס של המוצר (להצגת ירושה) */
   basePrice: number;
+  /** מחיר לפני הנחה של המוצר (להצגת ירושה) */
+  productCompareAtPrice?: number | null;
   /** פונקציה להעלאת תמונות */
   onUploadImages?: (files: File[], sku: string) => Promise<any[]>;
   /** האם הטופס במצב loading */
@@ -32,10 +36,11 @@ interface SKUsTableProps {
 // קומפוננטה ראשית
 // ==========================================
 
-const SKUsTable: React.FC<SKUsTableProps> = ({
+export const SKUsTable: React.FC<SKUsTableProps> = ({
   skus,
   onChange,
   basePrice,
+  productCompareAtPrice = null,
   onUploadImages: _onUploadImages, // Reserved for future use
   disabled = false,
 }) => {
@@ -110,6 +115,15 @@ const SKUsTable: React.FC<SKUsTableProps> = ({
         // אם ריק או 0 - יורש מחיר בסיס
         const priceNum = parseFloat(editValue);
         sku.price = priceNum > 0 ? priceNum : null;
+        // מחיר לפני הנחה ברמת SKU תקף רק כאשר יש מחיר ספציפי לגרסה
+        if (sku.price === null || (sku.compareAtPrice != null && sku.compareAtPrice <= sku.price)) {
+          sku.compareAtPrice = null;
+        }
+        break;
+      case 'compareAtPrice':
+        // מחיר לפני הנחה נשמר רק אם הוא גבוה ממחיר ה-SKU הספציפי
+        const compareAtNum = parseFloat(editValue);
+        sku.compareAtPrice = sku.price != null && compareAtNum > sku.price ? compareAtNum : null;
         break;
       case 'name':
         sku.name = editValue;
@@ -202,6 +216,35 @@ const SKUsTable: React.FC<SKUsTableProps> = ({
   const getFinalPrice = useCallback((sku: SKUFormData): number => {
     return sku.price ?? basePrice;
   }, [basePrice]);
+
+  // ===== חישוב מחיר לפני הנחה להצגה בטבלה =====
+  const getCompareAtDisplay = useCallback((sku: SKUFormData): string => {
+    if (sku.price == null) {
+      if (sku.compareAtPrice == null && productCompareAtPrice != null) {
+        return `₪${productCompareAtPrice.toFixed(2)} (בירושה)`;
+      }
+
+      return 'לא מוצג';
+    }
+
+    return sku.compareAtPrice && sku.compareAtPrice > sku.price
+      ? `₪${sku.compareAtPrice.toFixed(2)}`
+      : '—';
+  }, [productCompareAtPrice]);
+
+  const getCompareAtTitle = useCallback((sku: SKUFormData): string => {
+    if (sku.price != null) {
+      return 'לחץ לעריכת מחיר לפני הנחה';
+    }
+
+    if (sku.compareAtPrice != null) {
+      return 'מחיר לפני הנחה של גרסה לא מוצג בלי מחיר ספציפי לגרסה';
+    }
+
+    return productCompareAtPrice != null
+      ? 'הגרסה יורשת את המחיר לפני הנחה מהמוצר כי אין לה מחיר ספציפי'
+      : 'מחיר לפני הנחה לגרסה פעיל רק כשיש מחיר ספציפי';
+  }, [productCompareAtPrice]);
 
   // ===== האם כל השורות נבחרו =====
   const isAllSelected = useMemo(() => {
@@ -314,6 +357,7 @@ const SKUsTable: React.FC<SKUsTableProps> = ({
               <th>וריאנט</th>
               <th>SKU</th>
               <th>מחיר</th>
+              <th>לפני הנחה</th>
               <th>מלאי</th>
               <th>סטטוס</th>
               <th>פעולות</th>
@@ -412,6 +456,35 @@ const SKUsTable: React.FC<SKUsTableProps> = ({
                       {sku.price === null && (
                         <span className={styles.inheritedBadge}>בסיס</span>
                       )}
+                    </span>
+                  )}
+                </td>
+
+                {/* מלאי - עריכה בלחיצה */}
+                <td
+                  className={styles.editableCell}
+                  onClick={() => {
+                    if (sku.price != null) {
+                      handleStartEdit(index, 'compareAtPrice', sku.compareAtPrice?.toString() || '');
+                    }
+                  }}
+                  title={getCompareAtTitle(sku)}
+                >
+                  {editingCell?.row === index && editingCell?.col === 'compareAtPrice' ? (
+                    <input
+                      ref={inputRef}
+                      type="number"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onBlur={handleSaveEdit}
+                      className={styles.cellInput}
+                      min="0"
+                      step="0.01"
+                    />
+                  ) : (
+                    <span className={styles.cellValue}>
+                      {getCompareAtDisplay(sku)}
                     </span>
                   )}
                 </td>

@@ -51,6 +51,7 @@ export interface Sku {
   productId: string;
   name: string;
   price?: number | null; // אופציונלי - Base Price Override Pattern
+  compareAtPrice?: number | null; // מחיר לפני הנחה לגרסה - תצוגתי בלבד
   stockQuantity: number;
 
   // ============================================================================

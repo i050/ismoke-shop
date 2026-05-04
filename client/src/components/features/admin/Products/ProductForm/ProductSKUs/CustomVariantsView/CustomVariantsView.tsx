@@ -29,6 +29,8 @@ interface CustomVariantsViewProps {
   onChange: (skus: SKUFormData[]) => void;
   /** מחיר בסיס מהמוצר */
   basePrice: number;
+  /** מחיר לפני הנחה מהמוצר, להצגת ירושה בגרסאות */
+  productCompareAtPrice?: number | null;
   /** שם המוצר (ל-SKU generation) */
   productName?: string;
   /** תווית הוריאנט הראשי */
@@ -78,10 +80,11 @@ const groupSkusByVariant = (skus: SKUFormData[]): VariantGroup[] => {
 
     groups.get(variantName)!.skus.push({
       sku: sku.sku,
-      name: sku.name,
+      name: sku.name || sku.sku,
       variantName,
       subVariantName: (sku as any).subVariantName,
       price: sku.price ?? null,
+      compareAtPrice: sku.compareAtPrice ?? null,
       stockQuantity: sku.stockQuantity,
       images: sku.images || [],
       isActive: sku.isActive ?? true,
@@ -107,6 +110,7 @@ const flattenVariantGroups = (groups: VariantGroup[]): SKUFormData[] => {
         sku: sku.sku,
         name: sku.name,
         price: sku.price,
+        compareAtPrice: sku.price == null ? null : sku.compareAtPrice ?? null,
         stockQuantity: sku.stockQuantity,
         images: sku.images,
         isActive: sku.isActive,
@@ -129,6 +133,7 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
   value,
   onChange,
   basePrice,
+  productCompareAtPrice = null,
   productName = '',
   primaryVariantLabel = '',
   onPrimaryVariantLabelChange,
@@ -142,6 +147,30 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onUploadImages, // TODO: Phase 4 - יהיה בשימוש להעלאת תמונות לוריאנט
 }) => {
+  const getCompareAtPlaceholder = (sku: Pick<SKUFormData, 'price' | 'compareAtPrice'>): string => {
+    if (sku.price == null) {
+      return sku.compareAtPrice == null && productCompareAtPrice != null
+        ? `בירושה: ₪${productCompareAtPrice.toFixed(2)}`
+        : 'לא מוצג';
+    }
+
+    return 'מחיר מחוק';
+  };
+
+  const getCompareAtTitle = (sku: Pick<SKUFormData, 'price' | 'compareAtPrice'>): string => {
+    if (sku.price != null) {
+      return 'מחיר לפני הנחה לגרסה';
+    }
+
+    if (sku.compareAtPrice != null) {
+      return 'מחיר לפני הנחה של גרסה לא מוצג בלי מחיר ספציפי לגרסה';
+    }
+
+    return productCompareAtPrice != null
+      ? 'הגרסה יורשת את המחיר לפני הנחה מהמוצר כי אין לה מחיר ספציפי'
+      : 'פעיל רק כאשר לגרסה יש מחיר ספציפי';
+  };
+
   // ============================================================================
   // State
   // ============================================================================
@@ -260,7 +289,32 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
   const handlePriceChange = useCallback(
     (skuCode: string, newPrice: number | null) => {
       const updated = value.map((sku) =>
-        sku.sku === skuCode ? { ...sku, price: newPrice } : sku
+        sku.sku === skuCode
+          ? {
+              ...sku,
+              price: newPrice,
+              // בזמן הקלדה שומרים ערך זמני; מחיקת המחיר מבטלת compareAt.
+              compareAtPrice: newPrice == null ? null : sku.compareAtPrice ?? null,
+            }
+          : sku
+      );
+      onChange(updated);
+    },
+    [value, onChange]
+  );
+
+  /**
+   * עדכון מחיר לפני הנחה של SKU
+   */
+  const handleCompareAtPriceChange = useCallback(
+    (skuCode: string, newCompareAtPrice: number | null) => {
+      const updated = value.map((sku) =>
+        sku.sku === skuCode
+          ? {
+              ...sku,
+              compareAtPrice: sku.price == null ? null : newCompareAtPrice,
+            }
+          : sku
       );
       onChange(updated);
     },
@@ -369,12 +423,17 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
             
             // 🆕 קבלת מחיר ומלאי מ-variantDetails אם קיים
             const variantPrice = data.variantDetails?.[variantName]?.price ?? data.basePrice ?? null;
+            const variantCompareAtPrice = data.variantDetails?.[variantName]?.compareAtPrice ?? null;
             const variantStock = data.variantDetails?.[variantName]?.stock ?? data.initialQuantity ?? 0;
             
             newSkus.push({
               sku: skuCode,
               name: `${variantName} - ${subVariantName}`,
               price: variantPrice,
+              compareAtPrice:
+                variantPrice == null || variantCompareAtPrice == null || variantCompareAtPrice <= variantPrice
+                  ? null
+                  : variantCompareAtPrice,
               stockQuantity: variantStock,
               images: [],
               isActive: true,
@@ -397,12 +456,17 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
           
           // 🆕 קבלת מחיר ומלאי מ-variantDetails אם קיים
           const variantPrice = data.variantDetails?.[variantName]?.price ?? data.basePrice ?? null;
+          const variantCompareAtPrice = data.variantDetails?.[variantName]?.compareAtPrice ?? null;
           const variantStock = data.variantDetails?.[variantName]?.stock ?? data.initialQuantity ?? 0;
           
           newSkus.push({
             sku: skuCode,
             name: variantName,
             price: variantPrice,
+            compareAtPrice:
+              variantPrice == null || variantCompareAtPrice == null || variantCompareAtPrice <= variantPrice
+                ? null
+                : variantCompareAtPrice,
             stockQuantity: variantStock,
             images: [],
             isActive: true,
@@ -703,6 +767,7 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
                           <th>קוד SKU</th>
                           {secondaryVariantLabel && <th>{secondaryVariantLabel}</th>}
                           <th>מחיר</th>
+                          <th>לפני הנחה</th>
                           <th>מלאי</th>
                         </tr>
                       </thead>
@@ -725,6 +790,23 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
                                 placeholder={basePrice.toString()}
                                 disabled={disabled}
                                 min={0}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className={styles.priceInput}
+                                value={sku.compareAtPrice ?? ''}
+                                onChange={(e) =>
+                                  handleCompareAtPriceChange(
+                                    sku.sku,
+                                    e.target.value ? parseFloat(e.target.value) : null
+                                  )
+                                }
+                                placeholder={getCompareAtPlaceholder(sku)}
+                                disabled={disabled || sku.price == null}
+                                min={0}
+                                title={getCompareAtTitle(sku)}
                               />
                             </td>
                             <td>
@@ -759,9 +841,10 @@ const CustomVariantsView: React.FC<CustomVariantsViewProps> = ({
       <AddVariantModal
         isOpen={showAddVariantModal}
         onClose={handleCloseModal}
-        onSubmit={handleAddVariantSubmit}
-        basePrice={basePrice}
-        primaryVariantLabel={primaryVariantLabel}
+       onSubmit={handleAddVariantSubmit}
+       basePrice={basePrice}
+       productCompareAtPrice={productCompareAtPrice}
+       primaryVariantLabel={primaryVariantLabel}
         secondaryVariantLabel={secondaryVariantLabel}
         labelDefinitionMode={labelDefinitionMode}
         selectedFilterAttribute={selectedFilterAttribute}

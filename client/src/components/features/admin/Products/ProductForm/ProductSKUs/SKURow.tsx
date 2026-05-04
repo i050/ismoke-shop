@@ -38,6 +38,7 @@ interface SKURowProps {
     format: string;
   }>>;
   allSkus?: SKUFormData[]; // 🆕 כל הוריאנטים - לזיהוי מאפיינים חסרים
+  productCompareAtPrice?: number | null;
 }
 
 /**
@@ -57,6 +58,7 @@ const SKURow: React.FC<SKURowProps> = ({
   onCheckAvailability,
   onUploadImages,
   allSkus = [], // 🆕 כל הוריאנטים
+  productCompareAtPrice = null,
 }) => {
   const [checkingSKU, setCheckingSKU] = useState(false);
   const [skuAvailable, setSkuAvailable] = useState<boolean | null>(null);
@@ -74,6 +76,32 @@ const SKURow: React.FC<SKURowProps> = ({
   const [detectionScore, setDetectionScore] = useState<number | null>(null);
   // TODO: הצג detectionMethod ו-detectionScore ב-UI (אינדיקטור אמון)
   void detectionMethod; void detectionScore; // שמורים לעתיד
+  const skuSpecificPrice = sku.price ?? null;
+  const hasSkuPrice = skuSpecificPrice !== null;
+  const shouldInheritProductCompareAt =
+    !hasSkuPrice && sku.compareAtPrice == null && productCompareAtPrice != null;
+  const inheritedCompareAtText =
+    shouldInheritProductCompareAt ? `₪${productCompareAtPrice.toFixed(2)} (בירושה)` : 'לא מוצג';
+  const compareAtDisplay =
+    hasSkuPrice && sku.compareAtPrice != null
+      ? `₪${sku.compareAtPrice.toFixed(2)}`
+      : hasSkuPrice
+        ? 'לא מוצג'
+        : inheritedCompareAtText;
+  const compareAtPlaceholder =
+    hasSkuPrice
+      ? 'מחוק'
+      : shouldInheritProductCompareAt
+        ? `בירושה: ₪${productCompareAtPrice.toFixed(2)}`
+        : 'לא מוצג';
+  const compareAtTitle =
+    hasSkuPrice
+      ? 'מחיר לפני הנחה לגרסה'
+      : sku.compareAtPrice != null
+        ? 'מחיר לפני הנחה של גרסה לא מוצג בלי מחיר ספציפי לגרסה'
+        : shouldInheritProductCompareAt
+        ? 'הגרסה יורשת את המחיר לפני הנחה מהמוצר כי אין לה מחיר ספציפי'
+        : 'פעיל רק כאשר לגרסה יש מחיר ספציפי';
 
   /**
    * 🆕 טעינת מאפייני הסינון כשנכנסים למצב עריכה
@@ -236,10 +264,16 @@ const SKURow: React.FC<SKURowProps> = ({
           {/* פרטי SKU - מינימלי */}
           <div className={styles.skuDetails}>
             <div className={styles.detailRow}>
+              <span className={styles.detailLabel}>מחיר לפני הנחה:</span>
+              <span className={styles.detailValue}>
+                {compareAtDisplay}
+              </span>
+            </div>
+            <div className={styles.detailRow}>
               <span className={styles.detailLabel}>מחיר:</span>
               <span className={styles.detailValue}>
-                {sku.price !== null && sku.price !== undefined 
-                  ? `₪${sku.price.toFixed(2)}` 
+                {hasSkuPrice
+                  ? `₪${skuSpecificPrice.toFixed(2)}`
                   : 'מחיר בסיס'}
               </span>
             </div>
@@ -304,6 +338,27 @@ const SKURow: React.FC<SKURowProps> = ({
 
         {/* מחיר + מלאי */}
         <div className={styles.editRow}>
+          <div className={styles.editFieldHalf}>
+            <label className={styles.editLabel}>מחיר לפני הנחה:</label>
+            <input
+              type="number"
+              className={`${styles.input} ${errors?.compareAtPrice ? styles.inputError : ''}`}
+              value={sku.compareAtPrice ?? ''}
+              onChange={(e) =>
+                onChange(index, 'compareAtPrice', e.target.value ? parseFloat(e.target.value) : null)
+              }
+              placeholder={compareAtPlaceholder}
+              step="0.01"
+              min="0"
+              disabled={!hasSkuPrice}
+              title={compareAtTitle}
+            />
+            {errors?.compareAtPrice && (
+              <div className={styles.error}>
+                {typeof errors.compareAtPrice === 'string' ? errors.compareAtPrice : (errors.compareAtPrice as any)?.message || 'שגיאה במחיר לפני הנחה'}
+              </div>
+            )}
+          </div>
           <div className={styles.editFieldHalf}>
             <label className={styles.editLabel}>מחיר (₪):</label>
             <input

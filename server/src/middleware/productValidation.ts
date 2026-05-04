@@ -59,6 +59,18 @@ const productSchema = Joi.object({
       'any.required': 'מחיר בסיס הוא שדה חובה',
     }),
 
+  // מחיר לפני הנחה ברמת מוצר - שדה תצוגתי בלבד, לא מחיר לתשלום
+  compareAtPrice: Joi.number()
+    .min(0)
+    .max(999999)
+    .allow(null)
+    .optional()
+    .messages({
+      'number.base': 'מחיר לפני הנחה חייב להיות מספר',
+      'number.min': 'מחיר לפני הנחה לא יכול להיות שלילי',
+      'number.max': 'מחיר לפני הנחה לא יכול להיות גדול מ-999,999',
+    }),
+
   categoryId: Joi.string()
     .custom((value, helpers) => {
       if (!mongoose.Types.ObjectId.isValid(value)) {
@@ -338,6 +350,18 @@ const skuSchema = Joi.object({
     .messages({
       'number.base': 'מחיר SKU חייב להיות מספר',
       'number.min': 'מחיר SKU לא יכול להיות שלילי',
+    }),
+
+  // מחיר לפני הנחה ברמת SKU - תצוגתי בלבד, לא משתתף בחישובי סל/הזמנה
+  compareAtPrice: Joi.number()
+    .min(0)
+    .max(999999)
+    .allow(null)
+    .optional()
+    .messages({
+      'number.base': 'מחיר לפני הנחה ל-SKU חייב להיות מספר',
+      'number.min': 'מחיר לפני הנחה ל-SKU לא יכול להיות שלילי',
+      'number.max': 'מחיר לפני הנחה ל-SKU לא יכול להיות גדול מ-999,999',
     }),
 
   stockQuantity: Joi.number()

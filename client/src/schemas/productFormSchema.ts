@@ -69,6 +69,39 @@ export const skuSchema = yup.object({
     )
     .max(999999, 'מחיר לא יכול לעלות על 999,999'),
 
+  // מחיר לפני הנחה לגרסה - תצוגתי בלבד ופעיל רק כאשר לגרסה יש מחיר ספציפי
+  compareAtPrice: yup
+    .number()
+    .transform((value, originalValue) => {
+      // שדה ריק מייצג "לא להציג מחיר לפני הנחה" עבור הגרסה
+      if (originalValue === '' || originalValue === null || originalValue === undefined) {
+        return null;
+      }
+      return value;
+    })
+    .nullable()
+    .optional()
+    .test(
+      'compare-at-requires-sku-price',
+      'מחיר לפני הנחה לגרסה אפשרי רק כאשר לגרסה יש מחיר ספציפי',
+      function (value) {
+        if (value === null || value === undefined) return true;
+        const { price } = this.parent;
+        return price !== null && price !== undefined;
+      }
+    )
+    .test(
+      'compare-at-price-higher-than-sku-price',
+      'מחיר לפני הנחה לגרסה חייב להיות גבוה ממחיר הגרסה',
+      function (value) {
+        if (value === null || value === undefined) return true;
+        const { price } = this.parent;
+        if (price === null || price === undefined) return true;
+        return value > price;
+      }
+    )
+    .max(999999, 'מחיר לפני הנחה לא יכול לעלות על 999,999'),
+
   // מלאי
   stockQuantity: yup
     .number()
@@ -671,6 +704,7 @@ export const defaultSKUValues: Partial<SKUFormData> = {
   sku: '',
   name: '',
   price: null,
+  compareAtPrice: null,
   stockQuantity: 0,
   color: '',
   attributes: {},

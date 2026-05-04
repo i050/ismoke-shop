@@ -237,6 +237,7 @@ const AutoFillModal: React.FC<AutoFillModalProps> = ({
         sku: skuCode,
         name: displayName,
         price: calculatedPrice,
+        compareAtPrice: null,
         stockQuantity: initialStock,
         isActive: isActive,
         images: [],

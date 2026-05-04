@@ -32,6 +32,8 @@ export interface ColorSizeEntry {
   stockQuantity: number;
   /** מחיר ספציפי (או null לשימוש ב-basePrice) */
   price: number | null;
+  /** מחיר לפני הנחה ספציפי לגרסה - מוצג רק אם יש price */
+  compareAtPrice?: number | null;
   /** האם פעיל */
   isActive: boolean;
   /** מאפיינים נוספים */
@@ -234,9 +236,10 @@ export function groupSkusByColor(skus: SKUFormData[], attributeKey: string = 'si
     group.sizes.push({
       size: variantValue,
       sku: sku.sku,
-      name: sku.name,
+      name: sku.name || sku.sku,
       stockQuantity: sku.stockQuantity,
       price: sku.price ?? null,
+      compareAtPrice: sku.compareAtPrice ?? null,
       isActive: sku.isActive ?? true,
       attributes: sku.attributes ? { ...sku.attributes } : {},
     });
@@ -277,6 +280,7 @@ export function flattenColorGroups(colorGroups: ColorGroup[]): SKUFormData[] {
         sku: size.sku,
         name: size.name,
         price: size.price,
+        compareAtPrice: size.price == null ? null : size.compareAtPrice ?? null,
         stockQuantity: size.stockQuantity,
         // צבע - אם 'ללא צבע' אז ריק
         color: group.colorName === 'ללא צבע' ? '' : group.colorName,
@@ -329,6 +333,7 @@ export function addSizeToColorGroup(
         name: `${group.colorName} - ${size}`,
         stockQuantity: initialQuantity,
         price: basePrice,
+        compareAtPrice: null,
         isActive: true,
         attributes: { [attributeKey]: size }, // 🆕 שימוש ב-attributeKey דינמי
       },
@@ -376,7 +381,14 @@ export function updateSizeInColorGroup(
   if (!oldSize) return group;
   
   const newSizes = [...group.sizes];
-  newSizes[sizeIndex] = { ...oldSize, [field]: value };
+  const updatedSize = { ...oldSize, [field]: value };
+
+  // בזמן הקלדה לא מנקים compareAt קטן מדי; רק מחיקת המחיר מבטלת אותו.
+  if (field === 'price' && (value === null || value === undefined)) {
+    updatedSize.compareAtPrice = null;
+  }
+
+  newSizes[sizeIndex] = updatedSize;
   
   // אם עדכנו מלאי, חשב מחדש את הסה"כ
   let newTotalStock = group.totalStock;
@@ -409,7 +421,7 @@ export function createNewColorGroup(
   existingSkus: SKUFormData[],
   options: {
     colorHex?: string;
-    basePrice?: number;
+    basePrice?: number | null;
     initialQuantity?: number;
     colorFamily?: string;
     attributeKey?: string; // 🆕 מפתח המאפיין (size/resistance/nicotine וכו')
@@ -457,6 +469,7 @@ export function createNewColorGroup(
         name: finalColorName, // 🆕 שם אוטומטי
         stockQuantity: initialQuantity,
         price: basePrice,
+        compareAtPrice: null,
         isActive: true,
         attributes: {}, // אין attributes
       }],
@@ -481,6 +494,7 @@ export function createNewColorGroup(
         name: `${finalColorName} - ${size}`, // 🆕 שימוש בשם האוטומטי
         stockQuantity: initialQuantity,
         price: basePrice,
+        compareAtPrice: null,
         isActive: true,
         attributes: { [attributeKey]: size }, // 🆕 שימוש ב-attributeKey דינמי
       };

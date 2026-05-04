@@ -60,6 +60,13 @@ async function reserveSkuSequences(count: number): Promise<number[]> {
  */
 type PricingMode = 'inherit' | 'custom' | 'surcharge';
 
+type SkuOverride = {
+  price?: number | null;
+  compareAtPrice?: number | null;
+  stock?: number;
+  status?: boolean;
+};
+
 /**
  * תוספת מחיר לציר
  */
@@ -103,6 +110,9 @@ export interface AutoFillPanelProps {
   
   /** מחיר בסיס של המוצר */
   basePrice: number;
+
+  /** מחיר לפני הנחה של המוצר, להצגת ירושה כאשר ל-SKU אין מחיר ספציפי */
+  productCompareAtPrice?: number | null;
   
   /** שם המוצר */
   productName: string;
@@ -175,6 +185,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
   primaryLabel,
   secondaryLabel,
   basePrice,
+  productCompareAtPrice = null,
   productName,
   onGenerate,
   primaryValuesMap,
@@ -187,6 +198,15 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
 }) => {
   // 🆕 האם במצב עריכה
   const isEditMode = mode === 'edit';
+  const inheritedCompareAtPlaceholder =
+    productCompareAtPrice != null ? `בירושה: ₪${productCompareAtPrice.toFixed(2)}` : 'לא מוצג';
+  const getCompareAtPlaceholder = (price?: number | null, compareAtPrice?: number | null): string => {
+    if (price == null) {
+      return compareAtPrice == null ? inheritedCompareAtPlaceholder : 'לא מוצג';
+    }
+
+    return 'מחיר מחוק';
+  };
   
   // זיהוי מצב 1D (רק מאפיין אחד - אין ציר משני)
   const is1DMode = useMemo(() => {
@@ -218,13 +238,14 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
   // 🆕 State לעריכה מרובה - אילו שדות לעדכן
   // ============================================================================
   const [updatePrice, setUpdatePrice] = useState<boolean>(false);
+  const [updateCompareAtPrice, setUpdateCompareAtPrice] = useState<boolean>(false);
   const [updateStock, setUpdateStock] = useState<boolean>(false);
   const [updateStatus, setUpdateStatus] = useState<boolean>(false);
   
   // ============================================================================
   // 🎯 State לעריכות פרטניות של SKUs בטבלה
   // ============================================================================
-  const [skuOverrides, setSkuOverrides] = useState<Map<string, { price?: number | null; stock?: number; status?: boolean }>>(new Map());
+  const [skuOverrides, setSkuOverrides] = useState<Map<string, SkuOverride>>(new Map());
 
   // ============================================================================
   // � State למספרים סידוריים גלובליים
@@ -246,7 +267,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
   // �🎯 State לעריכות פרטניות של SKUs קיימים (במצב עריכה)
   // ============================================================================
   const [existingSkuOverrides, setExistingSkuOverrides] = useState<
-    Map<string, { price?: number | null; stock?: number; status?: boolean }>
+    Map<string, SkuOverride>
   >(new Map());
   
   // עדכון מחיר בסיס כשהוא משתנה מבחוץ
@@ -345,6 +366,12 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
       
       // 🎯 שימוש ב-override אם קיים
       const finalPrice = override?.price !== undefined ? override.price : calculatedPrice;
+      const finalCompareAtPrice =
+        finalPrice != null
+          && override?.compareAtPrice != null
+          && override.compareAtPrice > finalPrice
+            ? override.compareAtPrice
+            : null;
       const finalStock = override?.stock !== undefined ? override.stock : initialStock;
       const finalStatus = override?.status !== undefined ? override.status : isActive;
       
@@ -365,6 +392,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
         sku: skuCode,
         name: displayName,
         price: finalPrice,
+        compareAtPrice: finalCompareAtPrice,
         stockQuantity: finalStock,
         isActive: finalStatus,
         images: [],
@@ -427,11 +455,20 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
   /**
    * 🎯 פונקציה לעדכון override של SKU בודד
    */
-  const handleSkuOverride = useCallback((comboKey: string, field: 'price' | 'stock' | 'status', value: number | null | boolean) => {
+  const handleSkuOverride = useCallback((comboKey: string, field: keyof SkuOverride, value: number | null | boolean) => {
     setSkuOverrides(prev => {
       const newMap = new Map(prev);
       const existing = newMap.get(comboKey) || {};
-      newMap.set(comboKey, { ...existing, [field]: value });
+      const next = { ...existing, [field]: value };
+
+      if (field === 'price') {
+        const nextPrice = value as number | null;
+        if (nextPrice == null) {
+          next.compareAtPrice = null;
+        }
+      }
+
+      newMap.set(comboKey, next);
       return newMap;
     });
   }, []);
@@ -440,11 +477,20 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
    * 🎯 פונקציה לעדכון override של SKU קיים בודד (במצב עריכה)
    */
   const handleExistingSkuOverride = useCallback(
-    (skuCode: string, field: 'price' | 'stock' | 'status', value: number | null | boolean) => {
+    (skuCode: string, field: keyof SkuOverride, value: number | null | boolean) => {
       setExistingSkuOverrides(prev => {
         const newMap = new Map(prev);
         const existing = newMap.get(skuCode) || {};
-        newMap.set(skuCode, { ...existing, [field]: value });
+        const next = { ...existing, [field]: value };
+
+        if (field === 'price') {
+          const nextPrice = value as number | null;
+          if (nextPrice == null) {
+            next.compareAtPrice = null;
+          }
+        }
+
+        newMap.set(skuCode, next);
         return newMap;
       });
     },
@@ -535,6 +581,17 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
           updated.price = getCalculatedPriceForSku(sku);
         }
       }
+
+      if (updateCompareAtPrice) {
+        const override = existingSkuOverrides.get(sku.sku);
+        const compareAtCandidate = override?.compareAtPrice ?? updated.compareAtPrice ?? null;
+        updated.compareAtPrice =
+          updated.price != null && compareAtCandidate != null && compareAtCandidate > updated.price
+            ? compareAtCandidate
+            : null;
+      } else if (updated.price == null || (updated.compareAtPrice != null && updated.compareAtPrice <= updated.price)) {
+        updated.compareAtPrice = null;
+      }
       
       // עדכון מלאי אם נבחר
       if (updateStock) {
@@ -557,6 +614,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
     matchedExistingSkus, 
     existingSkus, 
     updatePrice, 
+    updateCompareAtPrice,
     updateStock, 
     updateStatus,
     pricingMode, 
@@ -584,7 +642,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
     
     // במצב עריכה - צריך לבחור לפחות שדה אחד לעדכון
     if (isEditMode) {
-      if (!updatePrice && !updateStock && !updateStatus) return false;
+      if (!updatePrice && !updateCompareAtPrice && !updateStock && !updateStatus) return false;
       if (matchedExistingSkus.length === 0) return false;
     }
     
@@ -599,6 +657,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
     initialStock,
     isEditMode,
     updatePrice,
+    updateCompareAtPrice,
     updateStock,
     updateStatus,
     matchedExistingSkus.length,
@@ -662,6 +721,14 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                     onChange={(e) => setUpdatePrice(e.target.checked)}
                   />
                   <span>מחיר</span>
+                </label>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={updateCompareAtPrice}
+                    onChange={(e) => setUpdateCompareAtPrice(e.target.checked)}
+                  />
+                  <span>מחיר לפני הנחה</span>
                 </label>
                 <label className={styles.checkboxLabel}>
                   <input
@@ -911,6 +978,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                         <th>SKU</th>
                         <th>{primaryLabel}</th>
                         {!is1DMode && <th>{secondaryLabel}</th>}
+                        <th>מחיר לפני הנחה</th>
                         <th>מחיר</th>
                         <th>מלאי</th>
                         <th>סטטוס</th>
@@ -920,6 +988,13 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                       {generatedSkus.map((sku, index) => {
                         const combo = combinations[index];
                         const comboKey = `${combo.primary}-${combo.secondary}`;
+                        const override = skuOverrides.get(comboKey);
+                        const editableCompareAtPrice =
+                          sku.price == null
+                            ? null
+                            : override?.compareAtPrice !== undefined
+                              ? override.compareAtPrice
+                              : sku.compareAtPrice ?? null;
                         
                         return (
                           <tr key={index}>
@@ -940,6 +1015,19 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                             {!is1DMode && (
                               <td>{variantType === 'color' ? sku.attributes?.[secondaryLabel.toLowerCase()] : sku.subVariantName}</td>
                             )}
+                            <td>
+                              <Input
+                                className={styles.compactPriceInput}
+                                type="number"
+                                disabled={sku.price == null}
+                                value={editableCompareAtPrice == null ? '' : String(editableCompareAtPrice)}
+                                onChange={(e) => {
+                                  const val = e.target.value === '' ? null : Number(e.target.value);
+                                  handleSkuOverride(comboKey, 'compareAtPrice', val);
+                                }}
+                                placeholder={getCompareAtPlaceholder(sku.price, editableCompareAtPrice)}
+                              />
+                            </td>
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Input
@@ -1006,6 +1094,7 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                       <th>קוד SKU</th>
                       <th>{primaryLabel}</th>
                       {!is1DMode && <th>{secondaryLabel}</th>}
+                      <th>מחיר לפני הנחה</th>
                       <th>מחיר</th>
                       <th>מלאי</th>
                       <th>סטטוס</th>
@@ -1035,6 +1124,12 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                       })();
 
                       const finalPrice = override?.price !== undefined ? override.price : calculatedPrice;
+                      const editableCompareAtPrice =
+                        finalPrice == null
+                          ? null
+                          : override?.compareAtPrice !== undefined
+                            ? override.compareAtPrice
+                            : sku.compareAtPrice ?? null;
                       const finalStock =
                         override?.stock !== undefined
                           ? override.stock
@@ -1069,6 +1164,19 @@ const AutoFillPanel: React.FC<AutoFillPanelProps> = ({
                                 : sku.subVariantName}
                             </td>
                           )}
+                          <td>
+                            <Input
+                              className={styles.compactPriceInput}
+                              type="number"
+                              disabled={!updateCompareAtPrice || finalPrice == null}
+                              value={editableCompareAtPrice == null ? '' : String(editableCompareAtPrice)}
+                              onChange={(e) => {
+                                const val = e.target.value === '' ? null : Number(e.target.value);
+                                handleExistingSkuOverride(sku.sku, 'compareAtPrice', val);
+                              }}
+                              placeholder={getCompareAtPlaceholder(finalPrice, editableCompareAtPrice)}
+                            />
+                          </td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <Input

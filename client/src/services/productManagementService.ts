@@ -75,29 +75,29 @@ class ProductManagementService {
         normalizedSku.attributes = attributes;
       }
       
-      // נקה null values
+      // נקה ערכים ריקים, אבל שמור null בשדות מחיר שבהם null הוא פעולה עסקית מפורשת
       return this.cleanPayload(normalizedSku);
     });
   }
 
   /**
    * Helper: remove null/undefined values from object
-   * Server validation fails on null values
+   * שדות מחיר מסוימים שומרים null כדי לאפשר ירושה או מחיקה מפורשת
    */
-  private cleanPayload(obj: any): any {
+  private cleanPayload(obj: any, preserveNullKeys = new Set(['price', 'compareAtPrice'])): any {
     const cleaned: any = {};
     
     for (const key in obj) {
       const value = obj[key];
       
-      // דלג על null ו-undefined
-      if (value === null || value === undefined) {
+      // undefined תמיד מוסר; null נשמר רק בשדות שיש להם משמעות עסקית מפורשת
+      if (value === undefined || (value === null && !preserveNullKeys.has(key))) {
         continue;
       }
       
       // אם זה object (לא array), נקה רקורסיבית
-      if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
-        cleaned[key] = this.cleanPayload(value);
+      if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+        cleaned[key] = this.cleanPayload(value, preserveNullKeys);
       } else {
         cleaned[key] = value;
       }

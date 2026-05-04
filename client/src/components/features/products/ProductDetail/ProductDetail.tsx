@@ -11,6 +11,7 @@ import QuantitySelector from '../../../ui/QuantitySelector';
 import StockAlertButton from '../StockAlertButton';
 import type { Product } from '../../../../types';
 import { ProductService } from '../../../../services/productService';
+import { resolveSkuPricing } from '../../../../utils/pricingHierarchy';
 import { useAppDispatch, useAppSelector } from '../../../../hooks/reduxHooks';
 import { addItemToCart, openMiniCart } from '../../../../store/slices/cartSlice';
 import styles from './ProductDetail.module.css';
@@ -103,6 +104,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   
   // חישוב מחיר דינמי בהתבסס על SKU נבחר והנחת קבוצה
   const selectedSkuPricing = useMemo(() => {
+    return product ? resolveSkuPricing(product, selectedSkuData) : undefined;
+    /*
     if (!product) return undefined;
     
     // אם אין SKU נבחר, החזר את ה-pricing הרגיל של המוצר
@@ -147,6 +150,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
     // אחרת, השתמש ב-pricing הרגיל
     return product.pricing;
+    */
   }, [selectedSkuData, product]);
   
   // חישוב כמה יחידות מה-SKU הנבחר נמצאות בעגלה של המשתמש

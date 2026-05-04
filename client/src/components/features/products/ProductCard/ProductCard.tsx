@@ -21,6 +21,7 @@ import { ProductService } from '../../../../services/productService';
 // ייבוא hook ל-WebSocket לעדכון מחירים בזמן אמת
 // Phase 1.4: ייבוא פונקציות עזר לטיפול בתמונות
 import { getImageUrl } from '../../../../utils/imageUtils'; // ✅ שימוש בפונקציה החדשה עם בחירת גודל
+import { resolveSkuPricing } from '../../../../utils/pricingHierarchy';
 import { useProductsRealtimeContext } from '../ProductsRealtime';
 // הסרת תלויות ב-Framer Motion - נחזור לאנימציות מבוססות CSS במודול
 
@@ -130,6 +131,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   // חישוב מחיר דינמי בהתבסס על SKU נבחר והנחת קבוצה
   const selectedSkuPricing = React.useMemo(() => {
+    return resolveSkuPricing(updatedProduct, selectedSkuData);
+    /*
     // אם אין SKU נבחר, החזר את ה-pricing הרגיל של המוצר
     if (!selectedSkuData) {
       return updatedProduct.pricing;
@@ -172,7 +175,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     // אחרת, השתמש ב-pricing הרגיל
     return updatedProduct.pricing;
-  }, [selectedSkuData, updatedProduct.pricing, updatedProduct.basePrice, updatedProduct._id]);
+    */
+  }, [selectedSkuData, updatedProduct]);
 
   // חישוב דינמי של רשימת תמונות לפי SKU נבחר (אחרי הגדרת ה-state!)
   // 🆕 סדר עדיפות: 1. תמונות צבע ספציפי (colorImages), 2. תמונות משפחת צבע, 3. תמונות SKU, 4. תמונות מוצר
@@ -363,9 +367,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </div>
           )}
 
-          {product.pricing?.hasDiscount && product.pricing.originalPrice > product.pricing.finalPrice && (
+          {selectedSkuPricing?.hasDiscount && selectedSkuPricing.originalPrice > selectedSkuPricing.finalPrice && (
             <div className={styles.saleTag}>
-              -{Math.round(((product.pricing.originalPrice - product.pricing.finalPrice) / product.pricing.originalPrice) * 100)}%
+              -{Math.round(((selectedSkuPricing.originalPrice - selectedSkuPricing.finalPrice) / selectedSkuPricing.originalPrice) * 100)}%
             </div>
           )}
         </div>

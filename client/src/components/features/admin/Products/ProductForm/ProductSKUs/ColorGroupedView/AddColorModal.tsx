@@ -88,7 +88,7 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
   const [selectedColorFamily, setSelectedColorFamily] = useState<string | undefined>(undefined); // 🆕 משפחת הצבע שנבחרה
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [initialQuantity, setInitialQuantity] = useState(10);
-  const [price, setPrice] = useState(basePrice);
+  const [price, setPrice] = useState<number | null>(null);
 
   // Reset form when modal opens
   const handleOpen = useCallback(() => {
@@ -97,8 +97,8 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
     setSelectedColorFamily(undefined);
     setSelectedSizes([]);
     setInitialQuantity(10);
-    setPrice(basePrice);
-  }, [basePrice]);
+    setPrice(null);
+  }, []);
 
   // Call handleOpen when modal opens
   useEffect(() => {
@@ -406,8 +406,9 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
                 <input
                   type="number"
                   className={styles.input}
-                  value={price}
-                  onChange={(e) => setPrice(Math.max(0, parseFloat(e.target.value) || 0))}
+                  value={price ?? ''}
+                  onChange={(e) => setPrice(e.target.value === '' ? null : Math.max(0, parseFloat(e.target.value) || 0))}
+                  placeholder={`₪${basePrice}`}
                   min={0}
                   step="0.01"
                 />

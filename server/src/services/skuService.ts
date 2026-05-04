@@ -29,6 +29,20 @@ const shouldInvalidateAttributesCache = (updates?: Record<string, any>): boolean
   return keys.some((key) => criticalFields.includes(key) || key.startsWith('attributes.'));
 };
 
+const normalizeSkuCompareAtPrice = <T extends Record<string, any>>(skuData: T): T => {
+  const hasSkuPrice = skuData.price !== null && skuData.price !== undefined;
+  const hasValidCompareAtPrice =
+    hasSkuPrice &&
+    skuData.compareAtPrice !== null &&
+    skuData.compareAtPrice !== undefined &&
+    skuData.compareAtPrice > skuData.price;
+
+  return {
+    ...skuData,
+    compareAtPrice: hasValidCompareAtPrice ? skuData.compareAtPrice : null,
+  };
+};
+
 /**
  * סינכרון שדה quantityInStock במוצר לפי סכום המלאי של כל ה-SKUs שלו
  * נקרא אחרי כל עדכון מלאי של SKU
@@ -440,7 +454,8 @@ export const createSku = async (
     }
 
     // יצירת SKU חדש עם שדות שטוחים (color, size)
-    const newSku = new Sku(skuData);
+    const normalizedSkuData = normalizeSkuCompareAtPrice(skuData as Record<string, any>);
+    const newSku = new Sku(normalizedSkuData);
     await newSku.save();
 
     // ניקוי ה-Cache של מאפייני סינון כי נוספה יחידת SKU חדשה
@@ -474,6 +489,23 @@ export const updateSku = async (
         safeUpdates.colorFamily = detection.family;
         safeUpdates.colorFamilySource = 'auto';
       }
+    }
+
+    if ('price' in safeUpdates || 'compareAtPrice' in safeUpdates) {
+      const currentSku = await Sku.findOne({ sku })
+        .select('price compareAtPrice')
+        .lean();
+
+      const nextPrice = safeUpdates.price !== undefined ? safeUpdates.price : currentSku?.price;
+      const nextCompareAtPrice =
+        safeUpdates.compareAtPrice !== undefined
+          ? safeUpdates.compareAtPrice
+          : currentSku?.compareAtPrice;
+
+      safeUpdates.compareAtPrice = normalizeSkuCompareAtPrice({
+        price: nextPrice,
+        compareAtPrice: nextCompareAtPrice,
+      }).compareAtPrice;
     }
 
     // עדכון SKU עם שדות שטוחים (color, size) - אין צורך בנרמול

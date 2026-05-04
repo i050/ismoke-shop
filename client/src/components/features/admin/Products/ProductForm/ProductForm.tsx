@@ -230,7 +230,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             ? initialData.skus.map(sku => ({
                 sku: sku.sku || '',
                 name: sku.name || '',
-                price: sku.price || null,
+                price: sku.price ?? null,
+                compareAtPrice: sku.compareAtPrice ?? null,
                 stockQuantity: sku.stockQuantity || 0,
                 // שדה שטוח - color ישירות
                 // 🔧 אם אין צבע, השאר undefined (לא string ריק) כדי שהלוגיקה של hasExistingVariants תעבוד
@@ -481,19 +482,27 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         spec => spec.key.trim() !== '' && spec.value.trim() !== ''
       );
 
-      // לפני השליחה לשרת: אם יש SKUs עם price == null, נחליף אותם במחיר הבסיס
+      // לפני השליחה לשרת: משמרים price=null כירושה אמיתית ממחיר המוצר
       // במוצר פשוט (בלי וריאנטים) - אם ה-SKU ריק (name ריק), נשים את שם המוצר
       const payload = {
         ...data,
         specifications: filteredSpecifications,
         hasVariants, // 🆕 שליחת hasVariants לשרת לפי הבחירה בדיאלוג
-        skus: (data.skus || []).map(sku => ({
-          ...sku,
-          // אם price ריק, נשתמש במחיר הבסיס
-          price: sku.price == null ? data.basePrice ?? null : sku.price,
-          // אם name ריק ומדובר במוצר פשוט, נשתמש בשם המוצר
-          name: (!sku.name || sku.name.trim() === '') && !hasVariants ? data.name : sku.name,
-        })),
+        skus: (data.skus || []).map(sku => {
+          const hasSkuPrice = sku.price !== null && sku.price !== undefined;
+
+          return {
+            ...sku,
+            price: sku.price ?? null,
+            // מחיר לפני הנחה לגרסה תקף רק כאשר לגרסה יש מחיר ספציפי
+            compareAtPrice:
+              hasSkuPrice && sku.compareAtPrice != null && sku.compareAtPrice > sku.price!
+                ? sku.compareAtPrice
+                : null,
+            // אם name ריק ומדובר במוצר פשוט, נשתמש בשם המוצר
+            name: (!sku.name || sku.name.trim() === '') && !hasVariants ? data.name : sku.name,
+          };
+        }),
       } as ProductFormData;
 
       // קריאה ל-onSubmit: מצופה שתחזיר את המוצר שנוצר/עודכן
@@ -1123,6 +1132,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   productFormData={{
                     name: formValues.name,
                     basePrice: formValues.basePrice,
+                    compareAtPrice: formValues.compareAtPrice ?? null,
                     stockQuantity: formValues.stockQuantity ?? 0,
                     images: formValues.images,
                   }}

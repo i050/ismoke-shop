@@ -29,6 +29,7 @@ export interface ISku {
   productId: mongoose.Types.ObjectId; // התייחסות למוצר האב
   name: string; // שם תיאורי (למשל: "חולצה כחולה M")
   price?: number | null; // מחיר הסופי של SKU זה (אופציונלי - Base Price Override)
+  compareAtPrice?: number | null; // מחיר לפני הנחה תצוגתי לגרסה - לא משפיע על חישובים כספיים
   stockQuantity: number; // כמות במלאי
 
   // ============================================================================
@@ -143,6 +144,15 @@ const SkuSchema = new Schema<ISkuDocument>(
       required: false, // ← אופציונלי: תומך ב-Base Price + Override
       min: [0, 'Price cannot be negative'],
       default: null, // ← ברירת מחדל null = ישתמש ב-basePrice
+    },
+
+    // מחיר לפני הנחה לגרסה - תצוגתי בלבד ולא משתתף בסל/הזמנה/הנחות
+    // תקף להצגה רק כאשר ל-SKU יש price ספציפי; הלוגיקה נאכפת בשכבת התצוגה
+    compareAtPrice: {
+      type: Number,
+      required: false,
+      min: [0, 'Compare-at price cannot be negative'],
+      default: null,
     },
 
     // כמות במלאי
