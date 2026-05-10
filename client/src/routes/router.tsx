@@ -27,6 +27,7 @@ import CheckoutPage from '../pages/CheckoutPage/index';
 import OrderSuccessPage from '../pages/OrderSuccessPage/index';
 import OrderHistoryPage from '../pages/OrderHistoryPage/index';
 import MaintenancePage from '../pages/MaintenancePage/index';
+import PrivacyPolicyPage from '../pages/PrivacyPolicyPage/index';
 
 // ========================================
 // Lazy loading לכל דפי האדמין
@@ -128,6 +129,10 @@ export const router = createBrowserRouter([
       {
         path: 'cart',
         element: <CartPage />,
+      },
+      {
+        path: 'privacy',
+        element: <PrivacyPolicyPage />,
       },
 
       // ========================================
