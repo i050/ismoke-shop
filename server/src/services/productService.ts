@@ -1203,6 +1203,270 @@ export const restoreProduct = async (productId: string): Promise<void> => {
   }
 };
 
+export interface BulkProductOperationResult {
+  productIds: string[];
+  requestedCount: number;
+  matchedProductsCount: number;
+  modifiedProductsCount?: number;
+  matchedSkusCount?: number;
+  modifiedSkusCount?: number;
+  deletedProductsCount?: number;
+  deletedSkusCount?: number;
+  deletedImageFilesCount?: number;
+}
+
+const normalizeBulkProductIds = (productIds: string[]): string[] => {
+  return Array.from(new Set(productIds.map((productId) => productId.trim())));
+};
+
+const toProductObjectIds = (productIds: string[]): mongoose.Types.ObjectId[] => {
+  return productIds.map((productId) => new mongoose.Types.ObjectId(productId));
+};
+
+const buildProductsNotFoundError = (missingProductIds: string[]) => {
+  return Object.assign(new Error('חלק מהמוצרים לא נמצאו'), {
+    statusCode: 404,
+    notFoundIds: missingProductIds,
+  });
+};
+
+const assertProductsExist = async (
+  productObjectIds: mongoose.Types.ObjectId[],
+  session: mongoose.ClientSession
+): Promise<void> => {
+  const products = await Product.find({ _id: { $in: productObjectIds } })
+    .select('_id')
+    .session(session)
+    .lean<Array<{ _id: mongoose.Types.ObjectId }>>();
+
+  const foundIds = new Set(products.map((product) => product._id.toString()));
+  const missingProductIds = productObjectIds
+    .map((productId) => productId.toString())
+    .filter((productId) => !foundIds.has(productId));
+
+  if (missingProductIds.length > 0) {
+    throw buildProductsNotFoundError(missingProductIds);
+  }
+};
+
+const collectImageSizeKeys = (image: any): string[] => {
+  if (!image?.key || typeof image.key !== 'string' || image.key.trim() === '') {
+    return [];
+  }
+
+  const baseKey = image.key.trim();
+  return [
+    `${baseKey}-thumbnail.webp`,
+    `${baseKey}-medium.webp`,
+    `${baseKey}-large.webp`,
+  ];
+};
+
+const collectImageKeysFromList = (images: any[] | undefined): string[] => {
+  if (!Array.isArray(images)) {
+    return [];
+  }
+
+  return images.flatMap(collectImageSizeKeys);
+};
+
+const collectImageKeysFromMap = (imageMap: any): string[] => {
+  if (!imageMap || typeof imageMap !== 'object') {
+    return [];
+  }
+
+  return Object.values(imageMap).flatMap((images) => collectImageKeysFromList(images as any[]));
+};
+
+const deleteImageKeysFromSpaces = async (keys: string[]): Promise<number> => {
+  const uniqueKeys = Array.from(new Set(keys));
+  if (uniqueKeys.length === 0) {
+    return 0;
+  }
+
+  const { deleteBulkFromSpaces } = await import('./spacesService');
+  let deletedCount = 0;
+
+  for (let index = 0; index < uniqueKeys.length; index += 1000) {
+    const chunk = uniqueKeys.slice(index, index + 1000);
+    deletedCount += await deleteBulkFromSpaces(chunk);
+  }
+
+  return deletedCount;
+};
+
+/**
+ * העברת מספר מוצרים לפח האשפה באופן אטומי.
+ * המוצרים וכל ה-SKUs שלהם מסומנים כלא פעילים באותה טרנזקציה.
+ */
+export const bulkSoftDeleteProducts = async (
+  productIds: string[]
+): Promise<BulkProductOperationResult> => {
+  const normalizedProductIds = normalizeBulkProductIds(productIds);
+  const productObjectIds = toProductObjectIds(normalizedProductIds);
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    await assertProductsExist(productObjectIds, session);
+
+    const productResult = await Product.updateMany(
+      { _id: { $in: productObjectIds } },
+      { $set: { isActive: false } },
+      { session }
+    );
+
+    const skuResult = await Sku.updateMany(
+      { productId: { $in: productObjectIds } },
+      { $set: { isActive: false } },
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    clearAttributesCache();
+
+    return {
+      productIds: normalizedProductIds,
+      requestedCount: normalizedProductIds.length,
+      matchedProductsCount: productResult.matchedCount,
+      modifiedProductsCount: productResult.modifiedCount,
+      matchedSkusCount: skuResult.matchedCount,
+      modifiedSkusCount: skuResult.modifiedCount,
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('❌ Transaction aborted - Bulk soft delete failed:', error);
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * שחזור מספר מוצרים מפח האשפה באופן אטומי.
+ * המוצרים וכל ה-SKUs שלהם מוחזרים להיות פעילים באותה טרנזקציה.
+ */
+export const bulkRestoreProducts = async (
+  productIds: string[]
+): Promise<BulkProductOperationResult> => {
+  const normalizedProductIds = normalizeBulkProductIds(productIds);
+  const productObjectIds = toProductObjectIds(normalizedProductIds);
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    await assertProductsExist(productObjectIds, session);
+
+    const productResult = await Product.updateMany(
+      { _id: { $in: productObjectIds } },
+      { $set: { isActive: true } },
+      { session }
+    );
+
+    const skuResult = await Sku.updateMany(
+      { productId: { $in: productObjectIds } },
+      { $set: { isActive: true } },
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    clearAttributesCache();
+
+    return {
+      productIds: normalizedProductIds,
+      requestedCount: normalizedProductIds.length,
+      matchedProductsCount: productResult.matchedCount,
+      modifiedProductsCount: productResult.modifiedCount,
+      matchedSkusCount: skuResult.matchedCount,
+      modifiedSkusCount: skuResult.modifiedCount,
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('❌ Transaction aborted - Bulk restore failed:', error);
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+/**
+ * מחיקה סופית של מספר מוצרים.
+ * הנתונים נמחקים בטרנזקציה, ותמונות Spaces נמחקות לאחר Commit כדי לא להשאיר מוצר שבור אם המחיקה במסד נכשלת.
+ */
+export const bulkHardDeleteProducts = async (
+  productIds: string[]
+): Promise<BulkProductOperationResult> => {
+  const normalizedProductIds = normalizeBulkProductIds(productIds);
+  const productObjectIds = toProductObjectIds(normalizedProductIds);
+
+  const products = await Product.find({ _id: { $in: productObjectIds } })
+    .select('_id images colorFamilyImages colorImages')
+    .lean<Array<{
+      _id: mongoose.Types.ObjectId;
+      images?: any[];
+      colorFamilyImages?: Record<string, any[]>;
+      colorImages?: Record<string, any[]>;
+    }>>();
+
+  const foundIds = new Set(products.map((product) => product._id.toString()));
+  const missingProductIds = normalizedProductIds.filter((productId) => !foundIds.has(productId));
+
+  if (missingProductIds.length > 0) {
+    throw buildProductsNotFoundError(missingProductIds);
+  }
+
+  const skus = await Sku.find({ productId: { $in: productObjectIds } })
+    .select('_id images')
+    .lean<Array<{ _id: mongoose.Types.ObjectId; images?: any[] }>>();
+
+  const imageKeys = [
+    ...products.flatMap((product) => collectImageKeysFromList(product.images)),
+    ...products.flatMap((product) => collectImageKeysFromMap(product.colorFamilyImages)),
+    ...products.flatMap((product) => collectImageKeysFromMap(product.colorImages)),
+    ...skus.flatMap((sku) => collectImageKeysFromList(sku.images)),
+  ];
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const skuResult = await Sku.deleteMany({ productId: { $in: productObjectIds } }).session(session);
+    const productResult = await Product.collection.deleteMany(
+      { _id: { $in: productObjectIds } },
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    invalidateTotalProductsCache();
+    clearAttributesCache();
+
+    let deletedImageFilesCount = 0;
+    try {
+      deletedImageFilesCount = await deleteImageKeysFromSpaces(imageKeys);
+    } catch (error) {
+      console.warn('⚠️ Failed to delete some product images from Spaces after hard delete:', error);
+    }
+
+    return {
+      productIds: normalizedProductIds,
+      requestedCount: normalizedProductIds.length,
+      matchedProductsCount: products.length,
+      deletedProductsCount: productResult.deletedCount || 0,
+      deletedSkusCount: skuResult.deletedCount || 0,
+      deletedImageFilesCount,
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('❌ Transaction aborted - Bulk hard delete failed:', error);
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
 /**
  * מחיקה קשה (Hard Delete) של מוצר.
  * מוחק לצמיתות את המוצר וכל ה-SKUs שלו (באמצעות pre-delete middleware).
@@ -1214,74 +1478,8 @@ export const restoreProduct = async (productId: string): Promise<void> => {
  * @param productId - ID של המוצר למחיקה
  */
 export const hardDeleteProduct = async (productId: string): Promise<void> => {
-  try {
-    const product = await Product.findById(productId);
-
-    if (!product) {
-      throw new Error(`Product with ID ${productId} not found`);
-    }
-
-    // שלב 1: מחיקת תמונות של המוצר מ-DigitalOcean Spaces
-    if (product.images && product.images.length > 0) {
-      const { deleteBulkFromSpaces } = await import('./spacesService');
-
-      // בניית מערך של כל ה-keys למחיקה (3 גדלים לכל תמונה)
-      const keysToDelete: string[] = [];
-      for (const image of product.images) {
-        keysToDelete.push(
-          `${image.key}-thumbnail.webp`,
-          `${image.key}-medium.webp`,
-          `${image.key}-large.webp`
-        );
-      }
-
-      try {
-        const deletedCount = await deleteBulkFromSpaces(keysToDelete);
-        console.log(`🗑️ Deleted ${deletedCount} image files from Spaces`);
-      } catch (err) {
-        console.warn(`⚠️ Failed to delete some images from Spaces:`, err);
-        // לא עוצרים את כל התהליך בגלל כשל במחיקת תמונות
-      }
-    }
-
-    // שלב 2: מחיקת תמונות של SKUs מ-DigitalOcean Spaces
-    const skus = await Sku.find({ productId });
-    if (skus.length > 0) {
-      const { deleteBulkFromSpaces } = await import('./spacesService');
-
-      // בניית מערך של כל ה-keys למחיקה
-      const keysToDelete: string[] = [];
-      for (const sku of skus) {
-        if (sku.images && sku.images.length > 0) {
-          for (const image of sku.images) {
-            keysToDelete.push(
-              `${image.key}-thumbnail.webp`,
-              `${image.key}-medium.webp`,
-              `${image.key}-large.webp`
-            );
-          }
-        }
-      }
-
-      if (keysToDelete.length > 0) {
-        try {
-          const deletedCount = await deleteBulkFromSpaces(keysToDelete);
-          console.log(`🗑️ Deleted ${deletedCount} SKU image files from Spaces`);
-        } catch (err) {
-          console.warn(`⚠️ Failed to delete some SKU images from Spaces:`, err);
-        }
-      }
-    }
-
-    // שלב 3: מחיקת המוצר מ-MongoDB (הpre-delete middleware ימחק את SKUs באופן אוטומטי)
-    await Product.deleteOne({ _id: productId });
-
-    console.log(`✅ Product, SKUs, and all images permanently deleted`);
-
-  } catch (error) {
-    console.error('❌ Hard delete failed:', error);
-    throw error;
-  }
+  await bulkHardDeleteProducts([productId]);
+  console.log(`✅ Product, SKUs, and all images permanently deleted`);
 };
 
 /**

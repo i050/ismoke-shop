@@ -33,6 +33,58 @@ const buildDefaultPricing = (product: any) => {
   };
 };
 
+const MAX_BULK_PRODUCT_IDS = 100;
+
+const validateBulkProductIds = (body: any): { productIds: string[] } | { error: string } => {
+  const rawProductIds = body?.productIds;
+
+  if (!Array.isArray(rawProductIds)) {
+    return { error: 'יש לשלוח מערך productIds תקין' };
+  }
+
+  const productIds = Array.from(
+    new Set(
+      rawProductIds
+        .filter((productId): productId is string => typeof productId === 'string')
+        .map((productId) => productId.trim())
+        .filter(Boolean)
+    )
+  );
+
+  if (productIds.length === 0) {
+    return { error: 'לא נבחרו מוצרים לביצוע הפעולה' };
+  }
+
+  if (productIds.length > MAX_BULK_PRODUCT_IDS) {
+    return { error: `ניתן לבצע פעולה על עד ${MAX_BULK_PRODUCT_IDS} מוצרים בכל פעם` };
+  }
+
+  const invalidIds = productIds.filter((productId) => !mongoose.Types.ObjectId.isValid(productId));
+  if (invalidIds.length > 0) {
+    return { error: 'אחד או יותר ממזהי המוצרים אינם תקינים' };
+  }
+
+  return { productIds };
+};
+
+const sendBulkProductError = (res: Response, error: any, fallbackMessage: string) => {
+  console.error(`❌ ${fallbackMessage}:`, error);
+
+  if (error?.statusCode === 404) {
+    return res.status(404).json({
+      success: false,
+      message: error.message || 'חלק מהמוצרים לא נמצאו',
+      notFoundIds: error.notFoundIds || [],
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: fallbackMessage,
+    error: error?.message,
+  });
+};
+
 // Get all products
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
@@ -594,6 +646,75 @@ export const hardDeleteProductController = async (req: Request, res: Response) =
       message: 'שגיאה במחיקה לצמיתות של המוצר',
       error: error.message
     });
+  }
+};
+
+/**
+ * העברה מרובה של מוצרים לפח האשפה
+ * POST /api/products/bulk/soft-delete
+ */
+export const bulkSoftDeleteProducts = async (req: Request, res: Response) => {
+  const validation = validateBulkProductIds(req.body);
+  if ('error' in validation) {
+    return res.status(400).json({ success: false, message: validation.error });
+  }
+
+  try {
+    const result = await productService.bulkSoftDeleteProducts(validation.productIds);
+
+    res.json({
+      success: true,
+      message: `${result.matchedProductsCount} מוצרים הועברו לפח האשפה`,
+      data: result,
+    });
+  } catch (error: any) {
+    return sendBulkProductError(res, error, 'שגיאה במחיקה מרובה של מוצרים');
+  }
+};
+
+/**
+ * שחזור מרובה של מוצרים מפח האשפה
+ * POST /api/products/bulk/restore
+ */
+export const bulkRestoreProducts = async (req: Request, res: Response) => {
+  const validation = validateBulkProductIds(req.body);
+  if ('error' in validation) {
+    return res.status(400).json({ success: false, message: validation.error });
+  }
+
+  try {
+    const result = await productService.bulkRestoreProducts(validation.productIds);
+
+    res.json({
+      success: true,
+      message: `${result.matchedProductsCount} מוצרים שוחזרו בהצלחה`,
+      data: result,
+    });
+  } catch (error: any) {
+    return sendBulkProductError(res, error, 'שגיאה בשחזור מרובה של מוצרים');
+  }
+};
+
+/**
+ * מחיקה סופית מרובה של מוצרים
+ * POST /api/products/bulk/permanent-delete
+ */
+export const bulkHardDeleteProductsController = async (req: Request, res: Response) => {
+  const validation = validateBulkProductIds(req.body);
+  if ('error' in validation) {
+    return res.status(400).json({ success: false, message: validation.error });
+  }
+
+  try {
+    const result = await productService.bulkHardDeleteProducts(validation.productIds);
+
+    res.json({
+      success: true,
+      message: `${result.deletedProductsCount || 0} מוצרים נמחקו לצמיתות`,
+      data: result,
+    });
+  } catch (error: any) {
+    return sendBulkProductError(res, error, 'שגיאה במחיקה סופית מרובה של מוצרים');
   }
 };
 

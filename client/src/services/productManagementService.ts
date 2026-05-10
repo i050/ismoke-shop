@@ -9,6 +9,24 @@ import { ApiError } from '../utils/ApiError';
 import { API_BASE_URL } from '../config/api'; // 🔧 FIX: שימוש ב-API_BASE_URL המרכזי
 import { ProductService } from './productService'; // 🆕 לצורך ניקוי cache
 
+interface BulkProductOperationResult {
+  productIds: string[];
+  requestedCount: number;
+  matchedProductsCount: number;
+  modifiedProductsCount?: number;
+  matchedSkusCount?: number;
+  modifiedSkusCount?: number;
+  deletedProductsCount?: number;
+  deletedSkusCount?: number;
+  deletedImageFilesCount?: number;
+}
+
+interface BulkProductOperationResponse {
+  success: boolean;
+  message: string;
+  data: BulkProductOperationResult;
+}
+
 /**
  * Service לניהול מוצרים
  * Phase 3: רק 2 פונקציות - getProducts + deleteProduct
@@ -300,6 +318,78 @@ class ProductManagementService {
       const message = error instanceof Error ? error.message : 'שגיאה לא ידועה';
       throw new ApiError(500, 'שגיאה במחיקת המוצר', message);
     }
+  }
+
+  private normalizeBulkProductIds(productIds: string[]): string[] {
+    return Array.from(new Set(productIds.map((productId) => productId.trim()).filter(Boolean)));
+  }
+
+  private invalidateProductsCache(productIds: string[]): void {
+    productIds.forEach((productId) => ProductService.invalidateProductDetailsCache(productId));
+    ProductService.invalidateFilteredProductsCache();
+  }
+
+  private async makeBulkProductsRequest(
+    endpoint: 'soft-delete' | 'restore' | 'permanent-delete',
+    productIds: string[],
+    fallbackErrorMessage: string
+  ): Promise<BulkProductOperationResponse> {
+    try {
+      const normalizedProductIds = this.normalizeBulkProductIds(productIds);
+      if (normalizedProductIds.length === 0) {
+        throw new ApiError(400, 'לא נבחרו מוצרים לביצוע הפעולה');
+      }
+
+      const response = await this.makeRequest<BulkProductOperationResponse>(
+        `${this.baseUrl}/bulk/${endpoint}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ productIds: normalizedProductIds }),
+        }
+      );
+
+      this.invalidateProductsCache(normalizedProductIds);
+      return response;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : 'שגיאה לא ידועה';
+      throw new ApiError(500, fallbackErrorMessage, message);
+    }
+  }
+
+  /**
+   * העברת מוצרים מרובים לפח האשפה
+   */
+  async bulkDeleteProducts(productIds: string[]): Promise<BulkProductOperationResponse> {
+    return this.makeBulkProductsRequest(
+      'soft-delete',
+      productIds,
+      'שגיאה במחיקה מרובה של מוצרים'
+    );
+  }
+
+  /**
+   * שחזור מוצרים מרובים מפח האשפה
+   */
+  async bulkRestoreProducts(productIds: string[]): Promise<BulkProductOperationResponse> {
+    return this.makeBulkProductsRequest(
+      'restore',
+      productIds,
+      'שגיאה בשחזור מרובה של מוצרים'
+    );
+  }
+
+  /**
+   * מחיקה סופית של מוצרים מרובים
+   */
+  async bulkDeleteProductsPermanently(productIds: string[]): Promise<BulkProductOperationResponse> {
+    return this.makeBulkProductsRequest(
+      'permanent-delete',
+      productIds,
+      'שגיאה במחיקה סופית מרובה של מוצרים'
+    );
   }
 
   /**

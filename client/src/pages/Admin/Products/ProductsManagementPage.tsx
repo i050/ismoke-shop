@@ -17,6 +17,9 @@ import {
   setModeList,
   setViewMode,
   restoreProduct,
+  bulkDeleteProducts,
+  bulkRestoreProducts,
+  bulkDeleteProductsPermanently,
 } from '../../../store/slices/productsManagementSlice';
 import { TitleWithIcon, Button, Icon } from '../../../components/ui';
 import ProductsTableHeader from '../../../components/features/admin/Products/ProductsTable/ProductsTableHeader';
@@ -376,7 +379,7 @@ const ProductsManagementPage: React.FC = () => {
     // אישור מחיקה לצמיתות באמצעות מודאל (עם warning כי זה בלתי הפיך)
     const confirmed = await confirm({
       title: '⚠️ מחיקה לצמיתות',
-      message: `פעולה זו תמחק את המוצר "${product.name}" מהשרת ומ-Cloudinary בצורה בלתי הפיכה!
+      message: `פעולה זו תמחק את המוצר "${product.name}" מהשרת ומהאחסון בצורה בלתי הפיכה!
       
 לא ניתן לשחזר את המוצר לאחר מכן. האם אתה בטוח?`,
       confirmText: 'מחק לצמיתות',
@@ -416,43 +419,99 @@ const ProductsManagementPage: React.FC = () => {
   // טיפול במחיקה מרובה - Phase 4.7.5
   const handleBulkDelete = async () => {
     console.log('🗑️ מחיקה מרובה:', selectedIds);
+    const productIds = [...selectedIds];
+    const selectedCount = productIds.length;
     
-    if (selectedIds.length === 0) {
+    if (selectedCount === 0) {
       console.warn('⚠️ אין מוצרים נבחרים');
+      return;
+    }
+
+    if (isDeletedView) {
+      const confirmed = await confirm({
+        title: 'מחיקה סופית מרובה',
+        message: `פעולה זו תמחק לצמיתות ${selectedCount} מוצרים מהשרת ומהאחסון. לא ניתן לשחזר אותם לאחר מכן.`,
+        confirmText: 'מחק לצמיתות',
+        cancelText: 'ביטול',
+        danger: true,
+      });
+
+      if (!confirmed) return;
+
+      try {
+        await dispatch(bulkDeleteProductsPermanently(productIds)).unwrap();
+        showToast('success', `${selectedCount} מוצרים נמחקו לצמיתות`);
+        dispatch(clearProductSelection());
+        dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
+      } catch (error) {
+        console.error('❌ שגיאה במחיקה סופית מרובה:', error);
+        showToast('error', `שגיאה במחיקה סופית של מוצרים: ${error}`);
+        dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
+      }
       return;
     }
     
     // אישור מחיקה מרובה באמצעות מודאל
     const confirmed = await confirm({
       title: 'מחיקה מרובה',
-      message: `האם אתה בטוח שברצונך למחוק ${selectedIds.length} מוצרים?`,
-      confirmText: 'מחק הכל',
+      message: `האם אתה בטוח שברצונך להעביר ${selectedCount} מוצרים לפח האשפה? ניתן יהיה לשחזר אותם.`,
+      confirmText: 'העבר לפח',
       cancelText: 'ביטול',
       danger: true,
     });
 
     if (confirmed) {
       try {
-        // מחיקת כל המוצרים הנבחרים במקביל
-        await Promise.all(
-          selectedIds.map((id) => dispatch(deleteProduct(id)).unwrap())
-        );
+        await dispatch(bulkDeleteProducts(productIds)).unwrap();
         
         // הצלחה - ניקוי הבחירה
         console.log('✅ כל המוצרים הנבחרים נמחקו בהצלחה');
-        showToast('success', `${selectedIds.length} מוצרים נמחקו בהצלחה`);
+        showToast('success', `${selectedCount} מוצרים הועברו לפח האשפה`);
         dispatch(clearProductSelection());
         
         // טעינה מחדש של הרשימה
-        dispatch(fetchProducts({ filters, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
+        dispatch(fetchProducts({ filters: { ...filters, isActive: true }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
       } catch (error) {
         // טיפול בשגיאה
         console.error('❌ שגיאה במחיקת מוצרים:', error);
         showToast('error', `שגיאה במחיקת מוצרים: ${error}`);
         
         // גם במקרה של שגיאה - נטען מחדש כדי לראות מה בכל זאת נמחק
-        dispatch(fetchProducts({ filters, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
+        dispatch(fetchProducts({ filters: { ...filters, isActive: true }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
       }
+    }
+  };
+
+  // טיפול בשחזור מרובה מפח האשפה
+  const handleBulkRestore = async () => {
+    console.log('🔄 שחזור מרובה:', selectedIds);
+    const productIds = [...selectedIds];
+    const selectedCount = productIds.length;
+
+    if (selectedCount === 0) {
+      console.warn('⚠️ אין מוצרים נבחרים לשחזור');
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: 'שחזור מרובה',
+      message: `האם לשחזר ${selectedCount} מוצרים מפח האשפה?`,
+      confirmText: 'שחזר נבחרים',
+      cancelText: 'ביטול',
+      danger: false,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await dispatch(bulkRestoreProducts(productIds)).unwrap();
+      showToast('success', `${selectedCount} מוצרים שוחזרו בהצלחה`);
+      dispatch(clearProductSelection());
+      dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
+    } catch (error) {
+      console.error('❌ שגיאה בשחזור מרובה:', error);
+      showToast('error', `שגיאה בשחזור מוצרים: ${error}`);
+      dispatch(fetchProducts({ filters: { ...filters, isActive: false }, sortBy, sortDirection, limit: DEFAULT_ADMIN_PAGE_LIMIT }));
     }
   };
 
@@ -535,6 +594,7 @@ const ProductsManagementPage: React.FC = () => {
             onEdit={handleEditProduct}
             onDelete={handleDeleteProduct}
             onBulkDelete={handleBulkDelete}
+            onBulkRestore={handleBulkRestore}
             onRestore={handleRestoreProduct}
             onPermanentlyDelete={handlePermanentlyDeleteProduct}
             isDeletedView={isDeletedView}
@@ -556,7 +616,6 @@ const ProductsManagementPage: React.FC = () => {
       {mode === 'edit' && editingProduct && (
         <ProductForm
           mode="edit"
-          hasVariants={editingProduct.hasVariants ?? false}
           initialData={editingProduct}
           onSubmit={handleProductSubmit}
           onCancel={handleProductCancel}

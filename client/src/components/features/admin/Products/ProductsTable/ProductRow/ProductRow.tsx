@@ -42,6 +42,8 @@ export const ProductRow: React.FC<ProductRowProps> = ({
   isDeletedView = false,
   globalLowStockThreshold = 5,
 }) => {
+  type ProductImageWithLegacyUrl = NonNullable<Product['images']>[number] & { url?: string };
+
   // State לחלונית פירוט SKUs
   const [isSkuPopoverOpen, setIsSkuPopoverOpen] = useState(false);
   const skuPopoverRef = useRef<HTMLDivElement>(null);
@@ -74,7 +76,8 @@ export const ProductRow: React.FC<ProductRowProps> = ({
 
   // תמונה ראשונה או placeholder
   // תומך במבנה חדש (Spaces: thumbnail/medium) ומבנה ישן (Cloudinary: url)
-  const mainImage = product.images?.[0]?.thumbnail || product.images?.[0]?.medium || product.images?.[0]?.url || '/ismoke-placeholder.png';
+  const firstImage = product.images?.[0] as ProductImageWithLegacyUrl | undefined;
+  const mainImage = firstImage?.thumbnail || firstImage?.medium || firstImage?.url || '/ismoke-placeholder.png';
 
   // רף מלאי נמוך - משתמש בערך המותאם אישית של המוצר או ברירת מחדל גלובלית
   const lowStockThreshold = product.lowStockThreshold ?? globalLowStockThreshold;
@@ -156,12 +159,12 @@ export const ProductRow: React.FC<ProductRowProps> = ({
       }}
     >
       {/* עמודת Checkbox */}
-      {/* <td className={styles.cellCheckbox}>
+      <td className={styles.cellCheckbox}>
         <Checkbox
           checked={isSelected}
           onChange={() => onSelect(product._id)}
         />
-      </td> */}
+      </td>
 
       {/* עמודת תמונה */}
       <td className={styles.cellImage}>
@@ -202,7 +205,6 @@ export const ProductRow: React.FC<ProductRowProps> = ({
                 className={styles.skuExpandButton}
                 onClick={() => setIsSkuPopoverOpen(!isSkuPopoverOpen)}
                 title="הצג פירוט מלאי לפי וריאנט"
-                aria-expanded={isSkuPopoverOpen}
               >
                 <Icon 
                   name={isSkuPopoverOpen ? 'ChevronUp' : 'ChevronDown'} 

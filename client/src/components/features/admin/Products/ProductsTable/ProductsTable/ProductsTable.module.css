@@ -33,6 +33,25 @@
 .bulkActions {
   display: flex;
   gap: var(--spacing-sm, 8px);
+  flex-wrap: wrap;
+}
+
+/* bulkRestoreBtn - כפתור שחזור קבוצתי בפח האשפה */
+.bulkRestoreBtn {
+  background-color: #059669;
+  color: white;
+  border: none;
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  padding: var(--spacing-xs, 6px) var(--spacing-md, 12px);
+  border-radius: var(--radius-sm, 4px);
+  transition: background-color 0.15s ease;
+}
+
+/* bulkRestoreBtn:hover - חיווי hover לשחזור קבוצתי */
+.bulkRestoreBtn:hover {
+  background-color: #047857;
 }
 
 /* bulkDeleteBtn - כפתור מחיקה קבוצתית עם אפקט hover */
@@ -110,6 +129,14 @@
 .thCheckbox {
   width: 40px;
   text-align: center !important;
+}
+
+/* cellCheckbox - תא תיבת סימון בגוף הטבלה ובמצב טעינה */
+.cellCheckbox {
+  width: 40px;
+  padding: var(--spacing-md, 12px) var(--spacing-sm, 8px);
+  text-align: center;
+  vertical-align: middle;
 }
 
 /* thImage - רוחב קבוע לתמונה בכותרת */

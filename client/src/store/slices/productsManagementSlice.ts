@@ -153,6 +153,54 @@ export const deleteProduct = createAsyncThunk(
 );
 
 /**
+ * מחיקה מרובה של מוצרים לפח האשפה
+ */
+export const bulkDeleteProducts = createAsyncThunk(
+  'productsManagement/bulkDeleteProducts',
+  async (productIds: string[], { rejectWithValue }) => {
+    try {
+      await productManagementService.bulkDeleteProducts(productIds);
+      return productIds;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return rejectWithValue(message || 'שגיאה במחיקה מרובה של מוצרים');
+    }
+  }
+);
+
+/**
+ * שחזור מרובה של מוצרים מפח האשפה
+ */
+export const bulkRestoreProducts = createAsyncThunk(
+  'productsManagement/bulkRestoreProducts',
+  async (productIds: string[], { rejectWithValue }) => {
+    try {
+      await productManagementService.bulkRestoreProducts(productIds);
+      return productIds;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return rejectWithValue(message || 'שגיאה בשחזור מרובה של מוצרים');
+    }
+  }
+);
+
+/**
+ * מחיקה סופית מרובה של מוצרים
+ */
+export const bulkDeleteProductsPermanently = createAsyncThunk(
+  'productsManagement/bulkDeleteProductsPermanently',
+  async (productIds: string[], { rejectWithValue }) => {
+    try {
+      await productManagementService.bulkDeleteProductsPermanently(productIds);
+      return productIds;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return rejectWithValue(message || 'שגיאה במחיקה סופית מרובה של מוצרים');
+    }
+  }
+);
+
+/**
  * פונקציה עזר: וידוא שכל ה-SKUs כוללים variantName ו-subVariantName
  * מחלצת אותם מ-name אם חסרים (תיקון לבעיה שבה השרת לא מחזיר שדות אלה)
  */
@@ -469,6 +517,57 @@ const productsManagementSlice = createSlice({
         state.selectedIds = state.selectedIds.filter(id => id !== action.payload);
       })
       .addCase(deleteProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // מחיקה מרובה לפח האשפה
+    builder
+      .addCase(bulkDeleteProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(bulkDeleteProducts.fulfilled, (state, action: PayloadAction<string[]>) => {
+        state.loading = false;
+        const deletedIds = new Set(action.payload);
+        state.products = state.products.filter(product => !deletedIds.has(product._id));
+        state.selectedIds = state.selectedIds.filter(id => !deletedIds.has(id));
+      })
+      .addCase(bulkDeleteProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // שחזור מרובה מפח האשפה
+    builder
+      .addCase(bulkRestoreProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(bulkRestoreProducts.fulfilled, (state, action: PayloadAction<string[]>) => {
+        state.loading = false;
+        const restoredIds = new Set(action.payload);
+        state.products = state.products.filter(product => !restoredIds.has(product._id));
+        state.selectedIds = state.selectedIds.filter(id => !restoredIds.has(id));
+      })
+      .addCase(bulkRestoreProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // מחיקה סופית מרובה
+    builder
+      .addCase(bulkDeleteProductsPermanently.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(bulkDeleteProductsPermanently.fulfilled, (state, action: PayloadAction<string[]>) => {
+        state.loading = false;
+        const deletedIds = new Set(action.payload);
+        state.products = state.products.filter(product => !deletedIds.has(product._id));
+        state.selectedIds = state.selectedIds.filter(id => !deletedIds.has(id));
+      })
+      .addCase(bulkDeleteProductsPermanently.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

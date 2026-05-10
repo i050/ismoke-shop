@@ -21,6 +21,7 @@ interface ProductsTableProps {
   onEdit: (productId: string) => void;
   onDelete: (productId: string) => void;
   onBulkDelete?: () => void;
+  onBulkRestore?: () => void;
   // Phase 7: פח אשפה - callback לשחזור מוצר
   onRestore?: (productId: string) => void;
   // Phase 7.2: מחיקה לצמיתות - פעולה בלתי הפיכה
@@ -38,6 +39,7 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
   onEdit,
   onDelete,
   onBulkDelete,
+  onBulkRestore,
   onRestore,
   onPermanentlyDelete,
   isDeletedView = false,
@@ -62,11 +64,12 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
     }
   };
 
-  // בדיקה אם כל השורות נבחרו
-  const allSelected = products.length > 0 && selectedIds.length === products.length;
+  // בדיקה אם כל השורות המוצגות נבחרו
+  const visibleProductIds = products.map((product) => product._id);
+  const allSelected = visibleProductIds.length > 0 && visibleProductIds.every((id) => selectedIds.includes(id));
 
-  // בדיקה אם חלק מהשורות נבחרו (indeterminate)
-  const someSelected = selectedIds.length > 0 && selectedIds.length < products.length;
+  // בדיקה אם חלק מהשורות המוצגות נבחרו (indeterminate)
+  const someSelected = visibleProductIds.some((id) => selectedIds.includes(id)) && !allSelected;
 
   // Empty State - אין מוצרים
   if (!loading && !error && products.length === 0) {
@@ -110,12 +113,20 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
             {selectedIds.length} מוצרים נבחרו
           </span>
           <div className={styles.bulkActions}>
+            {isDeletedView && onBulkRestore && (
+              <button
+                className={styles.bulkRestoreBtn}
+                onClick={onBulkRestore}
+              >
+                שחזר נבחרים
+              </button>
+            )}
             <button
               className={styles.bulkDeleteBtn}
               onClick={onBulkDelete}
               disabled={!onBulkDelete}
             >
-              מחק נבחרים
+              {isDeletedView ? 'מחק לצמיתות' : 'העבר לפח'}
             </button>
             <button
               className={styles.bulkCancel}
@@ -133,13 +144,13 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
           {/* כותרות */}
           <thead className={styles.thead}>
             <tr>
-              {/* <th className={styles.thCheckbox}>
+              <th className={styles.thCheckbox}>
                 <Checkbox
                   checked={allSelected}
                   indeterminate={someSelected}
                   onChange={handleSelectAll}
                 />
-              </th> */}
+              </th>
               <th className={styles.thImage}>תמונה</th>
               <th className={styles.thName}>שם המוצר</th>
               <th className={styles.thPrice}>מחיר</th>
@@ -158,9 +169,9 @@ export const ProductsTable: React.FC<ProductsTableProps> = ({
               <>
                 {[...Array(5)].map((_, index) => (
                   <tr key={`skeleton-${index}`} className={styles.skeletonRow}>
-                    {/* <td className={styles.cellCheckbox}>
+                    <td className={styles.cellCheckbox}>
                       <div className={`${styles.skeleton} ${styles.skel_16_16}`} />
-                    </td> */}
+                    </td>
                     <td className={styles.cellImage}>
                       <div className={`${styles.skeleton} ${styles.skeletonImage}`} />
                     </td>

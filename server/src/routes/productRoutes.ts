@@ -14,6 +14,9 @@ import {
   softDeleteProduct,
   restoreProduct,
   hardDeleteProductController,
+  bulkSoftDeleteProducts,
+  bulkRestoreProducts,
+  bulkHardDeleteProductsController,
   checkSkuAvailability,
   getProductsForManagement,
   getProductsAutocomplete,
@@ -109,6 +112,15 @@ router.put(
   validateUpdateProductWithSkus,
   updateProductWithSkus
 );
+
+// POST /api/products/bulk/soft-delete - העברה מרובה לפח האשפה
+router.post('/bulk/soft-delete', authMiddleware, requireAdmin, deleteProductLimiter, bulkSoftDeleteProducts);
+
+// POST /api/products/bulk/restore - שחזור מרובה מפח האשפה
+router.post('/bulk/restore', authMiddleware, requireAdmin, updateProductLimiter, bulkRestoreProducts);
+
+// POST /api/products/bulk/permanent-delete - מחיקה סופית מרובה
+router.post('/bulk/permanent-delete', authMiddleware, requireAdmin, deleteProductLimiter, bulkHardDeleteProductsController);
 
 // DELETE /api/products/:id/soft - Soft delete product (isActive: false)
 // Phase 0.5.7: מעדכן גם את ה-SKUs ל-isActive: false
