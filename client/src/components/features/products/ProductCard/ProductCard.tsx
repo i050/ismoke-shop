@@ -79,7 +79,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // State ל-SKU נבחר (קוד SKU, לא אינדקס)
-  // 🆕 אם יש initialColorFamily (מסינון לפי צבע) - מוצא SKU תואם כדי להציג את הצבע שסוננו לפיו
+  // 🆕 אין ברירת מחדל — הלקוח חייב לבחור וריאנט במפורש
+  // חריג: initialColorFamily מסינון צבע — בחירה אוטומטית (הלקוח סינן במפורש)
   const [selectedSku, setSelectedSku] = useState<string | null>(() => {
     if (!product.skus || product.skus.length === 0) return null;
     // אם יש משפחת צבע מסינון, נבחר SKU תואם בעדיפות לזה שיש לו מלאי
@@ -90,8 +91,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
       const matchingSku = getFirstInStockSku(matchingSkus);
       if (matchingSku) return matchingSku.sku;
     }
-    // ברירת מחדל: SKU ראשון שיש לו מלאי, עם נפילה לראשון אם כולם אזלו.
-    return getFirstInStockSku(product.skus)?.sku || null;
+    // 🆕 אין ברירת מחדל — גם אם יש SKUs, הלקוח חייב לבחור
+    return null;
   });
   
   // חישוב כמה יחידות מה-SKU הנבחר נמצאות בעגלה של המשתמש
@@ -112,8 +113,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
   // חישוב מלאי אפקטיבי = מלאי כולל פחות מה שבעגלה שלי
   const effectiveStock = totalStock - quantityInCart;
   
-  // בדיקת מצב מלאי (משתמש במלאי אפקטיבי אם יש פריטים בעגלה)
-  const isInStock = effectiveStock > 0;
+  // בדיקת מצב מלאי — 🆕 כולל anySkuInStock: פופאובר גם כשאין SKU, רק אם יש וריאנט במלאי
+  const hasVariants = product.skus && product.skus.length > 0;
+  const anySkuInStock = hasVariants
+    ? product.skus!.some(s => (s.stockQuantity ?? 0) > 0)
+    : false;
+  const isInStock = effectiveStock > 0 || (hasVariants && !selectedSku && anySkuInStock);
   
   // State למחיר מעודכן - נשען על רענון מהעמוד הראשי ומסונכרן עם props
   const [updatedProduct, setUpdatedProduct] = useState(product);

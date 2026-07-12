@@ -87,6 +87,14 @@
   background: var(--color-bg-hover, #f9fafb);
 }
 
+/* 🆕 הודעת שגיאה — "בחר וריאנט" */
+.errorMessage {
+  color: var(--color-danger, #dc3545);
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.25rem;
+}
+
 /* רספונסיביות למובייל */
 @media (max-width: 480px) {
   .popoverContent {

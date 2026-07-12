@@ -74,6 +74,16 @@ const AddToCartPopover = ({
   
   // state לניהול פתיחה/סגירה של הפופאובר
   const [isOpen, setIsOpen] = useState(false);
+
+  // 🆕 state להודעת "בחר וריאנט" כשאין SKU נבחר
+  const [variantMessage, setVariantMessage] = useState<string | null>(null);
+
+  // 🆕 ניקוי ההודעה אוטומטית אחרי 3 שניות
+  useEffect(() => {
+    if (!variantMessage) return;
+    const timer = setTimeout(() => setVariantMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }, [variantMessage]);
   
   // 🆕 state מקומי ל-SKU כדי לאפשר שינוי בתוך הפופאובר
   const [localSelectedSku, setLocalSelectedSku] = useState<string | null>(selectedSku || null);
@@ -101,6 +111,11 @@ const AddToCartPopover = ({
   
   // פונקציה לטיפול בהוספה לסל
   const handleAddToCart = () => {
+    // 🆕 בדיקה: אם אין SKU נבחר, הצג הודעה במקום להוסיף לעגלה
+    if (!localSelectedSku) {
+      setVariantMessage('בחר וריאנט');
+      return;
+    }
     if (quantity > 0 && quantity <= currentStock) {
       onAddToCart(quantity, localSelectedSku || undefined);
       setIsOpen(false); // סגירת הפופאובר
@@ -157,7 +172,7 @@ const AddToCartPopover = ({
                   compactMode={false}
                   secondaryVariantAttribute={secondaryVariantAttribute}
                   showColorPreview={false}
-                  secondaryOnly={!!secondaryVariantAttribute}
+                  secondaryOnly={!!secondaryVariantAttribute && !!localSelectedSku}
                   useDropdownForSecondary={true}
                   colorImages={colorImages}
                   colorFamilyImages={colorFamilyImages}
@@ -167,6 +182,11 @@ const AddToCartPopover = ({
                   secondaryVariantLabel={secondaryVariantLabel}
                 />
               </div>
+            )}
+
+            {/* 🆕 הודעת "בחר וריאנט" */}
+            {variantMessage && (
+              <p className={styles.errorMessage}>{variantMessage}</p>
             )}
 
             {/* בורר כמות */}
@@ -193,7 +213,7 @@ const AddToCartPopover = ({
                   stopEventPropagation(e);
                   handleAddToCart();
                 }}
-                disabled={currentStock <= 0}
+                disabled={currentStock <= 0 && localSelectedSku !== null}
                 className={styles.addButton}
               >
                 {currentStock > 0 ? `הוסף ${quantity > 1 ? `${quantity} יחידות` : ''} לסל` : 'אזל מהמלאי'}

@@ -22,6 +22,29 @@ interface ProductDetailProps {
 }
 
 /**
+ * 🆕 פונקציית עזר — מחזירה הודעת "בחר X" דינמית לפי סוג הווריאנטים
+ */
+function getVariantMessage(product: Product): string {
+  const p = product as any;
+  // custom variants — להשתמש בתוויות המותאמות
+  if (p.variantType === 'custom') {
+    const parts: string[] = [];
+    if (p.primaryVariantLabel) parts.push(p.primaryVariantLabel);
+    if (p.secondaryVariantLabel) parts.push(p.secondaryVariantLabel);
+    if (parts.length === 2) return `בחר ${parts[0]} ו${parts[1]}`;
+    if (parts.length === 1) return `בחר ${parts[0]}`;
+    return 'בחר וריאנט';
+  }
+  // color / standard variants
+  const hasColor = product.skus?.some(s => (s as any).color || (s as any).colorHex);
+  const hasSecondary = !!product.secondaryVariantAttribute;
+  if (hasColor && hasSecondary) return 'בחר צבע ומידה';
+  if (hasColor) return 'בחר צבע';
+  if (hasSecondary) return 'בחר מידה';
+  return 'בחר וריאנט';
+}
+
+/**
  * רכיב פרטי מוצר - הרכיב הראשי שמציג את כל המידע על המוצר
  * מחקה את המבנה והעיצוב של ה-HTML המצורף בדיוק
  */
@@ -51,6 +74,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   const [lastStockMessage, setLastStockMessage] = useState<string | null>(null);
   // State לאנימציית הצלחה בהוספה לסל
   const [addToCartSuccess, setAddToCartSuccess] = useState(false);
+  // 🆕 state להודעת "בחר צבע/מידה" כשאין וריאנט נבחר
+  const [variantMessage, setVariantMessage] = useState<string | null>(null);
+  
+  // 🆕 ניקוי אוטומטי של הודעת הווריאנט אחרי 3 שניות
+  useEffect(() => {
+    if (!variantMessage) return;
+    const timer = setTimeout(() => setVariantMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }, [variantMessage]);
+
   const forceTimerRef = useRef<number | null>(null);
   const clearMessageTimerRef = useRef<number | null>(null);
   const productStockControllerRef = useRef<AbortController | null>(null);
@@ -68,10 +101,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
         
         
         setProduct(productData);
-        // הגדרת SKU ברירת מחדל לפי מלאי כדי לא לפתוח את הדף על וריאנט שאזל.
-        if (productData.skus && productData.skus.length > 0) {
-          setSelectedSku(getFirstInStockSku(productData.skus)?.sku || null);
-        }
+        // 🆕 אין ברירת מחדל — הלקוח חייב לבחור וריאנט במפורש
         setError(null);
         setTransientBanner(null);
       } catch (err) {
@@ -251,6 +281,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   // כאשר נבחר ווריאנט חדש או שהמלאי משתנה, נבטיח שהכמות תתאים למלאי הקיים
   useEffect(() => {
     if (!product) return;
+    // 🆕 כשאין SKU נבחר — לא משנים כמות, מחכים לבחירת הלקוח
+    if (!selectedSku && product?.skus?.length > 0) return;
     const stock = availableStock;
     if (stock <= 0) {
       // אם אין מלאי - נעדכן את הכמות ל-0
@@ -269,7 +301,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
   // הוספה לעגלה
   const handleAddToCart = async () => {
-    if (!product || !selectedSku) return;
+    if (!product) return;
+    // 🆕 בדיקה: אם אין SKU נבחר, הצג הודעה במקום להוסיף לעגלה
+    if (!selectedSku) {
+      setVariantMessage(getVariantMessage(product));
+      return;
+    }
 
     // בדיקה מהירה בשרת לפני שליחה כדי להבטיח שאיננו מוסיפים יותר מהמלאי האמיתי
     try {
@@ -302,7 +339,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   // קנייה ישירה - שליחת פרטי המוצר ישירות ל-Checkout (בלי להוסיף לעגלה)
   const navigate = useNavigate();
   const handleBuyNow = async () => {
-    if (!product || !selectedSku || !selectedSkuData) return;
+    if (!product) return;
+    // 🆕 בדיקה: אם אין SKU נבחר, הצג הודעה במקום ניווט לצ'קאאוט
+    if (!selectedSku || !selectedSkuData) {
+      setVariantMessage(getVariantMessage(product));
+      return;
+    }
 
     // בדיקה מהירה בשרת להבטחת מלאי
     try {
@@ -558,7 +600,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
 
           {/* מצב מלאי */}
           <div className={styles.stockStatus}>
-            {allStockInMyCart ? (
+            {/* 🆕 כשאין SKU נבחר — תצוגה ניטרלית */}
+            {!selectedSku && product.skus && product.skus.length > 0 ? (
+              <div className={styles.inStock}>
+                <Icon name="Info" size={18} />
+                <Typography variant="body2">בחר וריאנט לראות זמינות</Typography>
+              </div>
+            ) : allStockInMyCart ? (
               /* כל המלאי בעגלה שלי - הודעה מיוחדת */
               <div className={styles.allInCart}>
                 <Icon name="ShoppingCart" size={18} />
@@ -646,6 +694,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
               />
             )}
           </div>
+
+          {/* 🆕 הודעת "בחר צבע/מידה" — מוצגת מתחת לכפתורי הפעולה */}
+          {variantMessage && (
+            <div className={styles.variantMessage}>{variantMessage}</div>
+          )}
 
           {/* פעולות משניות */}
           <div className={styles.secondaryActions}>
