@@ -132,10 +132,10 @@ async function processSize(
   try {
     // עיבוד התמונה עם Sharp
     const processedBuffer = await sharp(buffer)
-      // Resize עם fit: 'cover' - ימלא את כל הגודל תוך שמירה על יחס גובה-רוחב
+      // Resize עם fit: 'contain' - מציג את כל התמונה בתוך המרובע, ממלא רקע לבן
       .resize(sizeConfig.width, sizeConfig.height, {
-        fit: 'cover',
-        position: 'center',
+        fit: 'contain',
+        background: IMAGE_PROCESSING_CONFIG.backgroundColor, // רקע לבן ל-letterboxing
         withoutEnlargement: false, // גם אם התמונה קטנה, תגדל אותה
       })
       // המרה לפורמט מבוקש (WebP/JPEG/PNG)

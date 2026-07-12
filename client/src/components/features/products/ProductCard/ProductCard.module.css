@@ -129,7 +129,7 @@
   width: 100%;
   height: 100%;
   max-width: 100%; /* מניעת חריגה מהקונטיינר - תיקון Grid Blowout */
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.3s ease;
 }
 

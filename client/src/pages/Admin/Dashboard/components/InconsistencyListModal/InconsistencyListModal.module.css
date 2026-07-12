@@ -136,7 +136,7 @@
 .productImage {
   width: 60px;
   height: 60px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
 }
