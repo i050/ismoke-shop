@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import FilterAttribute from '../models/FilterAttribute';
 
 // Cache for colorFamilies data
 let colorFamiliesCache: ColorFamily[] | null = null;
@@ -160,6 +161,41 @@ export function loadColorFamilies(): ColorFamily[] {
 export function clearColorFamiliesCache(): void {
   colorFamiliesCache = null;
   cacheLoadedAt = 0;
+}
+
+/**
+ * 🆕 רענון ה-cache ממסד הנתונים (MongoDB)
+ * 
+ * נקרא בסטארטאפ ואחרי כל פעולת CRUD על גוונים.
+ * MongoDB הוא מקור האמת. JSON משמש כ-fallback להפעלה ראשונה בלבד.
+ * 
+ * @returns void — מתעדכן colorFamiliesCache כתופעת לוואי
+ */
+export async function refreshColorFamiliesCache(): Promise<void> {
+  try {
+    const doc = await FilterAttribute.findOne({ key: 'color' }).lean();
+    if (doc?.colorFamilies?.length) {
+      colorFamiliesCache = doc.colorFamilies as unknown as ColorFamily[];
+      cacheLoadedAt = Date.now();
+      console.log(`✅ [colorFamilyDetector] Cache refreshed from MongoDB: ${colorFamiliesCache.length} families`);
+      return;
+    }
+  } catch (error) {
+    console.error('⚠️ [colorFamilyDetector] Failed to refresh from MongoDB, keeping existing cache:', error);
+  }
+  
+  // fallback: טעינה מ-JSON (קורה רק בהפעלה ראשונה לפני seed)
+  if (!colorFamiliesCache) {
+    const filePath = path.resolve(__dirname, '../data/colorFamilies.json');
+    try {
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      colorFamiliesCache = JSON.parse(fileContent);
+      cacheLoadedAt = Date.now();
+      console.log(`📁 [colorFamilyDetector] Loaded ${colorFamiliesCache?.length || 0} families from JSON fallback`);
+    } catch (fallbackError) {
+      console.error('❌ [colorFamilyDetector] Failed to load from JSON fallback:', fallbackError);
+    }
+  }
 }
 
 // ============================================================================

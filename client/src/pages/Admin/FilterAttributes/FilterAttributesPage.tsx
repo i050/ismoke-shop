@@ -7,6 +7,7 @@ import { useToast } from '../../../hooks/useToast';
 import AttributeCard from './AttributeCard';
 import AttributeModal from './AttributeModal';
 import { DeleteAttributeModal } from './DeleteAttributeModal';
+import ColorVariantsModal from './ColorVariantsModal/ColorVariantsModal';
 import BrandCard from './BrandCard/BrandCard';
 import BrandModal from './BrandModal/BrandModal';
 import styles from './FilterAttributesPage.module.css';
@@ -37,6 +38,9 @@ const FilterAttributesPage: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<FilterAttribute | null>(null);
   const [deleteUsageCount, setDeleteUsageCount] = useState(0);
   const [isProcessingDelete, setIsProcessingDelete] = useState(false);
+
+  // 🆕 Color variants modal
+  const [variantsAttribute, setVariantsAttribute] = useState<FilterAttribute | null>(null);
 
   // ============================================================================
   // State - מותגים
@@ -387,6 +391,7 @@ const FilterAttributesPage: React.FC = () => {
                   attribute={attr}
                   onEdit={() => handleEditAttribute(attr)}
                   onDelete={() => handleDeleteAttribute(attr._id, attr.name)}
+                  onManageVariants={attr.key === 'color' ? () => setVariantsAttribute(attr) : undefined}
                 />
               ))}
             </div>
@@ -474,6 +479,17 @@ const FilterAttributesPage: React.FC = () => {
         onRemoveFromAll={handleRemoveFromAllAndDelete}
         onDelete={handleDirectDelete}
       />
+
+      {/* 🆕 מודאל ניהול גוונים */}
+      {variantsAttribute && (
+        <ColorVariantsModal
+          attribute={variantsAttribute}
+          onClose={() => {
+            setVariantsAttribute(null);
+            loadAttributes();
+          }}
+        />
+      )}
 
       {/* מודאל יצירה/עריכה - מותגים */}
       {showBrandModal && (

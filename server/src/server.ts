@@ -30,6 +30,8 @@ import { generalLimiter, authLimiter } from './middleware/rateLimiter';
 import maintenanceMiddleware from './middleware/maintenanceMiddleware';
 import { getSiteStatus } from './controllers/settingsController';
 import { scheduleImageCleanup } from './scripts/cleanupDeletedImages';
+// 🆕 טעינת נתוני צבעים לזיכרון בסטארטאפ
+import { refreshColorFamiliesCache } from './utils/colorFamilyDetector';
 import { getQueuesStats, closeQueues } from './queues';
 import { startAllWorkers, stopAllWorkers } from './queues/workers';
 import webhookRoutes from './routes/webhookRoutes';
@@ -334,6 +336,14 @@ const startServer = async () => {
     await connectDB();
     
     console.log('✅ Database connected successfully!');
+    
+    // 🆕 טעינת נתוני צבעים לזיכרון (MongoDB ← JSON fallback)
+    try {
+      await refreshColorFamiliesCache();
+      console.log('🎨 Color families cache initialized');
+    } catch (error) {
+      console.warn('⚠️ Color families cache init failed:', error);
+    }
     
     // הפעלת Cron Jobs - רק אחרי חיבור מוצלח ל-DB
     try {

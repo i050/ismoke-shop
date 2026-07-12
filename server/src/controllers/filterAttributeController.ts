@@ -229,3 +229,79 @@ export const removeAttributeFromSkus = async (req: Request, res: Response) => {
     });
   }
 };
+
+// ============================================================================
+// 🆕 ניהול גוונים בתוך משפחות צבע
+// ============================================================================
+
+/**
+ * POST /api/filter-attributes/color-families/:family/variants
+ * הוספת גוון למשפחת צבע (Admin)
+ */
+export const addColorVariant = async (req: Request, res: Response) => {
+  try {
+    const { family } = req.params;
+    const { name, hex } = req.body;
+
+    if (!name || !hex) {
+      return res.status(400).json({ success: false, message: 'name ו-hex הם שדות חובה' });
+    }
+
+    await filterAttributeService.addColorVariant(family, name, hex);
+
+    res.status(201).json({ success: true, message: `גוון "${name}" נוסף בהצלחה למשפחת "${family}"` });
+  } catch (error: any) {
+    console.error('❌ Error in addColorVariant:', error);
+    const status = error.message.includes('כבר קיים') ? 409 : 400;
+    res.status(status).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * PUT /api/filter-attributes/color-families/:family/variants/:variantName
+ * עריכת גוון (Admin)
+ */
+export const updateColorVariant = async (req: Request, res: Response) => {
+  try {
+    const { family, variantName } = req.params;
+    await filterAttributeService.updateColorVariant(family, variantName, req.body);
+    res.json({ success: true, message: 'הגוון עודכן בהצלחה' });
+  } catch (error: any) {
+    console.error('❌ Error in updateColorVariant:', error);
+    const status = error.message.includes('לא נמצא') ? 404 : 400;
+    res.status(status).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * DELETE /api/filter-attributes/color-families/:family/variants/:variantName
+ * מחיקת גוון (Admin)
+ */
+export const deleteColorVariant = async (req: Request, res: Response) => {
+  try {
+    const result = await filterAttributeService.deleteColorVariant(req.params.family, req.params.variantName);
+    res.json({
+      success: true,
+      message: `הגוון "${req.params.variantName}" נמחק בהצלחה`,
+      usageCount: result.usageCount,
+    });
+  } catch (error: any) {
+    console.error('❌ Error in deleteColorVariant:', error);
+    const status = error.message.includes('לא נמצא') ? 404 : 400;
+    res.status(status).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * GET /api/filter-attributes/color-families/:family/variants/:variantName/usage
+ * בדיקת שימוש בגוון (Admin)
+ */
+export const getColorVariantUsage = async (req: Request, res: Response) => {
+  try {
+    const count = await filterAttributeService.getColorVariantUsage(req.params.family, req.params.variantName);
+    res.json({ success: true, usageCount: count });
+  } catch (error: any) {
+    console.error('❌ Error in getColorVariantUsage:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -38,4 +38,20 @@ router.post('/:id/remove-from-skus', authMiddleware, requireAdmin, adminLimiter,
 // DELETE /api/filter-attributes/:id - מחיקת מאפיין
 router.delete('/:id', authMiddleware, requireAdmin, adminLimiter, controller.deleteAttribute);
 
+// ============================================================================
+// 🆕 ניהול גוונים בתוך משפחות צבע
+// ============================================================================
+
+// POST /api/filter-attributes/color-families/:family/variants
+router.post('/color-families/:family/variants', authMiddleware, requireAdmin, adminLimiter, controller.addColorVariant);
+
+// PUT /api/filter-attributes/color-families/:family/variants/:variantName
+router.put('/color-families/:family/variants/:variantName', authMiddleware, requireAdmin, adminLimiter, controller.updateColorVariant);
+
+// DELETE /api/filter-attributes/color-families/:family/variants/:variantName
+router.delete('/color-families/:family/variants/:variantName', authMiddleware, requireAdmin, adminLimiter, controller.deleteColorVariant);
+
+// GET /api/filter-attributes/color-families/:family/variants/:variantName/usage
+router.get('/color-families/:family/variants/:variantName/usage', authMiddleware, requireAdmin, adminLimiter, controller.getColorVariantUsage);
+
 export default router;

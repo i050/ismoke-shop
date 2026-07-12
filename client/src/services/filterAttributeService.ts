@@ -378,4 +378,108 @@ export class FilterAttributeService {
       throw error;
     }
   }
+
+  // ============================================================================
+  // 🆕 ניהול גוונים בתוך משפחות צבע
+  // ============================================================================
+
+  /**
+   * 🆕 הוספת גוון למשפחת צבע
+   */
+  static async addColorVariant(family: string, name: string, hex: string): Promise<void> {
+    try {
+      const token = getToken();
+      if (!token) throw new ApiError(401, 'לא נמצא טוקן אימות');
+
+      const response = await fetch(`${API_BASE_URL}/filter-attributes/color-families/${encodeURIComponent(family)}/variants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name, hex }),
+      });
+
+      if (!response.ok) {
+        const message = await parseErrorResponse(response);
+        throw new ApiError(response.status, message);
+      }
+    } catch (error) {
+      console.error('❌ Error adding color variant:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🆕 עריכת גוון
+   */
+  static async updateColorVariant(family: string, variantName: string, updates: { name?: string; hex?: string }): Promise<void> {
+    try {
+      const token = getToken();
+      if (!token) throw new ApiError(401, 'לא נמצא טוקן אימות');
+
+      const response = await fetch(`${API_BASE_URL}/filter-attributes/color-families/${encodeURIComponent(family)}/variants/${encodeURIComponent(variantName)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        const message = await parseErrorResponse(response);
+        throw new ApiError(response.status, message);
+      }
+    } catch (error) {
+      console.error('❌ Error updating color variant:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🆕 מחיקת גוון
+   */
+  static async deleteColorVariant(family: string, variantName: string): Promise<{ usageCount: number }> {
+    try {
+      const token = getToken();
+      if (!token) throw new ApiError(401, 'לא נמצא טוקן אימות');
+
+      const response = await fetch(`${API_BASE_URL}/filter-attributes/color-families/${encodeURIComponent(family)}/variants/${encodeURIComponent(variantName)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        const message = await parseErrorResponse(response);
+        throw new ApiError(response.status, message);
+      }
+
+      const result = await response.json();
+      return { usageCount: result.usageCount || 0 };
+    } catch (error) {
+      console.error('❌ Error deleting color variant:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🆕 בדיקת שימוש בגוון
+   */
+  static async getColorVariantUsage(family: string, variantName: string): Promise<number> {
+    try {
+      const token = getToken();
+      if (!token) throw new ApiError(401, 'לא נמצא טוקן אימות');
+
+      const response = await fetch(`${API_BASE_URL}/filter-attributes/color-families/${encodeURIComponent(family)}/variants/${encodeURIComponent(variantName)}/usage`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        const message = await parseErrorResponse(response);
+        throw new ApiError(response.status, message);
+      }
+
+      const result = await response.json();
+      return result.usageCount || 0;
+    } catch (error) {
+      console.error('❌ Error getting color variant usage:', error);
+      throw error;
+    }
+  }
 }

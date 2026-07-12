@@ -2,7 +2,7 @@ import NodeCache from 'node-cache';
 import FilterAttribute, { IFilterAttribute } from '../models/FilterAttribute';
 import SKU from '../models/Sku';
 import { clearValidationCache } from '../middleware/dynamicValidation';
-import { loadColorFamilies } from '../utils/colorFamilyDetector';
+import { loadColorFamilies, refreshColorFamiliesCache } from '../utils/colorFamilyDetector';
 
 // 🧠 Cache פנימי למאפייני סינון כדי להימנע משאילתות חוזרות
 const attributesCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
@@ -281,20 +281,172 @@ export const getColorFamiliesForAdmin = (): Array<{
   family: string;
   displayName: string;
   representativeHex: string;
+  variants?: Array<{ name: string; hex: string }>;
 }> => {
   try {
     const allFamilies = loadColorFamilies();
     
-    // מיפוי למבנה פשוט - רק משפחה + HEX ייצוגי (הראשון ברשימה)
+    // 🆕 מחזיר גם variants — backward compatible (צרכנים קיימים מתעלמים מהשדה הנוסף)
     return allFamilies.map((fam) => ({
       family: fam.family,
       displayName: fam.displayName,
-      representativeHex: fam.variants[0]?.hex || '#000000', // HEX ייצוגי
+      representativeHex: fam.variants[0]?.hex || '#000000',
+      variants: fam.variants,
     }));
   } catch (error) {
     console.error('❌ Error loading color families for admin:', error);
     return [];
   }
+};
+
+// ============================================================================
+// 🆕 CRUD — ניהול גוונים בתוך משפחות צבע (פעולות אטומיות)
+// ============================================================================
+
+/**
+ * 🆕 הוספת גוון למשפחת צבע — $push אטומי
+ */
+export const addColorVariant = async (
+  family: string,
+  name: string,
+  hex: string
+): Promise<void> => {
+  if (!family || !name || !hex) {
+    throw new Error('family, name ו-hex הם שדות חובה');
+  }
+
+  // בדיקת כפילות — case-insensitive
+  const existing = await FilterAttribute.findOne({
+    key: 'color',
+    colorFamilies: {
+      $elemMatch: {
+        family,
+        'variants.name': { $regex: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+      }
+    }
+  });
+  if (existing) {
+    throw new Error(`גוון "${name}" כבר קיים במשפחת "${family}"`);
+  }
+
+  // $push אטומי
+  const result = await FilterAttribute.updateOne(
+    { key: 'color', 'colorFamilies.family': family },
+    { $push: { 'colorFamilies.$.variants': { name, hex } } }
+  );
+
+  if (result.matchedCount === 0) {
+    throw new Error(`משפחת צבע "${family}" לא נמצאה`);
+  }
+
+  await refreshColorFamiliesCache();
+  clearAttributesCache();
+  console.log(`✅ Added variant "${name}" (${hex}) to family "${family}"`);
+};
+
+/**
+ * 🆕 עריכת גוון — $set אטומי עם arrayFilters
+ */
+export const updateColorVariant = async (
+  family: string,
+  variantName: string,
+  updates: { name?: string; hex?: string }
+): Promise<void> => {
+  if (!family || !variantName) {
+    throw new Error('family ו-variantName הם שדות חובה');
+  }
+
+  const setOps: Record<string, string> = {};
+  if (updates.name !== undefined) setOps['colorFamilies.$[fam].variants.$[var].name'] = updates.name;
+  if (updates.hex !== undefined) setOps['colorFamilies.$[fam].variants.$[var].hex'] = updates.hex;
+
+  if (Object.keys(setOps).length === 0) return;
+
+  const result = await FilterAttribute.updateOne(
+    { key: 'color' },
+    { $set: setOps },
+    {
+      arrayFilters: [
+        { 'fam.family': family },
+        { 'var.name': variantName }
+      ]
+    }
+  );
+
+  if (result.matchedCount === 0) {
+    throw new Error(`גוון "${variantName}" לא נמצא במשפחת "${family}"`);
+  }
+
+  await refreshColorFamiliesCache();
+  clearAttributesCache();
+  console.log(`✅ Updated variant "${variantName}" in family "${family}"`);
+};
+
+/**
+ * 🆕 מחיקת גוון — $pull אטומי + בדיקת SKUs בשימוש
+ */
+export const deleteColorVariant = async (
+  family: string,
+  variantName: string
+): Promise<{ usageCount: number }> => {
+  if (!family || !variantName) {
+    throw new Error('family ו-variantName הם שדות חובה');
+  }
+
+  // שלב 1: בדיקת SKUs שמשתמשים בגוון (לפני המחיקה)
+  const families = loadColorFamilies();
+  const targetFamily = families.find(f => f.family === family);
+  const variant = targetFamily?.variants.find(
+    v => v.name.toLowerCase() === variantName.toLowerCase()
+  );
+
+  const usageCount = variant
+    ? await SKU.countDocuments({
+        $or: [
+          { colorHex: variant.hex },
+          { color: variant.name }
+        ]
+      })
+    : 0;
+
+  // שלב 2: $pull אטומי
+  const result = await FilterAttribute.updateOne(
+    { key: 'color', 'colorFamilies.family': family },
+    { $pull: { 'colorFamilies.$.variants': { name: variantName } } }
+  );
+
+  if (result.modifiedCount === 0) {
+    throw new Error(`גוון "${variantName}" לא נמצא במשפחת "${family}"`);
+  }
+
+  await refreshColorFamiliesCache();
+  clearAttributesCache();
+  console.log(`✅ Deleted variant "${variantName}" from family "${family}" (${usageCount} SKUs affected)`);
+
+  return { usageCount };
+};
+
+/**
+ * 🆕 בדיקת שימוש בגוון (בלי מחיקה) — לתצוגה מקדימה באזהרה
+ */
+export const getColorVariantUsage = async (
+  family: string,
+  variantName: string
+): Promise<number> => {
+  const families = loadColorFamilies();
+  const targetFamily = families.find(f => f.family === family);
+  const variant = targetFamily?.variants.find(
+    v => v.name.toLowerCase() === variantName.toLowerCase()
+  );
+
+  if (!variant) return 0;
+
+  return SKU.countDocuments({
+    $or: [
+      { colorHex: variant.hex },
+      { color: variant.name }
+    ]
+  });
 };
 
 // ============================================================================

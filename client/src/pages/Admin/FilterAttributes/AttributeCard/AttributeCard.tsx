@@ -10,6 +10,8 @@ interface AttributeCardProps {
   attribute: FilterAttribute;
   onEdit: (attribute: FilterAttribute) => void;
   onDelete: (attribute: FilterAttribute) => void;
+  /** 🆕 ניהול גוונים — למאפייני צבע */
+  onManageVariants?: (attribute: FilterAttribute) => void;
 }
 
 /**
@@ -179,11 +181,16 @@ const AttributeCard: React.FC<AttributeCardProps> = ({
       {/* כפתורי פעולה */}
       <div className={styles.actions}>
         {isColorAttribute ? (
-          /* מאפיין צבע מערכתי - מוגן ממחיקה ועריכה */
-          <div className={styles.protectedBadge}>
-            <Icon name="Lock" size={16} />
-            <span>מאפיין מערכת מוגן</span>
-          </div>
+          /* 🆕 מאפיין צבע — ניתן לנהל גוונים */
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Icon name="Palette" size={16} />}
+            onClick={() => onManageVariants?.(attribute)}
+            aria-label={`נהל גוונים של ${attribute.name}`}
+          >
+            נהל גוונים
+          </Button>
         ) : (
           <>
             <Button
