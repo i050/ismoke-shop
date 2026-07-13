@@ -33,8 +33,8 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
   const [editName, setEditName] = useState('');
   const [editHex, setEditHex] = useState('#000000');
 
-  // 🆕 state לטופס הוספה
-  const [showAddForm, setShowAddForm] = useState(false);
+  // 🆕 state לטופס הוספה — לפי משפחה ספציפית
+  const [addFormFamily, setAddFormFamily] = useState<string | null>(null);
   const [addName, setAddName] = useState('');
   const [addHex, setAddHex] = useState('#000000');
 
@@ -51,6 +51,8 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
       setLoading(true);
       const data = await FilterAttributeService.getAllColorFamilies();
       setFamilies(data);
+      // 🆕 פתיחת כל המשפחות אוטומטית בטעינה
+      setExpandedFamilies(new Set(data.map(f => f.family)));
     } catch {
       showToast('error', 'שגיאה בטעינת משפחות צבע');
     } finally {
@@ -73,7 +75,7 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
       showToast('success', `גוון "${addName}" נוסף בהצלחה`);
       setAddName('');
       setAddHex('#000000');
-      setShowAddForm(false);
+      setAddFormFamily(null);
       await loadFamilies();
     } catch (err: any) {
       showToast('error', err.message || 'שגיאה בהוספת גוון');
@@ -138,7 +140,7 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
         {loading && <p className={styles.loading}>טוען...</p>}
 
         {families.map(fam => {
-          const isExpanded = expandedFamilies.has(fam.family) || families.length <= 3;
+          const isExpanded = expandedFamilies.has(fam.family);
           return (
             <div key={fam.family} className={styles.familySection}>
               <div className={styles.familyHeader} onClick={() => toggleFamily(fam.family)}>
@@ -171,7 +173,7 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
                     ))}
                   </div>
 
-                  {showAddForm ? (
+                  {addFormFamily === fam.family ? (
                     <div className={styles.addForm}>
                       <input
                         className={styles.input}
@@ -186,10 +188,10 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
                         onChange={e => setAddHex(e.target.value)}
                       />
                       <Button variant="primary" size="sm" onClick={() => handleAdd(fam.family)}>שמור</Button>
-                      <Button variant="ghost" size="sm" onClick={() => { setShowAddForm(false); setAddName(''); }}>בטל</Button>
+                      <Button variant="ghost" size="sm" onClick={() => { setAddFormFamily(null); setAddName(''); }}>בטל</Button>
                     </div>
                   ) : (
-                    <Button variant="ghost" size="sm" className={styles.addButton} onClick={() => setShowAddForm(true)}>
+                    <Button variant="ghost" size="sm" className={styles.addButton} onClick={() => setAddFormFamily(fam.family)}>
                       <Icon name="Plus" size={14} /> הוסף גוון
                     </Button>
                   )}
