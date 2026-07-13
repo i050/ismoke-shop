@@ -22,6 +22,7 @@ const AttributeCard: React.FC<AttributeCardProps> = ({
   attribute,
   onEdit,
   onDelete,
+  onManageVariants,
 }) => {
   /**
    * קביעת אייקון לפי סוג המאפיין
