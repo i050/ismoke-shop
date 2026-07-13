@@ -181,27 +181,19 @@ const AttributeCard: React.FC<AttributeCardProps> = ({
       {/* כפתורי פעולה */}
       <div className={styles.actions}>
         {isColorAttribute ? (
-          /* 🆕 מאפיין צבע — עריכה (תצוגה) + ניהול גוונים */
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<Icon name="Edit" size={16} />}
-              onClick={() => onEdit(attribute)}
-              aria-label={`צפה בפרטי ${attribute.name}`}
-            >
-              צפייה
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              icon={<Icon name="Palette" size={16} />}
-              onClick={() => onManageVariants?.(attribute)}
-              aria-label={`נהל גוונים של ${attribute.name}`}
-            >
-              נהל גוונים
-            </Button>
-          </>
+          /* 🆕 מאפיין צבע — ניהול גוונים */
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Icon name="Palette" size={16} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('🎨 נהל גוונים נלחץ', attribute.name);
+              onManageVariants?.(attribute);
+            }}
+          >
+            נהל גוונים
+          </Button>
         ) : (
           <>
             <Button
