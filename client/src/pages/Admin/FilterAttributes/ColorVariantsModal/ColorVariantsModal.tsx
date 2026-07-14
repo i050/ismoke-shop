@@ -51,8 +51,6 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
       setLoading(true);
       const data = await FilterAttributeService.getAllColorFamilies();
       setFamilies(data);
-      // 🆕 פתיחת כל המשפחות אוטומטית בטעינה
-      setExpandedFamilies(new Set(data.map(f => f.family)));
     } catch {
       showToast('error', 'שגיאה בטעינת משפחות צבע');
     } finally {
