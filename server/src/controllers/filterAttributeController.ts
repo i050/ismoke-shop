@@ -50,9 +50,9 @@ export const getAttributesForFilter = async (req: Request, res: Response) => {
  * קבלת כל משפחות הצבעים האפשריות (לממשק ניהול)
  * מחזיר רק משפחות - לא variants
  */
-export const getColorFamiliesForAdmin = (req: Request, res: Response) => {
+export const getColorFamiliesForAdmin = async (req: Request, res: Response) => {
   try {
-    const colorFamilies = filterAttributeService.getColorFamiliesForAdmin();
+    const colorFamilies = await filterAttributeService.getColorFamiliesForAdmin();
 
     res.json({
       success: true,
