@@ -153,6 +153,10 @@ export interface IProduct extends Document {
   viewCount: number;
   salesCount: number;
   isFeatured: boolean;
+  /** מיקום ידני אופציונלי במיון "חדש" (1 = ראשון). */
+  newSortPosition?: number | null;
+  /** מיקום ידני אופציונלי במיון "פופולרי" (1 = ראשון). */
+  popularSortPosition?: number | null;
 
   // Pricing and discounts
   compareAtPrice?: number; // מחיר לפני הנחה - להצגת חיסכון ללקוח (אופציונלי)
@@ -432,6 +436,17 @@ const ProductSchema: Schema = new Schema({
     type: Boolean,
     default: false,
   },
+  // כשאין ערך נשמר המיון האוטומטי הקיים.
+  newSortPosition: {
+    type: Number,
+    default: null,
+    min: 1,
+  },
+  popularSortPosition: {
+    type: Number,
+    default: null,
+    min: 1,
+  },
 
   // Pricing and discounts
   // מחיר לפני הנחה - מוצג ללקוח כמחיר מחוק לצד המחיר הנוכחי
@@ -638,6 +653,8 @@ ProductSchema.index({ createdAt: -1 }); // תאריך יצירה (חדשים ק�
 ProductSchema.index({ viewCount: -1 }); // צפיות
 ProductSchema.index({ salesCount: -1 }); // מכירות
 ProductSchema.index({ isFeatured: 1 }); // מוצרים מומלצים
+ProductSchema.index({ newSortPosition: 1 }); // מיקום ידני בחדש
+ProductSchema.index({ popularSortPosition: 1 }); // מיקום ידני בפופולרי
 
 // Compound indexes לשאילתות נפוצות
 ProductSchema.index({ isActive: 1, createdAt: -1 }); // מוצרים פעילים ממוינים לפי תאריך

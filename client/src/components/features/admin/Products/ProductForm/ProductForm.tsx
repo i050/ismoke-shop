@@ -7,6 +7,7 @@ import ProductPricing from './ProductPricing';
 import ProductInventory from './ProductInventory';
 import ProductImages from './ProductImages';
 import ProductCategories from './ProductCategories';
+import ProductSortPositions from './ProductSortPositions';
 import ProductSKUs, { generateNextSkuCode } from './ProductSKUs'; // ייבוא הפונקציה החדשה
 import ColorFamilyImages from './ColorFamilyImages';
 import ProductFilterAttributes from './ProductFilterAttributes';
@@ -225,6 +226,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               typeof category === 'string' ? category : category?._id
             )
             .filter((categoryId: string | undefined): categoryId is string => Boolean(categoryId)),
+          newSortPosition: (initialData as any).newSortPosition ?? null,
+          popularSortPosition: (initialData as any).popularSortPosition ?? null,
           tags: [], // TODO: להוסיף tags ל-Product type
           // 🔧 FIX: הוספת שדות מלאי מ-initialData
           sku: (initialData as any).sku || '',
@@ -1095,6 +1098,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               }}
               errors={errors as any}
               onChange={(field, value) => setValueWithDirty(field, value)}
+            />
+          </div>
+
+          <div className={styles.section}>
+            <ProductSortPositions
+              values={{
+                newSortPosition: formValues.newSortPosition ?? null,
+                popularSortPosition: formValues.popularSortPosition ?? null,
+              }}
+              errors={errors as any}
+              onChange={(field, value) => setValueWithDirty(field, value)}
+              disabled={isSubmitting}
             />
           </div>
 

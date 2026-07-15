@@ -545,6 +545,27 @@ export const productSchema = yup.object({
     .optional()
     .default(false),
 
+  // null משאיר את המיון האוטומטי הקיים.
+  newSortPosition: yup
+    .number()
+    .transform((value, originalValue) => originalValue === '' ? null : value)
+    .nullable()
+    .integer('המיקום חייב להיות מספר שלם')
+    .min(1, 'המיקום חייב להיות לפחות 1')
+    .max(100000, 'המיקום גדול מדי')
+    .optional()
+    .default(null),
+
+  popularSortPosition: yup
+    .number()
+    .transform((value, originalValue) => originalValue === '' ? null : value)
+    .nullable()
+    .integer('המיקום חייב להיות מספר שלם')
+    .min(1, 'המיקום חייב להיות לפחות 1')
+    .max(100000, 'המיקום גדול מדי')
+    .optional()
+    .default(null),
+
   // האם המוצר רב-מכר
   isBestSeller: yup
     .boolean()
@@ -715,6 +736,8 @@ export const defaultProductValues: Partial<ProductFormData> = {
   // 🆕 Marketing Fields
   isNew: false,
   isFeatured: false,
+  newSortPosition: null,
+  popularSortPosition: null,
   isBestSeller: false,
   promotionTags: [],
   // 🆕 Color Family Images - תמונות לפי משפחת צבע
