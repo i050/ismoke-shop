@@ -30,9 +30,8 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
   const [families, setFamilies] = useState<ColorFamily[]>(attribute.colorFamilies || []);
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(
-    () => new Set((attribute.colorFamilies || []).map((family) => family.family))
-  );
+  // משפחות צבע מתחילות סגורות; המנהל פותח רק את המשפחה שבה הוא עובד.
+  const [expandedFamilies, setExpandedFamilies] = useState<Set<string>>(() => new Set());
 
   const [editing, setEditing] = useState<{ family: string; variant: VariantEntry } | null>(null);
   const [editName, setEditName] = useState('');
@@ -50,7 +49,6 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
       setLoading(true);
       const data = await FilterAttributeService.getAllColorFamilies();
       setFamilies(data);
-      setExpandedFamilies((current) => current.size > 0 ? current : new Set(data.map((family) => family.family)));
     } catch {
       showToast('error', 'שגיאה בטעינת משפחות הצבע');
     } finally {
@@ -150,7 +148,7 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
   };
 
   return (
-    <Modal isOpen onClose={onClose} title={`ניהול גוונים — ${attribute.name}`} size="large">
+    <Modal isOpen onClose={onClose} title={`ניהול גוונים — ${attribute.name}`} size="fullscreen">
       <div className={styles.container}>
         <p className={styles.description}>
           הוספה, עריכה ומחיקה של גוונים בתוך משפחות הצבע. מחיקת גוון אינה מוחקת מוצרים קיימים.
