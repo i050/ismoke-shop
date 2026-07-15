@@ -284,11 +284,12 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
     isActive: true,
   };
   
-  // פילטר חיפוש טקסט חופשי בשם ותיאור
+  // פילטר חיפוש טקסט חופשי בשם, שם משני ותיאור
   if (search && search.trim() !== '') {
     const trimmedSearch = search.trim();
     filter.$or = [
       { name: { $regex: trimmedSearch, $options: 'i' } },
+      { subtitle: { $regex: trimmedSearch, $options: 'i' } },
       { description: { $regex: trimmedSearch, $options: 'i' } }
     ];
     if (isDev) console.log('🔍 [fetchProductsFiltered] Text search:', trimmedSearch);
@@ -1850,10 +1851,11 @@ export const fetchProductsWithCursor = async (
   // בניית query
   const query: any = {};
   
-  // פילטר: חיפוש בשם/תיאור
+  // פילטר: חיפוש בשם, שם משני או תיאור
   if (search && search.trim() !== '') {
     query.$or = [
       { name: { $regex: search, $options: 'i' } },
+      { subtitle: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } }
     ];
   }
@@ -2164,7 +2166,8 @@ export const searchProductsAutocomplete = async (
           // Text search - חיפוש מילים מלאות
           { $text: { $search: trimmedQuery } },
           // Regex fallback - חיפוש חלקי (prefix match)
-          { name: { $regex: trimmedQuery, $options: 'i' } }
+          { name: { $regex: trimmedQuery, $options: 'i' } },
+          { subtitle: { $regex: trimmedQuery, $options: 'i' } }
         ]
       },
       {
@@ -2200,7 +2203,10 @@ export const searchProductsAutocomplete = async (
     const products = await Product.find(
       {
         isActive: true,
-        name: { $regex: trimmedQuery, $options: 'i' }
+        $or: [
+          { name: { $regex: trimmedQuery, $options: 'i' } },
+          { subtitle: { $regex: trimmedQuery, $options: 'i' } }
+        ]
       },
       {
         _id: 1,
