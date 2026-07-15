@@ -37,6 +37,18 @@ const additionalCategoryIdsSchema = Joi.array()
     'array.includesPrimaryCategory': 'הקטגוריה הראשית אינה יכולה להופיע גם בקטגוריות הנוספות',
   });
 
+const manualSortPositionSchema = Joi.number()
+  .integer()
+  .min(1)
+  .max(100000)
+  .allow(null)
+  .messages({
+    'number.base': 'מיקום ידני חייב להיות מספר',
+    'number.integer': 'מיקום ידני חייב להיות מספר שלם',
+    'number.min': 'מיקום ידני חייב להיות לפחות 1',
+    'number.max': 'מיקום ידני גדול מדי',
+  });
+
 // ============================================================================
 // Schema למוצר (Product)
 // ============================================================================
@@ -172,6 +184,10 @@ const productSchema = Joi.object({
     .messages({
       'boolean.base': 'isFeatured חייב להיות true או false',
     }),
+
+  // null מחזיר את המוצר למיון האוטומטי הקיים.
+  newSortPosition: manualSortPositionSchema.default(null),
+  popularSortPosition: manualSortPositionSchema.default(null),
 
   metadata: Joi.object()
     .pattern(Joi.string(), Joi.any())
@@ -570,7 +586,12 @@ const updateProductWithSkusSchema = Joi.object({
       (schema) => schema.optional()
     )
     // בעדכון חלקי אין ברירת מחדל, כדי שבקשה ישנה שלא שולחת את השדה לא תמחק שיוכים קיימים.
-    .keys({ additionalCategoryIds: additionalCategoryIdsSchema.optional() })
+    .keys({
+      additionalCategoryIds: additionalCategoryIdsSchema.optional(),
+      // בעדכון חלקי אסור שברירת מחדל תאפס מיקום שלא נשלח בבקשה.
+      newSortPosition: manualSortPositionSchema.optional(),
+      popularSortPosition: manualSortPositionSchema.optional(),
+    })
     .messages({
       'object.base': 'נתוני מוצר לא תקינים',
     }),

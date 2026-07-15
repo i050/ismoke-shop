@@ -248,6 +248,81 @@ function mapSort(sort?: string): Record<string, 1 | -1> {
   }
 }
 
+type ManualSortField = 'newSortPosition' | 'popularSortPosition';
+
+function getManualSortField(sort?: string): ManualSortField | null {
+  if (sort === 'views_desc' || sort === 'sales_desc') return 'popularSortPosition';
+  if (sort === 'date_desc' || sort === undefined) return 'newSortPosition';
+  return null;
+}
+
+function isManualSortPosition(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 1;
+}
+
+/**
+ * משלבת מיקומים ידניים בתוך סדר הבסיס, בלי לשנות את המיון האוטומטי של השאר.
+ * במקרה חריג של התנגשות מיקומים נשמר הסדר האוטומטי ביניהם.
+ */
+export function applyManualSortPositions<T extends Record<string, any>>(
+  products: T[],
+  positionField: ManualSortField
+): T[] {
+  const positioned = new Map<number, T[]>();
+  const unpositioned: T[] = [];
+
+  for (const product of products) {
+    const position = product[positionField];
+    if (!isManualSortPosition(position)) {
+      unpositioned.push(product);
+      continue;
+    }
+    const productsAtPosition = positioned.get(position) || [];
+    productsAtPosition.push(product);
+    positioned.set(position, productsAtPosition);
+  }
+
+  const ordered: T[] = [];
+  let nextUnpositionedIndex = 0;
+  let nextPosition = 1;
+  while (nextUnpositionedIndex < unpositioned.length || positioned.size > 0) {
+    const productsAtPosition = positioned.get(nextPosition);
+    if (productsAtPosition) {
+      ordered.push(...productsAtPosition);
+      positioned.delete(nextPosition);
+    } else if (nextUnpositionedIndex < unpositioned.length) {
+      ordered.push(unpositioned[nextUnpositionedIndex]);
+      nextUnpositionedIndex += 1;
+    } else {
+      const nextManualPosition = Math.min(...positioned.keys());
+      ordered.push(...(positioned.get(nextManualPosition) || []));
+      positioned.delete(nextManualPosition);
+    }
+    nextPosition += 1;
+  }
+
+  return ordered;
+}
+
+async function shiftManualPositions(
+  productId: mongoose.Types.ObjectId | string,
+  productData: Partial<IProduct>,
+  previousPositions: Partial<Record<ManualSortField, number | null>> = {},
+  session?: mongoose.ClientSession
+): Promise<void> {
+  for (const field of ['newSortPosition', 'popularSortPosition'] as const) {
+    if (!Object.prototype.hasOwnProperty.call(productData, field)) continue;
+    const requestedPosition = productData[field];
+    if (!isManualSortPosition(requestedPosition) || previousPositions[field] === requestedPosition) continue;
+
+    await Product.updateMany(
+      { _id: { $ne: productId }, [field]: { $gte: requestedPosition } },
+      { $inc: { [field]: 1 } },
+      session ? { session } : undefined
+    );
+  }
+}
+
 /**
  * פונקציית עזר לניקוי ערכים לא תקינים (NaN, שליליים וכו').
  */
@@ -556,15 +631,24 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
   const size = pageSize > 0 && pageSize <= 100 ? pageSize : 20; // הגבלת מקסימום 100 למניעת עומס
   const skip = (currentPage - 1) * size;
 
+  // מיקום ידני חייב להיקבע לפני פגינציה, כדי ש"מקום 5" יהיה עקבי בכל עמוד.
+  const manualSortField = getManualSortField(sort);
+
   // 🚀 Performance: שימוש ב-cache לספירת כל המוצרים + שאילתות במקביל
   const [total, filtered, rawData] = await Promise.all([
     getTotalProductsCount(), // cache עם TTL של 5 דקות
     Product.countDocuments(filter),
-    Product.find(filter).sort(sortObj).skip(skip).limit(size).lean(),
+    manualSortField
+      ? Product.find(filter).sort(sortObj).lean()
+      : Product.find(filter).sort(sortObj).skip(skip).limit(size).lean(),
   ]);
 
+  const paginatedData = manualSortField
+    ? applyManualSortPositions(rawData as Array<Record<string, any>>, manualSortField).slice(skip, skip + size)
+    : rawData;
+
   // 🆕 העשרת מוצרים עם שדות חדשים שאולי לא קיימים במוצרים ישנים
-  const data = rawData.map((product: any) => ({
+  const data = paginatedData.map((product: any) => ({
     ...product,
     // וודא ששדה secondaryVariantAttribute קיים (עבור מוצרים שנוצרו לפני הוספת השדה)
     secondaryVariantAttribute: product.secondaryVariantAttribute ?? null,
@@ -592,7 +676,8 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
  * @returns {Promise<IProduct[]>}
  */
 export const fetchAllProductsSortedByDate = async (): Promise<any[]> => {
-  return Product.find({ isActive: true }).sort({ createdAt: -1 }).lean();
+  const products = await Product.find({ isActive: true }).sort({ createdAt: -1 }).lean();
+  return applyManualSortPositions(products, 'newSortPosition');
 };
 
 /**
@@ -602,7 +687,8 @@ export const fetchAllProductsSortedByDate = async (): Promise<any[]> => {
  * @returns {Promise<IProduct[]>}
  */
 export const fetchRecentProducts = async (limit: number = 8): Promise<any[]> => {
-  return Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(limit).lean();
+  const products = await Product.find({ isActive: true }).sort({ createdAt: -1 }).lean();
+  return applyManualSortPositions(products, 'newSortPosition').slice(0, limit);
 };
 /**
  * מחזיר את המוצרים הפופולריים ביותר, ממוינים לפי viewCount ו-salesCount.
@@ -610,16 +696,19 @@ export const fetchRecentProducts = async (limit: number = 8): Promise<any[]> => 
  * @param {number} limit - כמה מוצרים להחזיר
  * @returns {Promise<IProduct[]>}
  */
-export const fetchPopularProducts = async (limit: number = 8): Promise<any[]> => {
+export const fetchPopularProducts = async (limit?: number): Promise<any[]> => {
   // 🛡️ רק מוצרים פעילים - מוצרים באשפה לא יוצגו ללקוחות
-  return Product.find({ isActive: true })
+  const products = await Product.find({ isActive: true })
     .sort({ 
       viewCount: -1,    // קודם לפי כמות צפיות (מהגבוה לנמוך)
       salesCount: -1,   // לאחר מכן לפי כמות מכירות (מהגבוה לנמוך)
       createdAt: -1     // לבסוף לפי תאריך יצירה (הכי חדש קודם) במקרה של שוויון
     })
-    .limit(limit)
     .lean();
+  const orderedProducts = applyManualSortPositions(products, 'popularSortPosition');
+  return typeof limit === 'number' && Number.isInteger(limit) && limit > 0
+    ? orderedProducts.slice(0, limit)
+    : orderedProducts;
 };
 
 /**
@@ -807,6 +896,7 @@ export const fetchActiveSkusByProductIds = async (
 export const createNewProduct = async (productData: Partial<IProduct>): Promise<IProduct> => {
     const product = new Product(productData);
     const savedProduct = await product.save();
+    await shiftManualPositions(savedProduct._id as mongoose.Types.ObjectId, productData);
     // 🚀 Performance: ניקוי cache של ספירת מוצרים כי נוסף מוצר
     invalidateTotalProductsCache();
     return savedProduct;
@@ -819,6 +909,12 @@ export const createNewProduct = async (productData: Partial<IProduct>): Promise<
  * @returns {Promise<IProduct | null>} מסמך המוצר המעודכן או null אם לא נמצא.
  */
 export const updateExistingProduct = async (id: string, productData: Partial<IProduct>): Promise<IProduct | null> => {
+    const previousProduct = await Product.findById(id)
+      .select('newSortPosition popularSortPosition')
+      .lean();
+    if (!previousProduct) return null;
+
+    await shiftManualPositions(id, productData, previousProduct);
     return Product.findByIdAndUpdate(id, productData, { new: true, runValidators: true });
 };
 
@@ -943,6 +1039,7 @@ export const createProductWithSkus = async (
   try {
     // שלב 1: יצירת המוצר (עם session)
     const [product] = await Product.create([productData], { session });
+    await shiftManualPositions(product._id as mongoose.Types.ObjectId, productData, {}, session);
 
     // שלב 2: יצירת כל ה-SKUs עם productId של המוצר החדש
     const skusWithProductId = finalSkusData.map(skuData => ({
@@ -1063,6 +1160,17 @@ export const updateProductWithSkus = async (
     previousSkus.forEach(s => {
       previousStockMap.set(s.sku, s.stockQuantity || 0);
     });
+
+    const previousProduct = await Product.findById(productId)
+      .select('newSortPosition popularSortPosition')
+      .session(session)
+      .lean();
+
+    if (!previousProduct) {
+      throw new Error(`Product with ID ${productId} not found`);
+    }
+
+    await shiftManualPositions(productId, productData, previousProduct, session);
 
     // שלב 1: עדכון המוצר
     const updatedProduct = await Product.findByIdAndUpdate(

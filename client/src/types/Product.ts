@@ -112,6 +112,8 @@ export interface Product {// זה הטייפ של מוצר
   isActive: boolean;
   viewCount: number;// מספר צפיות במוצר
   salesCount: number;// מספר מכירות של המוצר
+  newSortPosition?: number | null;
+  popularSortPosition?: number | null;
   variants?: Array<{ // גרסאות מוצר לצבעים/גדלים וכו' (ישן - לתקופת מעבר)
     name: string;
     priceModifier: number;
@@ -204,6 +206,8 @@ export interface ProductCreateRequest {// כשאנחנו רוצים ליצור �
   categoryId?: string;
   additionalCategoryIds?: string[];
   isActive?: boolean;
+  newSortPosition?: number | null;
+  popularSortPosition?: number | null;
 }
 
 export interface ProductUpdateRequest {// כשאנחנו רוצים לעדכן מוצר קיים
@@ -216,6 +220,8 @@ export interface ProductUpdateRequest {// כשאנחנו רוצים לעדכן �
   categoryId?: string;
   additionalCategoryIds?: string[];
   isActive?: boolean;
+  newSortPosition?: number | null;
+  popularSortPosition?: number | null;
 }
 // בקובץ הזה אנחנו מגדירים את הטייפים של המוצרים
 // זה עוזר לנו לדעת איך נראה מוצר ואילו שדות יש לו

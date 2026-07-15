@@ -102,7 +102,7 @@ class ProductManagementService {
    * Helper: remove null/undefined values from object
    * שדות מחיר מסוימים שומרים null כדי לאפשר ירושה או מחיקה מפורשת
    */
-  private cleanPayload(obj: any, preserveNullKeys = new Set(['price', 'compareAtPrice'])): any {
+  private cleanPayload(obj: any, preserveNullKeys = new Set(['price', 'compareAtPrice', 'newSortPosition', 'popularSortPosition'])): any {
     const cleaned: any = {};
     
     for (const key in obj) {
