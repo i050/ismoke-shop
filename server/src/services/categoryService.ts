@@ -364,15 +364,27 @@ export async function getCategoryStats(id: string): Promise<CategoryStats> {
 	// קבלת כל הצאצאים
 	const descendantIds = await getDescendantIds(id);
 	const allIds = [id, ...descendantIds];
+	const allCategoryObjectIds = allIds.map(i => new mongoose.Types.ObjectId(i));
+	const productsInCategoriesFilter = {
+		$or: [
+			{ categoryId: { $in: allCategoryObjectIds } },
+			{ additionalCategoryIds: { $in: allCategoryObjectIds } },
+		],
+	};
 	
 	// שאילתות מקבילות לביצועים טובים יותר
 	const [subcategoriesCount, productsCount, descendantProductsCount] = await Promise.all([
 		// מספר תת-קטגוריות ישירות
 		Category.countDocuments({ parentId: id }),
 		// מספר מוצרים בקטגוריה עצמה
-		Product.countDocuments({ categoryId: id }),
+		Product.countDocuments({
+			$or: [
+				{ categoryId: new mongoose.Types.ObjectId(id) },
+				{ additionalCategoryIds: new mongoose.Types.ObjectId(id) },
+			],
+		}),
 		// מספר מוצרים כולל בכל הצאצאים
-		Product.countDocuments({ categoryId: { $in: allIds.map(i => new mongoose.Types.ObjectId(i)) } }),
+		Product.countDocuments(productsInCategoriesFilter),
 	]);
 	
 	return { subcategoriesCount, productsCount, descendantProductsCount };
@@ -405,16 +417,67 @@ export async function safeDeleteCategory(
 	
 	if (stats.descendantProductsCount > 0) {
 		if (options.reassignTo) {
-			// העברת כל המוצרים לקטגוריה אחרת
+			const reassignedCategoryId = new mongoose.Types.ObjectId(options.reassignTo);
+
+			// מוצרים שבהם זו הקטגוריה הראשית: מחליפים ראשית ומנקים כפילויות.
 			await Product.updateMany(
 				{ categoryId: { $in: allCategoryIds } },
-				{ categoryId: new mongoose.Types.ObjectId(options.reassignTo) }
+				[
+					{
+						$set: {
+							categoryId: reassignedCategoryId,
+							additionalCategoryIds: {
+								$setDifference: [
+									{ $ifNull: ['$additionalCategoryIds', []] },
+									[...allCategoryIds, reassignedCategoryId],
+								],
+							},
+						},
+					},
+				]
+			);
+
+			// מוצרים שבהם זו קטגוריה נוספת: שומרים את הראשית ומחליפים רק את השיוך הנוסף.
+			await Product.updateMany(
+				{
+					categoryId: { $nin: allCategoryIds },
+					additionalCategoryIds: { $in: allCategoryIds },
+				},
+				[
+					{
+						$set: {
+							additionalCategoryIds: {
+								$let: {
+									vars: {
+										remaining: {
+											$setDifference: [
+												{ $ifNull: ['$additionalCategoryIds', []] },
+												allCategoryIds,
+											],
+										},
+									},
+									in: {
+										$cond: [
+											{ $eq: ['$categoryId', reassignedCategoryId] },
+											'$$remaining',
+											{ $setUnion: ['$$remaining', [reassignedCategoryId]] },
+										],
+									},
+								},
+							},
+						},
+					},
+				]
 			);
 		} else {
-			// הסרת הקטגוריה מהמוצרים (השארת categoryId ריק)
+			// הסרת שיוכים שנמחקו מהמוצרים, ראשיים ונוספים.
 			await Product.updateMany(
 				{ categoryId: { $in: allCategoryIds } },
 				{ $unset: { categoryId: 1 } }
+			);
+			await Product.updateMany(
+				{ additionalCategoryIds: { $in: allCategoryIds } },
+				{ $pull: { additionalCategoryIds: { $in: allCategoryIds } } }
 			);
 		}
 	}

@@ -708,7 +708,10 @@ export const getInventorySkus = async (
 
       // שליפת כל המוצרים שנמצאים באחת מהקטגוריות (הקטגוריה + צאצאים)
       const productsInCategories = await Product.find({
-        categoryId: { $in: allCategoryIds }
+        $or: [
+          { categoryId: { $in: allCategoryIds } },
+          { additionalCategoryIds: { $in: allCategoryIds } },
+        ]
       }).select('_id').lean<Array<{ _id: mongoose.Types.ObjectId }>>();
 
       const productIds = productsInCategories.map(p => p._id);

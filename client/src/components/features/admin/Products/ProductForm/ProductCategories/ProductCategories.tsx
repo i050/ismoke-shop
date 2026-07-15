@@ -18,13 +18,15 @@ import styles from './ProductCategories.module.css';
 interface ProductCategoriesProps {
   values: {
     categoryId: string | null;
+    additionalCategoryIds: string[];
     tags: string[];
   };
   errors?: {
     categoryId?: string;
+    additionalCategoryIds?: string;
     tags?: string;
   };
-  onChange: (field: 'categoryId' | 'tags', value: string | null | string[]) => void;
+  onChange: (field: 'categoryId' | 'additionalCategoryIds' | 'tags', value: string | null | string[]) => void;
   maxTags?: number;
 }
 
@@ -47,6 +49,8 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
   const [tagInput, setTagInput] = useState('');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
+  const [showAdditionalCategoriesDropdown, setShowAdditionalCategoriesDropdown] = useState(false);
+  const [additionalCategorySearch, setAdditionalCategorySearch] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // טעינת קטגוריות בהתחלה
@@ -61,14 +65,15 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowCategoryDropdown(false);
+        setShowAdditionalCategoriesDropdown(false);
       }
     };
 
-    if (showCategoryDropdown) {
+    if (showCategoryDropdown || showAdditionalCategoriesDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showCategoryDropdown]);
+  }, [showCategoryDropdown, showAdditionalCategoriesDropdown]);
 
   /**
    * המרת עץ קטגוריות למבנה שטוח עם breadcrumb
@@ -114,8 +119,17 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
     cat.name.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
+  const additionalCategoryIds = values.additionalCategoryIds || [];
+  const filteredAdditionalCategories = flatCategories.filter((cat) =>
+    cat.id !== values.categoryId &&
+    cat.name.toLowerCase().includes(additionalCategorySearch.toLowerCase())
+  );
+
   // מציאת הקטגוריה הנבחרת
   const selectedCategory = flatCategories.find((cat) => cat.id === values.categoryId);
+  const selectedAdditionalCategories = flatCategories.filter((cat) =>
+    additionalCategoryIds.includes(cat.id)
+  );
 
   // חילוץ טקסטי שגיאה
   const categoryError = errors?.categoryId 
@@ -131,10 +145,16 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
   const handleCategorySelect = useCallback(
     (categoryId: string) => {
       onChange('categoryId', categoryId);
+      if (additionalCategoryIds.includes(categoryId)) {
+        onChange(
+          'additionalCategoryIds',
+          additionalCategoryIds.filter((id) => id !== categoryId)
+        );
+      }
       setShowCategoryDropdown(false);
       setCategorySearch('');
     },
-    [onChange]
+    [additionalCategoryIds, onChange]
   );
 
   /**
@@ -143,6 +163,17 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
   const handleCategoryClear = useCallback(() => {
     onChange('categoryId', null);
   }, [onChange]);
+
+  const handleAdditionalCategoryToggle = useCallback(
+    (categoryId: string) => {
+      const nextCategoryIds = additionalCategoryIds.includes(categoryId)
+        ? additionalCategoryIds.filter((id) => id !== categoryId)
+        : [...additionalCategoryIds, categoryId];
+
+      onChange('additionalCategoryIds', nextCategoryIds);
+    },
+    [additionalCategoryIds, onChange]
+  );
 
   /**
    * הוספת תגית
@@ -206,7 +237,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
   );
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={dropdownRef}>
       {/* כותרת */}
       <div className={styles.header}>
         <h3 className={styles.title}>קטגוריה ותגיות</h3>
@@ -218,7 +249,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
       {/* בחירת קטגוריה */}
       <div className={styles.section}>
         <label className={styles.label}>קטגוריה</label>
-        <div className={styles.categorySelector} ref={dropdownRef}>
+        <div className={styles.categorySelector}>
           <button
             type="button"
             className={`${styles.categoryButton} ${
@@ -328,6 +359,133 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
         {categoryError && (
           <div className={styles.error}>
             {categoryError}
+          </div>
+        )}
+      </div>
+
+      {/* קטגוריות נוספות */}
+      <div className={styles.section}>
+        <label className={styles.label}>שייך את המוצר לקטגוריות נוספות</label>
+        <p className={styles.helperText}>
+          המוצר יוצג גם בעמודי הקטגוריות שתבחר. הקטגוריה הראשית נשארת נפרדת.
+        </p>
+
+        <div className={styles.categorySelector}>
+          <button
+            type="button"
+            className={styles.categoryButton}
+            onClick={() => setShowAdditionalCategoriesDropdown(!showAdditionalCategoriesDropdown)}
+            aria-expanded={showAdditionalCategoriesDropdown}
+          >
+            <span className={additionalCategoryIds.length > 0 ? styles.categorySelected : styles.categoryPlaceholder}>
+              {additionalCategoryIds.length > 0
+                ? `${additionalCategoryIds.length} קטגוריות נוספות נבחרו`
+                : 'בחר קטגוריות נוספות...'}
+            </span>
+            <svg
+              className={`${styles.categoryArrow} ${
+                showAdditionalCategoriesDropdown ? styles.categoryArrowOpen : ''
+              }`}
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {showAdditionalCategoriesDropdown && (
+            <div className={styles.categoryDropdown}>
+              <div className={styles.categorySearchWrapper}>
+                <input
+                  type="text"
+                  className={styles.categorySearch}
+                  placeholder="חפש קטגוריה..."
+                  value={additionalCategorySearch}
+                  onChange={(e) => setAdditionalCategorySearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              <div className={styles.categoryList}>
+                {filteredAdditionalCategories.length > 0 ? (
+                  filteredAdditionalCategories.map((cat) => {
+                    const isSelected = additionalCategoryIds.includes(cat.id);
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        className={`${styles.categoryItem} ${
+                          isSelected ? styles.categoryItemSelected : ''
+                        }`}
+                        onClick={() => handleAdditionalCategoryToggle(cat.id)}
+                        style={{ paddingRight: `${cat.level * 1.5 + 1}rem` }}
+                        aria-pressed={isSelected}
+                      >
+                        <span className={styles.categoryItemText}>{cat.name}</span>
+                        {cat.level > 0 && (
+                          <span className={styles.categoryItemPath}>
+                            {cat.path.slice(0, -1).join(' > ')}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className={styles.categoryEmpty}>
+                    {additionalCategorySearch
+                      ? 'לא נמצאו קטגוריות התואמות לחיפוש'
+                      : 'אין קטגוריות נוספות זמינות'}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {selectedAdditionalCategories.length > 0 && (
+          <div className={styles.tagsList}>
+            {selectedAdditionalCategories.map((category) => (
+              <div key={category.id} className={styles.tagChip}>
+                <span className={styles.tagChipText}>{category.path.join(' > ')}</span>
+                <button
+                  type="button"
+                  className={styles.tagChipRemove}
+                  onClick={() => handleAdditionalCategoryToggle(category.id)}
+                  title={`הסר את הקטגוריה "${category.name}"`}
+                  aria-label={`הסר את הקטגוריה ${category.name}`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {errors?.additionalCategoryIds && (
+          <div className={styles.error}>
+            {typeof errors.additionalCategoryIds === 'string'
+              ? errors.additionalCategoryIds
+              : (errors.additionalCategoryIds as any)?.message}
           </div>
         )}
       </div>

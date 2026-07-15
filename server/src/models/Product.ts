@@ -80,6 +80,11 @@ export interface IProduct extends Document {
   images: IImage[]; // Phase 1.4: שינוי ל-IImage[]
   attributes: IAttribute[];
   categoryId?: mongoose.Types.ObjectId;
+  /**
+   * קטגוריות נוספות שבהן המוצר יוצג. הקטגוריה הראשית נשארת ב-categoryId
+   * כדי לשמור על התאימות למוצרים ולזרימות קיימים.
+   */
+  additionalCategoryIds: mongoose.Types.ObjectId[];
 
   // Status and visibility
   isActive: boolean;
@@ -314,6 +319,11 @@ const ProductSchema: Schema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
     required: false,
+  },
+  additionalCategoryIds: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Category',
+    default: [],
   },
 
   // Status and visibility
@@ -622,6 +632,7 @@ ProductSchema.index({ name: 'text', description: 'text' });
 // Indexes בודדים לסינון ומיון
 ProductSchema.index({ basePrice: 1 }); // מחיר
 ProductSchema.index({ categoryId: 1 }); // קטגוריה
+ProductSchema.index({ additionalCategoryIds: 1 }); // קטגוריות נוספות
 ProductSchema.index({ isActive: 1 }); // סטטוס
 ProductSchema.index({ createdAt: -1 }); // תאריך יצירה (חדשים קודם)
 ProductSchema.index({ viewCount: -1 }); // צפיות
@@ -632,6 +643,7 @@ ProductSchema.index({ isFeatured: 1 }); // מוצרים מומלצים
 ProductSchema.index({ isActive: 1, createdAt: -1 }); // מוצרים פעילים ממוינים לפי תאריך
 ProductSchema.index({ isActive: 1, basePrice: 1 }); // מוצרים פעילים ממוינים לפי מחיר
 ProductSchema.index({ categoryId: 1, isActive: 1, createdAt: -1 }); // מוצרים בקטגוריה ממוינים
+ProductSchema.index({ additionalCategoryIds: 1, isActive: 1, createdAt: -1 }); // מוצרים בקטגוריה נוספת ממוינים
 
 // ============================================================================
 // Pre/Post Hooks - Cascade Operations

@@ -18,6 +18,7 @@
     "migrate:assign-colorfamily": "ts-node src/scripts/migrate-assign-colorfamily.ts",
     "migrate:size": "ts-node src/scripts/migrate-size-to-attributes.ts",
     "migrate:categories": "ts-node src/scripts/migrateCategories.ts",
+    "migrate:additional-categories-indexes": "ts-node src/scripts/createAdditionalCategoryIndexes.ts",
     "clean:skus": "ts-node src/scripts/cleanSkus.ts",
     "test": "jest --runInBand --detectOpenHandles",
     "test:watch": "jest --watch --runInBand",

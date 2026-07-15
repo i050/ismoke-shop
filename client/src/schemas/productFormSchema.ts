@@ -280,6 +280,29 @@ export const productSchema = yup.object({
       'מזהה קטגוריה לא תקין (חייב להיות ObjectId של MongoDB)'
     ),
 
+  additionalCategoryIds: yup
+    .array()
+    .of(
+      yup.string().matches(
+        /^[0-9a-fA-F]{24}$/,
+        'מזהה קטגוריה נוספת לא תקין'
+      )
+    )
+    .max(20, 'ניתן לשייך עד 20 קטגוריות נוספות')
+    .test(
+      'unique-additional-categories',
+      'לא ניתן לבחור אותה קטגוריה יותר מפעם אחת',
+      (value) => !value || new Set(value).size === value.length
+    )
+    .test(
+      'additional-categories-exclude-primary',
+      'הקטגוריה הראשית אינה יכולה להופיע גם בקטגוריות הנוספות',
+      function (value) {
+        return !value || !this.parent.categoryId || !value.includes(this.parent.categoryId);
+      }
+    )
+    .default([]),
+
   // תמונות
   // תומך במבנה החדש (DigitalOcean Spaces) והישן (Cloudinary)
   images: yup
@@ -673,6 +696,7 @@ export const defaultProductValues: Partial<ProductFormData> = {
   basePrice: 0,
   compareAtPrice: null,
   categoryId: null,
+  additionalCategoryIds: [],
   images: [],
   tags: [],
   isActive: true,

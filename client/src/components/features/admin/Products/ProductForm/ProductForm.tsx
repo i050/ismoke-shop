@@ -220,6 +220,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           categoryId: typeof initialData.categoryId === 'string' 
             ? initialData.categoryId 
             : (initialData.categoryId as any)?._id || null,
+          additionalCategoryIds: ((initialData as any).additionalCategoryIds || [])
+            .map((category: string | { _id?: string }) =>
+              typeof category === 'string' ? category : category?._id
+            )
+            .filter((categoryId: string | undefined): categoryId is string => Boolean(categoryId)),
           tags: [], // TODO: להוסיף tags ל-Product type
           // 🔧 FIX: הוספת שדות מלאי מ-initialData
           sku: (initialData as any).sku || '',
@@ -1085,6 +1090,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             <ProductCategories
               values={{
                 categoryId: formValues.categoryId || null,
+                additionalCategoryIds: formValues.additionalCategoryIds || [],
                 tags: (formValues.tags || []).filter((tag): tag is string => tag !== undefined),
               }}
               errors={errors as any}
