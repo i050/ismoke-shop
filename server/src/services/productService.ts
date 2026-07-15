@@ -177,6 +177,24 @@ async function getCategoryWithDescendants(categorySlug: string): Promise<string[
 }
 
 /**
+ * מוצר שייך לקטגוריה כאשר היא הראשית שלו או אחת מהקטגוריות הנוספות שלו.
+ * השימוש בתנאי $and מאפשר לשלב את הבדיקה גם עם חיפוש טקסט חופשי.
+ */
+function categoryMembershipFilter(categoryIds: Array<string | mongoose.Types.ObjectId>): Record<string, unknown> {
+  return {
+    $or: [
+      { categoryId: { $in: categoryIds } },
+      { additionalCategoryIds: { $in: categoryIds } },
+    ],
+  };
+}
+
+function addFilterCondition(filter: Record<string, any>, condition: Record<string, unknown>): void {
+  filter.$and = filter.$and || [];
+  filter.$and.push(condition);
+}
+
+/**
  * אפשרויות לשאילתת מוצרים עם פילטור, מיון ופגינציה.
  * הערה: שדות מעבר למה שקיים כרגע (כמו colors / categories מרובים) יתווספו בהמשך.
  */
@@ -498,11 +516,6 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
     }
   }
 
-  // הוספת הפילטר לקטגוריות אם יש
-  if (finalCategoryIds.length > 0) {
-    filter.categoryId = { $in: finalCategoryIds };
-  }
-
   // הוספת הפילטר למוצרים עם מאפיינים מתאימים
   if (productIdsWithAttributes !== null) {
     filter._id = { $in: productIdsWithAttributes.map(id => new mongoose.Types.ObjectId(id)) };
@@ -516,17 +529,25 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
   // מוצרים שהקטגוריה שלהם isActive=false לא יוצגו בחנות
   const inactiveIds = await getInactiveCategoryIds();
   
-  if (inactiveIds.length > 0) {
-    // אם כבר יש filter.categoryId - צריך לוודא שלא כולל קטגוריות מושבתות
-    if (filter.categoryId?.$in) {
-      // מסננים את הקטגוריות המושבתות מהרשימה
-      filter.categoryId.$in = filter.categoryId.$in.filter(
-        (id: string) => !inactiveIds.includes(id.toString())
-      );
-    } else {
-      // אין סינון קטגוריה ספציפי - מוציאים את כל המושבתות
-      filter.categoryId = { $nin: inactiveIds.map(id => new mongoose.Types.ObjectId(id)) };
-    }
+  const isCategoryFilterRequested = Boolean(
+    (categorySlugs && categorySlugs.length > 0) || (categoryIds && categoryIds.length > 0)
+  );
+
+  if (isCategoryFilterRequested) {
+    const visibleCategoryIds = finalCategoryIds.filter((id) => !inactiveIds.includes(id));
+    // מערך ריק הוא תנאי תקין ומחזיר אפס מוצרים, למשל עבור קטגוריה מושבתת.
+    addFilterCondition(filter, categoryMembershipFilter(visibleCategoryIds));
+  }
+
+  if (inactiveIds.length > 0 && !isCategoryFilterRequested) {
+    const inactiveCategoryObjectIds = inactiveIds.map((id) => new mongoose.Types.ObjectId(id));
+    // בעמוד כל המוצרים, המוצר מוצג אם יש לו לפחות שיוך אחד לקטגוריה פעילה.
+    addFilterCondition(filter, {
+      $or: [
+        { categoryId: { $nin: inactiveCategoryObjectIds } },
+        { additionalCategoryIds: { $elemMatch: { $nin: inactiveCategoryObjectIds } } },
+      ],
+    });
   }
 
   // חישובי פגינציה (הזזה: page 1 -> skip 0)
@@ -671,7 +692,9 @@ export const fetchRelatedProducts = async (
   limit: number = 4
 ): Promise<any[]> => {
   // שלב 1: מציאת המוצר הנוכחי כדי לקבל את הקטגוריה שלו
-  const currentProduct = await Product.findById(productId).select('categoryId').lean();
+  const currentProduct = await Product.findById(productId)
+    .select('categoryId additionalCategoryIds')
+    .lean();
   
   if (!currentProduct) {
     // אם המוצר לא נמצא, מחזירים מוצרים פופולריים כללי
@@ -681,12 +704,22 @@ export const fetchRelatedProducts = async (
       .lean();
   }
 
-  const categoryId = (currentProduct as any).categoryId;
+  const categoryIds = [
+    (currentProduct as any).categoryId,
+    ...((currentProduct as any).additionalCategoryIds || []),
+  ].filter(Boolean);
+
+  if (categoryIds.length === 0) {
+    return Product.find({ isActive: true, _id: { $ne: productId } })
+      .sort({ salesCount: -1, viewCount: -1 })
+      .limit(limit)
+      .lean();
+  }
   
   // שלב 2: חיפוש מוצרים מאותה קטגוריה (ללא המוצר הנוכחי)
   const sameCategoryProducts = await Product.find({
     _id: { $ne: productId },        // לא המוצר הנוכחי
-    categoryId: categoryId,         // אותה קטגוריה
+    ...categoryMembershipFilter(categoryIds), // כל קטגוריה משותפת, ראשית או נוספת
     isActive: true,                 // רק מוצרים פעילים
     quantityInStock: { $gt: 0 }     // רק מוצרים במלאי
   })
@@ -1652,8 +1685,8 @@ export async function fetchProductsCursorPagination(
     );
   }
 
-  if (finalCategoryIds.length > 0) {
-    filter.categoryId = { $in: finalCategoryIds };
+  if ((categorySlugs && categorySlugs.length > 0) || (categoryIds && categoryIds.length > 0)) {
+    addFilterCondition(filter, categoryMembershipFilter(finalCategoryIds));
   }
 
   // קביעת שדה המיון וכיוונו
@@ -1829,7 +1862,7 @@ export const fetchProductsWithCursor = async (
   if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
     const rootCategoryId = new mongoose.Types.ObjectId(categoryId);
     const categoryIds = await collectCategoryAndDescendantIds(rootCategoryId);
-    query.categoryId = { $in: categoryIds };
+    addFilterCondition(query, categoryMembershipFilter(categoryIds));
     console.log('🗂️ [fetchProductsWithCursor] Category filter expanded to IDs:', categoryIds.map(id => id.toString()));
   } else if (categoryId) {
     console.warn('⚠️ [fetchProductsWithCursor] Invalid categoryId format:', categoryId);

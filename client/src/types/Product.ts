@@ -108,6 +108,7 @@ export interface Product {// זה הטייפ של מוצר
   attributes: Array<{ key: string; value: string }>;
   specifications?: ISpecification[]; // מפרט טכני - key/value דינמי
   categoryId?: string;
+  additionalCategoryIds?: string[];
   isActive: boolean;
   viewCount: number;// מספר צפיות במוצר
   salesCount: number;// מספר מכירות של המוצר
@@ -201,6 +202,7 @@ export interface ProductCreateRequest {// כשאנחנו רוצים ליצור �
   quantityInStock: number;
   attributes?: Array<{ key: string; value: string }>;
   categoryId?: string;
+  additionalCategoryIds?: string[];
   isActive?: boolean;
 }
 
@@ -212,6 +214,7 @@ export interface ProductUpdateRequest {// כשאנחנו רוצים לעדכן �
   quantityInStock?: number;
   attributes?: Array<{ key: string; value: string }>;
   categoryId?: string;
+  additionalCategoryIds?: string[];
   isActive?: boolean;
 }
 // בקובץ הזה אנחנו מגדירים את הטייפים של המוצרים

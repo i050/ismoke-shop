@@ -12,6 +12,31 @@ import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { getDynamicAttributesSchema } from './dynamicValidation';
 
+const additionalCategoryIdsSchema = Joi.array()
+  .items(
+    Joi.string().custom((value, helpers) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.error('any.invalid');
+      }
+      return value;
+    })
+  )
+  .unique()
+  .max(20)
+  .custom((value: string[], helpers) => {
+    const product = helpers.state.ancestors[0] as { categoryId?: string };
+    if (product.categoryId && value.includes(product.categoryId)) {
+      return helpers.error('array.includesPrimaryCategory');
+    }
+    return value;
+  })
+  .messages({
+    'any.invalid': 'מזהה קטגוריה נוספת אינו תקין',
+    'array.unique': 'לא ניתן לבחור אותה קטגוריה יותר מפעם אחת',
+    'array.max': 'ניתן לשייך עד 20 קטגוריות נוספות',
+    'array.includesPrimaryCategory': 'הקטגוריה הראשית אינה יכולה להופיע גם בקטגוריות הנוספות',
+  });
+
 // ============================================================================
 // Schema למוצר (Product)
 // ============================================================================
@@ -84,6 +109,8 @@ const productSchema = Joi.object({
       'any.invalid': 'מזהה קטגוריה לא תקין',
       'any.required': 'קטגוריה היא שדה חובה',
     }),
+
+  additionalCategoryIds: additionalCategoryIdsSchema.default([]),
 
   images: Joi.array()
     .items(
@@ -542,6 +569,8 @@ const updateProductWithSkusSchema = Joi.object({
       ['name', 'basePrice', 'categoryId'], // שדות שהופכים לאופציונליים בעדכון
       (schema) => schema.optional()
     )
+    // בעדכון חלקי אין ברירת מחדל, כדי שבקשה ישנה שלא שולחת את השדה לא תמחק שיוכים קיימים.
+    .keys({ additionalCategoryIds: additionalCategoryIdsSchema.optional() })
     .messages({
       'object.base': 'נתוני מוצר לא תקינים',
     }),
