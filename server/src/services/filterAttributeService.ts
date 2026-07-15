@@ -277,14 +277,17 @@ export const deleteAttribute = async (id: string): Promise<void> => {
  * 
  * @returns מערך פשוט של משפחות עם שם תצוגה ו-HEX ייצוגי
  */
-export const getColorFamiliesForAdmin = (): Array<{
+export const getColorFamiliesForAdmin = async (): Promise<Array<{
   family: string;
   displayName: string;
   representativeHex: string;
   variants?: Array<{ name: string; hex: string }>;
-}> => {
+}>> => {
   try {
-    const allFamilies = loadColorFamilies();
+    // MongoDB is the source of truth. Returning only the in-memory JSON cache
+    // can hide a shade that an admin has just created or edited.
+    const colorAttribute = await FilterAttribute.findOne({ key: 'color' }).lean();
+    const allFamilies = colorAttribute?.colorFamilies || loadColorFamilies();
     
     // 🆕 מחזיר גם variants — backward compatible (צרכנים קיימים מתעלמים מהשדה הנוסף)
     return allFamilies.map((fam) => ({
@@ -311,8 +314,16 @@ export const addColorVariant = async (
   name: string,
   hex: string
 ): Promise<void> => {
+  family = family.trim().toLowerCase();
+  name = name.trim();
+  hex = hex.trim().toUpperCase();
+
   if (!family || !name || !hex) {
     throw new Error('family, name ו-hex הם שדות חובה');
+  }
+
+  if (!/^#[0-9A-F]{6}$/.test(hex)) {
+    throw new Error('Color must be a full HEX value, for example #1A2B3C');
   }
 
   // בדיקת כפילות — case-insensitive
@@ -356,6 +367,43 @@ export const updateColorVariant = async (
     throw new Error('family ו-variantName הם שדות חובה');
   }
 
+  family = family.trim().toLowerCase();
+  variantName = variantName.trim();
+  const nextName = updates.name?.trim();
+  const nextHex = updates.hex?.trim().toUpperCase();
+
+  if (updates.name !== undefined && !nextName) {
+    throw new Error('Variant name is required');
+  }
+  if (nextHex !== undefined && !/^#[0-9A-F]{6}$/.test(nextHex)) {
+    throw new Error('Color must be a full HEX value, for example #1A2B3C');
+  }
+
+  const colorAttribute = await FilterAttribute.findOne({ key: 'color' }).lean();
+  const targetFamily = colorAttribute?.colorFamilies?.find((item) => item.family === family);
+  const targetVariant = targetFamily?.variants.find(
+    (item) => item.name.toLocaleLowerCase() === variantName.toLocaleLowerCase()
+  );
+
+  if (!targetFamily || !targetVariant) {
+    throw new Error('Color family or variant was not found');
+  }
+
+  if (nextName && nextName.toLocaleLowerCase() !== targetVariant.name.toLocaleLowerCase()) {
+    const duplicate = targetFamily.variants.some(
+      (item) => item.name.toLocaleLowerCase() === nextName.toLocaleLowerCase()
+    );
+    if (duplicate) {
+      throw new Error('A shade with this name already exists in the selected color family');
+    }
+  }
+
+  variantName = targetVariant.name;
+  updates = {
+    ...(nextName !== undefined ? { name: nextName } : {}),
+    ...(nextHex !== undefined ? { hex: nextHex } : {}),
+  };
+
   const setOps: Record<string, string> = {};
   if (updates.name !== undefined) setOps['colorFamilies.$[fam].variants.$[var].name'] = updates.name;
   if (updates.hex !== undefined) setOps['colorFamilies.$[fam].variants.$[var].hex'] = updates.hex;
@@ -393,12 +441,22 @@ export const deleteColorVariant = async (
     throw new Error('family ו-variantName הם שדות חובה');
   }
 
-  // שלב 1: בדיקת SKUs שמשתמשים בגוון (לפני המחיקה)
-  const families = loadColorFamilies();
-  const targetFamily = families.find(f => f.family === family);
+  family = family.trim().toLowerCase();
+  variantName = variantName.trim();
+  const colorAttribute = await FilterAttribute.findOne({ key: 'color' }).lean();
+  const targetFamily = colorAttribute?.colorFamilies?.find((item) => item.family === family);
   const variant = targetFamily?.variants.find(
-    v => v.name.toLowerCase() === variantName.toLowerCase()
+    (item) => item.name.toLocaleLowerCase() === variantName.toLocaleLowerCase()
   );
+
+  if (!targetFamily || !variant) {
+    throw new Error('Color family or variant was not found');
+  }
+  if (targetFamily.variants.length <= 1) {
+    throw new Error('A color family must retain at least one shade');
+  }
+
+  variantName = variant.name;
 
   const usageCount = variant
     ? await SKU.countDocuments({
@@ -433,10 +491,12 @@ export const getColorVariantUsage = async (
   family: string,
   variantName: string
 ): Promise<number> => {
-  const families = loadColorFamilies();
-  const targetFamily = families.find(f => f.family === family);
+  const colorAttribute = await FilterAttribute.findOne({ key: 'color' }).lean();
+  const targetFamily = colorAttribute?.colorFamilies?.find(
+    (item) => item.family === family.trim().toLowerCase()
+  );
   const variant = targetFamily?.variants.find(
-    v => v.name.toLowerCase() === variantName.toLowerCase()
+    (item) => item.name.toLocaleLowerCase() === variantName.trim().toLocaleLowerCase()
   );
 
   if (!variant) return 0;

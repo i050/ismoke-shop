@@ -1,156 +1,253 @@
-/* ColorVariantsModal — ניהול גוונים */
-
 .container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-height: 60vh;
+  gap: 0.875rem;
+  max-height: 62vh;
   overflow-y: auto;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0.125rem 0.5rem;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-secondary, #4b5563);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .loading {
-  text-align: center;
-  color: var(--color-text-secondary);
-  padding: 2rem;
+  color: var(--color-primary, #2563eb);
+  font-weight: 600;
 }
 
-/* משפחת צבע */
 .familySection {
+  overflow: hidden;
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: var(--radius-md, 8px);
-  overflow: hidden;
+  background: var(--color-background, #fff);
 }
 
 .familyHeader {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
+  border: 0;
   background: var(--color-bg-subtle, #f9fafb);
+  color: var(--color-text-primary, #111827);
   cursor: pointer;
-  user-select: none;
-  transition: background 0.2s;
+  text-align: right;
 }
+
 .familyHeader:hover {
   background: var(--color-bg-hover, #f3f4f6);
+}
+
+.familyHeader:focus-visible {
+  outline: 2px solid var(--color-primary, #2563eb);
+  outline-offset: -2px;
+}
+
+.familyColor,
+.variantColor {
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.16);
 }
 
 .familyColor {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  border: 2px solid rgba(0,0,0,0.1);
-  flex-shrink: 0;
+  border-radius: 999px;
 }
 
 .familyName {
   flex: 1;
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0;
+  font-weight: 650;
 }
 
-/* טבלת גוונים */
+.variantCount {
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.familyContent {
+  border-top: 1px solid var(--color-border-light, #f0f0f0);
+}
+
 .variantsTable {
   display: flex;
+  max-height: 310px;
   flex-direction: column;
-  max-height: 200px;
   overflow-y: auto;
 }
 
 .variantRow {
   display: flex;
+  min-height: 48px;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  border-top: 1px solid var(--color-border-light, #f0f0f0);
-  transition: background 0.15s;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid var(--color-border-light, #f0f0f0);
 }
+
 .variantRow:hover {
   background: var(--color-bg-hover, #fafafa);
 }
 
 .variantColor {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  border: 1px solid rgba(0,0,0,0.1);
-  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
 }
 
 .variantName {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-primary, #111827);
   font-size: 0.9rem;
-  color: var(--color-text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .variantHex {
-  font-family: monospace;
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-subtle);
-  padding: 0.15rem 0.4rem;
+  padding: 0.2rem 0.45rem;
   border-radius: 4px;
+  background: var(--color-bg-subtle, #f3f4f6);
+  color: var(--color-text-secondary, #4b5563);
+  direction: ltr;
+  font-size: 0.8rem;
+}
+
+.variantActions,
+.addActions,
+.editActions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .variantActions {
-  display: flex;
-  gap: 0.25rem;
+  margin-inline-start: auto;
 }
 
-/* טופס הוספה */
-.addForm {
+.addForm,
+.editForm {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: end;
+  gap: 0.6rem;
   padding: 0.75rem 1rem;
-  border-top: 1px solid var(--color-border-light);
-  background: var(--color-bg-subtle);
+  background: var(--color-bg-subtle, #f9fafb);
 }
 
-.addButton {
-  margin: 0.25rem 1rem 0.5rem;
+.addForm {
+  border-top: 1px solid var(--color-border-light, #f0f0f0);
 }
 
-/* שדות */
-.input {
-  flex: 1;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm, 4px);
-  font-size: 0.85rem;
-  direction: ltr;
-}
-
-.colorInput {
-  width: 44px;
-  height: 34px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm, 4px);
-  padding: 2px;
-  cursor: pointer;
+.editForm {
+  width: 100%;
+  padding: 0;
+  background: transparent;
 }
 
 .label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  margin-bottom: 0.25rem;
-}
-
-/* טופס עריכה */
-.editForm {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.3rem;
+  color: var(--color-text-secondary, #4b5563);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
-.editActions {
+.input {
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: var(--radius-sm, 4px);
+  background: #fff;
+  color: var(--color-text-primary, #111827);
+  font: inherit;
+}
+
+.input:focus {
+  border-color: var(--color-primary, #2563eb);
+  outline: 2px solid color-mix(in srgb, var(--color-primary, #2563eb) 22%, transparent);
+}
+
+.hexInput {
+  width: 82px;
+  flex: 0 0 82px;
+  direction: ltr;
+  text-transform: uppercase;
+}
+
+.colorField {
   display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.colorInput {
+  width: 40px;
+  height: 36px;
+  flex: 0 0 40px;
+  padding: 2px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+}
+
+.addButton {
+  margin: 0.55rem 1rem;
+}
+
+.emptyState {
+  padding: 2rem 1rem;
+  border: 1px dashed var(--color-border, #d1d5db);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-secondary, #6b7280);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .container {
+    max-height: 65vh;
+  }
+
+  .variantRow,
+  .addForm,
+  .editForm {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .variantHex {
+    margin-inline-start: auto;
+  }
+
+  .variantActions {
+    margin-inline-start: 0;
+  }
+
+  .addForm > .input:first-child {
+    flex: 1 0 100%;
+  }
+
+  .editForm {
+    flex-direction: column;
+  }
+
+  .label,
+  .addActions,
+  .editActions {
+    width: 100%;
+  }
+
+  .addActions > button,
+  .editActions > button {
+    flex: 1;
+  }
 }
