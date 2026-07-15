@@ -27,7 +27,7 @@ export type IconName =
   // Content
   | 'Image' | 'File' | 'FileText' | 'FileCode' | 'FileSpreadsheet' | 'Folder' | 'FolderOpen' | 'FolderPlus' | 'FolderTree' | 'Calendar' | 'Mail' | 'MessageCircle'
   // Tech
-  | 'Database' | 'Key' | 'Palette' | 'Truck' | 'Archive' | 'Target' | 'Flame' | 'Gem' | 'Construction'
+  | 'Database' | 'Key' | 'Palette' | 'Truck' | 'Archive' | 'Target' | 'Flame' | 'Gem' | 'Construction' | 'Phone'
   | 'Wallet' | 'Tag' | 'Code' | 'Layers'
   // Charts
   | 'PieChart' | 'LineChart' | 'User'
@@ -49,6 +49,7 @@ interface IconProps {
   // תמיכה באירוע לחיצה כדי שניתן יהיה להעביר את ה-MouseEvent כפי שעושים ברכיבים אחרים
   onClick?: React.MouseEventHandler<SVGElement>;
   'aria-label'?: string;
+  'aria-hidden'?: boolean;
 }
 
 /**
@@ -67,7 +68,8 @@ export const Icon: React.FC<IconProps> = ({
   className = '', 
   strokeWidth = 2,
   onClick,
-  'aria-label': ariaLabel
+  'aria-label': ariaLabel,
+  'aria-hidden': ariaHidden
 }) => {
   // @ts-ignore - dynamic access to lucide-react icons
   const IconComponent = LucideIcons[name];
@@ -84,6 +86,7 @@ export const Icon: React.FC<IconProps> = ({
       className={className}
       onClick={onClick}
       aria-label={ariaLabel}
+      aria-hidden={ariaHidden}
       style={{ stroke: 'currentColor', display: 'block' }}
     />
   );

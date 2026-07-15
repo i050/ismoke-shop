@@ -49,7 +49,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       <div className={styles.imageContainer}>
         <div className={styles.mainImage}>
           <div className={styles.imagePlaceholder}>
-            <div className={styles.placeholderIcon}>📷</div>
+            <div className={styles.placeholderIcon} aria-hidden="true"><Icon name="Image" size={36} /></div>
             <div className={styles.placeholderText}>אין תמונה זמינה</div>
           </div>
         </div>

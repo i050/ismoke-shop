@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppDispatch } from '../../../../hooks/reduxHooks';
 import { loginSuccess } from '../../../../store/slices/authSlice';
 import { AuthService } from '../../../../services/authService';
-import { Input, Button } from '../../../../components/ui';
+import { Input, Button, Icon } from '../../../../components/ui';
 import styles from './RegisterForm.module.css';
 
 // הגדרת טיפוסים
@@ -163,7 +163,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
     return (
       <div className={styles.formWrapper}>
         <div className={styles.pendingApproval}>
-          <div className={styles.pendingIcon}>📧</div>
+          <div className={styles.pendingIcon} aria-hidden="true"><Icon name="Mail" size={48} /></div>
           <h3 className={styles.pendingTitle}>בקשתך נשלחה!</h3>
           <p className={styles.pendingMessage}>
             בקשתך להרשמה נשלחה למנהל החנות.

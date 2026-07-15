@@ -179,6 +179,9 @@
 .optionText {
   flex: 1;
   color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* קו צבעוני בצד ימין של כל אופציה */

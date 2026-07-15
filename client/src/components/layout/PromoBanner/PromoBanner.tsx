@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { getPublicSettings } from '../../../services/settingsService';
+import { Icon } from '../../ui';
 import styles from './PromoBanner.module.css';
 
 // טיפוס להגדרות הנחת סף
@@ -48,7 +49,7 @@ const PromoBanner = () => {
   return (
     <div className={styles.banner} role="status" aria-live="polite">
       <div className={styles.content}>
-        <span className={styles.icon}>🎉</span>
+        <span className={styles.icon} aria-hidden="true"><Icon name="Tag" size={18} /></span>
         <span className={styles.text}>
           <span className={styles.highlight}>{thresholdDiscount.discountPercentage}%</span>
           {' '}הנחה בקנייה מעל{' '}

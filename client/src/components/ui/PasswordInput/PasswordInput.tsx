@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 // ייבוא רכיב FormField שיצרנו לשימוש חוזר
 import FormField from '../FormField/FormField';
 import { Button } from '../Button';
+import { Icon } from '../Icon';
 // ייבוא קובץ הסטיילים שלנו (CSS Modules)
 import styles from './PasswordInput.module.css';
 
@@ -176,9 +177,12 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
             disabled={disabled}
             aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
           >
-            <span className={styles.passwordInput__toggleIcon}>
-              {showPassword ? '🙈' : '👁️'}
-            </span>
+            <Icon
+              name={showPassword ? 'EyeOff' : 'Eye'}
+              size={18}
+              className={styles.passwordInput__toggleIcon}
+              aria-hidden
+            />
           </Button>
         )}
       </div>

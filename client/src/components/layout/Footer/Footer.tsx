@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 // ייבוא קובץ הסטיילים שלנו (CSS Modules)
 import styles from './Footer.module.css';
 // ייבוא רכיבי ה-UI הקיימים מהמערכת שלנו
-import { Typography } from '../../ui';
+import { Icon, type IconName, Typography } from '../../ui';
 
 // הגדרת טיפוסים לקישורי רשתות חברתיות
 interface SocialLink {
@@ -18,13 +18,13 @@ interface SocialLink {
 interface QuickLink {
   name: string;                  // שם הקישור
   url: string;                   // כתובת הקישור
-  icon?: string;                 // אייקון אופציונלי
+  icon?: IconName;               // אייקון אופציונלי
 }
 
 // הגדרת טיפוסים לקטגוריות קישורים
 interface LinkSection {
   title: string;                 // כותרת הקטגוריה
-  icon: string;                  // אייקון הקטגוריה
+  icon: IconName;                // אייקון הקטגוריה
   links: QuickLink[];            // רשימת הקישורים
 }
 
@@ -49,7 +49,7 @@ const Footer: React.FC<FooterProps> = ({
   const linkSections: LinkSection[] = [
     {
       title: 'עלינו',
-      icon: 'ℹ️',
+      icon: 'Info',
       links: [
         { name: 'אודות החנות', url: '/about' },
         { name: 'מדיניות פרטיות', url: '/privacy' },
@@ -59,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({
     },
     {
       title: 'שירות לקוחות',
-      icon: '🤝',
+      icon: 'UsersRound',
       links: [
         { name: 'צור קשר', url: '/contact' },
         { name: 'שאלות נפוצות', url: '/faq' },
@@ -70,13 +70,13 @@ const Footer: React.FC<FooterProps> = ({
     },
     {
       title: 'קישורים מהירים',
-      icon: '⚡',
+      icon: 'Link2',
       links: [
-        { name: 'דף בית', url: '/', icon: '🏠' },
-        { name: 'כל המוצרים', url: '/products', icon: '🛍️' },
-        { name: 'מבצעים', url: '/sales', icon: '🔥' },
-        { name: 'חשבון', url: '/profile', icon: '👤' },
-        { name: 'עגלת קניות', url: '/cart', icon: '🛒' }
+        { name: 'דף בית', url: '/', icon: 'Store' },
+        { name: 'כל המוצרים', url: '/products', icon: 'Package' },
+        { name: 'מבצעים', url: '/sales', icon: 'Tag' },
+        { name: 'חשבון', url: '/profile', icon: 'User' },
+        { name: 'עגלת קניות', url: '/cart', icon: 'ShoppingCart' }
       ]
     }
   ];
@@ -119,19 +119,22 @@ const Footer: React.FC<FooterProps> = ({
             {linkSections.map((section, index) => (
               <div key={index} className={styles.section}>
                 <Typography variant="h3" className={styles.sectionTitle}>
-                  {section.icon} {section.title}
+                  <span className={styles.sectionTitleIcon} aria-hidden="true">
+                    <Icon name={section.icon} size={18} />
+                  </span>
+                  {section.title}
                 </Typography>
                 <ul className={styles.linksList}>
                   {section.links.map((link, linkIndex) => (
                     <li key={linkIndex}>
                       {isInternalLink(link.url) ? (
                         <Link to={link.url} className={styles.footerLink}>
-                          {link.icon && <span className={styles.linkIcon}>{link.icon}</span>}
+                          {link.icon && <Icon name={link.icon} size={16} className={styles.linkIcon} aria-hidden />}
                           {link.name}
                         </Link>
                       ) : (
                         <a href={link.url} className={styles.footerLink}>
-                          {link.icon && <span className={styles.linkIcon}>{link.icon}</span>}
+                          {link.icon && <Icon name={link.icon} size={16} className={styles.linkIcon} aria-hidden />}
                           {link.name}
                         </a>
                       )}
@@ -198,7 +201,7 @@ const Footer: React.FC<FooterProps> = ({
         <div className={styles.container}>
           <div className={styles.contactInfo}>
             <div className={styles.contactItem}>
-              <span className={styles.contactIcon}>📞</span>
+              <span className={styles.contactIcon} aria-hidden="true"><Icon name="Phone" size={18} /></span>
               <a href={`tel:${phone}`} className={styles.contactLink}>
                 {phone}
               </a>
@@ -210,7 +213,7 @@ const Footer: React.FC<FooterProps> = ({
             </div> */}
             
             <div className={styles.contactItem}>
-              <span className={styles.contactIcon}>📧</span>
+              <span className={styles.contactIcon} aria-hidden="true"><Icon name="Mail" size={18} /></span>
               <a href={`mailto:${email}`} className={styles.contactLink}>
                 {email}
               </a>

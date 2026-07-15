@@ -537,7 +537,7 @@ const CheckoutPage = () => {
             onClick={() => setError(null)}
             aria-label="סגור הודעת שגיאה"
           >
-            ✕
+            <Icon name="X" size={18} aria-hidden />
           </button>
         </div>
       )}

@@ -31,7 +31,7 @@
 /* אייקון */
 .icon {
   flex-shrink: 0;
-  font-size: var(--font-size-base);
+  display: flex;
 }
 
 /* טקסט הבאנר */

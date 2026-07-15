@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Typography } from '../../../../components/ui';
+import { Button, Icon, Typography } from '../../../../components/ui';
 import { Input } from '../../../../components/ui';
 import styles from './PasswordReset.module.css';
 
@@ -82,7 +82,7 @@ const PasswordReset: React.FC<PasswordResetProps> = ({
   if (isSuccess) {
     return (
       <div className={styles.successContainer}>
-        <div className={styles.successIcon}>✅</div>
+        <div className={styles.successIcon} aria-hidden="true"><Icon name="CheckCircle" size={48} /></div>
         <Typography variant="h2" align="center">
           אימייל נשלח בהצלחה!
         </Typography>

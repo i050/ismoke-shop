@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import styles from './ColorSelect.module.css';
 import { Button } from '../Button';
+import { Icon } from '../Icon';
 import { AVAILABLE_COLORS } from '@/utils/colorConstants';
 import { getColorName } from '@/utils/colorConstants';
 
@@ -230,7 +231,10 @@ const ColorSelect: React.FC<ColorSelectProps> = ({
               onClick={handleOpenPicker}
               role="option"
             >
-              <span className={styles.optionText}>🎨 בחירה חופשית...</span>
+              <span className={styles.optionText}>
+                <Icon name="Palette" size={16} aria-hidden />
+                בחירה חופשית...
+              </span>
             </li>
           )}
         </ul>
@@ -254,7 +258,7 @@ const ColorSelect: React.FC<ColorSelectProps> = ({
                 onClick={handleCancelPicker}
                 aria-label="סגור"
               >
-                ✕
+                <Icon name="X" size={18} aria-hidden />
               </Button>
             </div>
             

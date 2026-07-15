@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Typography } from '../../../../components/ui';
+import { Button, Icon, Typography } from '../../../../components/ui';
 import { Input } from '../../../../components/ui';
 import styles from './EmailVerification.module.css';
 
@@ -117,7 +117,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
     <div className={styles.verificationContainer}>
       {/* כותרת */}
       <div className={styles.header}>
-        <div className={styles.icon}>📧</div>
+        <div className={styles.icon} aria-hidden="true"><Icon name="Mail" size={40} /></div>
         <Typography variant="h2" align="center">
           אימות אימייל
         </Typography>
