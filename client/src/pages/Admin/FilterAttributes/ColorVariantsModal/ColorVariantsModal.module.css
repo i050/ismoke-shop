@@ -75,14 +75,31 @@
 }
 
 .familyContent {
+  display: flex;
+  flex-direction: column;
   border-top: 1px solid var(--color-border-light, #f0f0f0);
 }
 
 .variantsTable {
   display: flex;
-  max-height: 360px;
+  height: clamp(340px, 56vh, 640px);
+  max-height: none;
+  min-height: 0;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.familyToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-bg-subtle, #f9fafb);
+  color: var(--color-text-secondary, #4b5563);
+  font-size: 0.95rem;
 }
 
 .variantRow {
@@ -145,7 +162,7 @@
 }
 
 .addForm {
-  border-top: 1px solid var(--color-border-light, #f0f0f0);
+  border-bottom: 1px solid var(--color-border-light, #f0f0f0);
 }
 
 .editForm {
@@ -202,10 +219,6 @@
   cursor: pointer;
 }
 
-.addButton {
-  margin: 0.55rem 1rem;
-}
-
 .emptyState {
   padding: 2rem 1rem;
   border: 1px dashed var(--color-border, #d1d5db);
@@ -217,6 +230,19 @@
 @media (max-width: 640px) {
   .container {
     max-height: 65vh;
+  }
+
+  .variantsTable {
+    height: clamp(240px, 45vh, 420px);
+  }
+
+  .familyToolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .familyToolbar > button {
+    width: 100%;
   }
 
   .variantRow,

@@ -63,10 +63,10 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
   const isValidColor = (value: string) => HEX_COLOR_PATTERN.test(value);
 
   const toggleFamily = (family: string) => {
+    setEditing(null);
+    setAddFormFamily(null);
     setExpandedFamilies((current) => {
-      const next = new Set(current);
-      next.has(family) ? next.delete(family) : next.add(family);
-      return next;
+      return current.has(family) ? new Set() : new Set([family]);
     });
   };
 
@@ -175,6 +175,53 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
 
               {isExpanded && (
                 <div className={styles.familyContent}>
+                  {isAdding ? (
+                    <div className={styles.addForm}>
+                      <input
+                        className={styles.input}
+                        placeholder="שם גוון, למשל כחול כהה"
+                        value={addName}
+                        onChange={(event) => setAddName(event.target.value)}
+                        disabled={isSaving}
+                      />
+                      <input
+                        type="color"
+                        className={styles.colorInput}
+                        value={addHex}
+                        onChange={(event) => setAddHex(event.target.value.toUpperCase())}
+                        disabled={isSaving}
+                        aria-label="בחירת צבע לגוון החדש"
+                      />
+                      <input
+                        className={`${styles.input} ${styles.hexInput}`}
+                        value={addHex}
+                        onChange={(event) => setAddHex(event.target.value.toUpperCase())}
+                        maxLength={7}
+                        disabled={isSaving}
+                        aria-label="קוד HEX לגוון החדש"
+                      />
+                      <div className={styles.addActions}>
+                        <Button variant="primary" size="sm" onClick={() => void handleAdd(family.family)} disabled={isSaving}>הוסף</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setAddFormFamily(null)} disabled={isSaving}>ביטול</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.familyToolbar}>
+                      <span>ניהול הגוונים במשפחת {family.displayName}</span>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => {
+                          setEditing(null);
+                          setAddFormFamily(family.family);
+                        }}
+                        disabled={isSaving}
+                      >
+                        <Icon name="Plus" size={16} /> הוסף גוון
+                      </Button>
+                    </div>
+                  )}
+
                   <div className={styles.variantsTable} role="list">
                     {family.variants.map((variant) => {
                       const isEditing = editing?.family === family.family && editing.variant.name === variant.name;
@@ -239,50 +286,6 @@ const ColorVariantsModal: React.FC<ColorVariantsModalProps> = ({ attribute, onCl
                     })}
                   </div>
 
-                  {isAdding ? (
-                    <div className={styles.addForm}>
-                      <input
-                        className={styles.input}
-                        placeholder="שם גוון, למשל כחול כהה"
-                        value={addName}
-                        onChange={(event) => setAddName(event.target.value)}
-                        disabled={isSaving}
-                      />
-                      <input
-                        type="color"
-                        className={styles.colorInput}
-                        value={addHex}
-                        onChange={(event) => setAddHex(event.target.value.toUpperCase())}
-                        disabled={isSaving}
-                        aria-label="בחירת צבע לגוון החדש"
-                      />
-                      <input
-                        className={`${styles.input} ${styles.hexInput}`}
-                        value={addHex}
-                        onChange={(event) => setAddHex(event.target.value.toUpperCase())}
-                        maxLength={7}
-                        disabled={isSaving}
-                        aria-label="קוד HEX לגוון החדש"
-                      />
-                      <div className={styles.addActions}>
-                        <Button variant="primary" size="sm" onClick={() => void handleAdd(family.family)} disabled={isSaving}>הוסף</Button>
-                        <Button variant="ghost" size="sm" onClick={() => setAddFormFamily(null)} disabled={isSaving}>ביטול</Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={styles.addButton}
-                      onClick={() => {
-                        setEditing(null);
-                        setAddFormFamily(family.family);
-                      }}
-                      disabled={isSaving}
-                    >
-                      <Icon name="Plus" size={15} /> הוסף גוון
-                    </Button>
-                  )}
                 </div>
               )}
             </section>
