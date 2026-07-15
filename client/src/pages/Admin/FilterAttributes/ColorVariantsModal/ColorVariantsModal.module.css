@@ -1,8 +1,10 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  max-height: 62vh;
+  gap: 1rem;
+  max-width: 1280px;
+  max-height: 76vh;
+  margin: 0 auto;
   overflow-y: auto;
   padding: 0.25rem 0.125rem 0.5rem;
 }
@@ -10,7 +12,7 @@
 .description {
   margin: 0;
   color: var(--color-text-secondary, #4b5563);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
@@ -30,8 +32,8 @@
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.8rem 1rem;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
   border: 0;
   background: var(--color-bg-subtle, #f9fafb);
   color: var(--color-text-primary, #111827);
@@ -55,20 +57,20 @@
 }
 
 .familyColor {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
 }
 
 .familyName {
   flex: 1;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 650;
 }
 
 .variantCount {
   color: var(--color-text-secondary, #6b7280);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   white-space: nowrap;
 }
 
@@ -78,17 +80,17 @@
 
 .variantsTable {
   display: flex;
-  max-height: 310px;
+  max-height: 360px;
   flex-direction: column;
   overflow-y: auto;
 }
 
 .variantRow {
   display: flex;
-  min-height: 48px;
+  min-height: 56px;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem 1rem;
+  gap: 1rem;
+  padding: 0.7rem 1.25rem;
   border-bottom: 1px solid var(--color-border-light, #f0f0f0);
 }
 
@@ -97,8 +99,8 @@
 }
 
 .variantColor {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 5px;
 }
 
@@ -107,18 +109,18 @@
   min-width: 0;
   overflow: hidden;
   color: var(--color-text-primary, #111827);
-  font-size: 0.9rem;
+  font-size: 1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .variantHex {
-  padding: 0.2rem 0.45rem;
+  padding: 0.3rem 0.55rem;
   border-radius: 4px;
   background: var(--color-bg-subtle, #f3f4f6);
   color: var(--color-text-secondary, #4b5563);
   direction: ltr;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .variantActions,
@@ -137,8 +139,8 @@
 .editForm {
   display: flex;
   align-items: end;
-  gap: 0.6rem;
-  padding: 0.75rem 1rem;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
   background: var(--color-bg-subtle, #f9fafb);
 }
 
