@@ -270,6 +270,13 @@ const Header: React.FC<HeaderProps> = () => {
     navigate('/');
   };
 
+  // הלוגו מבצע ניווט מסמך מלא, ולא ניווט פנימי של React Router.
+  // כך כל ה-state בזיכרון נטען מחדש והמשתמש חוזר לעמוד הבית במצב נקי.
+  const handleLogoClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    window.location.assign('/');
+  };
+
   // סגירת dropdown כשלוחצים מחוץ לו
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -325,7 +332,7 @@ const Header: React.FC<HeaderProps> = () => {
 
         {/* לוגו החנות - במרכז במובייל, מימין בדסקטופ */}
         <div className={styles.logo}>
-          <Link to="/" className={styles.logoLink}>
+          <a href="/" className={styles.logoLink} onClick={handleLogoClick}>
             <img 
               src="/logo.svg" 
               alt="iSmoke Plus - החנות שלנו" 
@@ -340,7 +347,7 @@ const Header: React.FC<HeaderProps> = () => {
               }}
             />
             {/* <span className={styles.logoText}>iSmoke Plus</span> */}
-          </Link>
+          </a>
         </div>
 
         {/* ניווט ראשי - מוסתר במובייל */}
