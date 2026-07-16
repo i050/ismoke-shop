@@ -4,15 +4,11 @@
  * מודאל להוספת צבע חדש עם בחירת מידות וכמות התחלתית
  */
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Modal from '../../../../../../ui/Modal';
 import { Icon } from '../../../../../../ui/Icon';
 import type { SecondaryVariantConfig, NewColorData } from './types';
-import {
-  FilterAttributeService,
-  type AdminColorFamily,
-  type ColorVariant,
-} from '../../../../../../../services/filterAttributeService';
+import { FilterAttributeService } from '../../../../../../../services/filterAttributeService';
 import styles from './AddColorModal.module.css';
 
 // Re-export types for backwards compatibility
@@ -40,26 +36,19 @@ const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 // 🔄 Fallback - רשימת צבעים בסיסית במקרה שהשרת לא זמין
 // בפועל, הצבעים נטענים דינמית מהשרת
-const FALLBACK_COLOR_FAMILIES: AdminColorFamily[] = [
-  { family: 'black', displayName: 'שחור', representativeHex: '#000000', variants: [{ name: 'שחור', hex: '#000000' }] },
-  { family: 'white', displayName: 'לבן', representativeHex: '#FFFFFF', variants: [{ name: 'לבן', hex: '#FFFFFF' }] },
-  { family: 'red', displayName: 'אדום', representativeHex: '#EF4444', variants: [{ name: 'אדום', hex: '#EF4444' }] },
-  { family: 'blue', displayName: 'כחול', representativeHex: '#3B82F6', variants: [{ name: 'כחול', hex: '#3B82F6' }] },
-  { family: 'green', displayName: 'ירוק', representativeHex: '#22C55E', variants: [{ name: 'ירוק', hex: '#22C55E' }] },
-  { family: 'yellow', displayName: 'צהוב', representativeHex: '#EAB308', variants: [{ name: 'צהוב', hex: '#EAB308' }] },
-  { family: 'orange', displayName: 'כתום', representativeHex: '#F97316', variants: [{ name: 'כתום', hex: '#F97316' }] },
-  { family: 'purple', displayName: 'סגול', representativeHex: '#A855F7', variants: [{ name: 'סגול', hex: '#A855F7' }] },
-  { family: 'pink', displayName: 'ורוד', representativeHex: '#EC4899', variants: [{ name: 'ורוד', hex: '#EC4899' }] },
-  { family: 'gray', displayName: 'אפור', representativeHex: '#6B7280', variants: [{ name: 'אפור', hex: '#6B7280' }] },
-  {
-    family: 'brown',
-    displayName: 'חום',
-    representativeHex: '#78350F',
-    variants: [
-      { name: 'חום', hex: '#78350F' },
-      { name: 'בז\'', hex: '#D4A373' },
-    ],
-  },
+const FALLBACK_COLORS = [
+  { name: 'שחור', hex: '#000000', family: 'black' },
+  { name: 'לבן', hex: '#FFFFFF', family: 'white' },
+  { name: 'אדום', hex: '#EF4444', family: 'red' },
+  { name: 'כחול', hex: '#3B82F6', family: 'blue' },
+  { name: 'ירוק', hex: '#22C55E', family: 'green' },
+  { name: 'צהוב', hex: '#EAB308', family: 'yellow' },
+  { name: 'כתום', hex: '#F97316', family: 'orange' },
+  { name: 'סגול', hex: '#A855F7', family: 'purple' },
+  { name: 'ורוד', hex: '#EC4899', family: 'pink' },
+  { name: 'אפור', hex: '#6B7280', family: 'gray' },
+  { name: 'בז\'', hex: '#D4A373', family: 'brown' },
+  { name: 'חום', hex: '#78350F', family: 'brown' },
 ];
 
 // ============================================================================
@@ -75,8 +64,12 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
   existingColors,
   isLoading = false,
 }) => {
-  // משפחות הצבע והגוונים נטענים ממקור האמת בשרת בכל פתיחה של המודאל.
-  const [colorFamilies, setColorFamilies] = useState<AdminColorFamily[]>([]);
+  // 🆕 טעינת משפחות צבעים מהשרת (רק משפחות - לא variants)
+  const [colorFamilies, setColorFamilies] = useState<Array<{
+    family: string;
+    displayName: string;
+    representativeHex: string;
+  }>>([]);
   const [loadingColors, setLoadingColors] = useState(false);
   
   // 🆕 האם יש ציר משני (אם לא - רק צבעים)
@@ -92,36 +85,19 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
   // Form state
   const [colorName, setColorName] = useState('');
   const [colorHex, setColorHex] = useState('#000000');
-  const [colorHexWasExplicitlySet, setColorHexWasExplicitlySet] = useState(false);
   const [selectedColorFamily, setSelectedColorFamily] = useState<string | undefined>(undefined); // 🆕 משפחת הצבע שנבחרה
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [initialQuantity, setInitialQuantity] = useState(10);
   const [price, setPrice] = useState<number | null>(null);
-  const [selectedShadeName, setSelectedShadeName] = useState<string | null>(null);
-  const [showNewShadeForm, setShowNewShadeForm] = useState(false);
-  const [newShadeName, setNewShadeName] = useState('');
-  const [newShadeHex, setNewShadeHex] = useState('#000000');
-  const [isAddingShade, setIsAddingShade] = useState(false);
-  const [shadeError, setShadeError] = useState<string | null>(null);
-  const [shadeSuccess, setShadeSuccess] = useState<string | null>(null);
-  const addingShadeRef = useRef(false);
-  const colorFamiliesRequestIdRef = useRef(0);
 
   // Reset form when modal opens
   const handleOpen = useCallback(() => {
     setColorName('');
     setColorHex('#000000');
-    setColorHexWasExplicitlySet(false);
     setSelectedColorFamily(undefined);
     setSelectedSizes([]);
     setInitialQuantity(10);
     setPrice(null);
-    setSelectedShadeName(null);
-    setShowNewShadeForm(false);
-    setNewShadeName('');
-    setNewShadeHex('#000000');
-    setShadeError(null);
-    setShadeSuccess(null);
   }, []);
 
   // Call handleOpen when modal opens
@@ -131,38 +107,28 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
     }
   }, [isOpen, handleOpen]);
 
-  // רענון בכל פתיחה מבטיח שגוונים שנוספו במסך הניהול יופיעו מיד גם כאן.
+  // 🆕 טעינת משפחות צבעים מהשרת בפתיחה ראשונה
   useEffect(() => {
-    if (!isOpen) return;
-
-    let cancelled = false;
-    const requestId = ++colorFamiliesRequestIdRef.current;
-
     const loadColorFamilies = async () => {
+      // טעינה רק פעם אחת (אם עדיין לא נטענו)
+      if (colorFamilies.length > 0) return;
+      
       setLoadingColors(true);
       try {
         const families = await FilterAttributeService.getColorFamiliesForAdmin();
-        if (!cancelled && requestId === colorFamiliesRequestIdRef.current) {
-          setColorFamilies(families);
-        }
+        setColorFamilies(families);
+        console.log(`✅ Loaded ${families.length} color families from server`);
       } catch (error) {
         console.error('⚠️ Failed to load color families, using fallback:', error);
-        if (!cancelled && requestId === colorFamiliesRequestIdRef.current) {
-          setColorFamilies([]);
-        }
+        // במקרה של כשל - נשתמש ב-fallback
+        setColorFamilies([]);
       } finally {
-        if (!cancelled && requestId === colorFamiliesRequestIdRef.current) {
-          setLoadingColors(false);
-        }
+        setLoadingColors(false);
       }
     };
 
-    void loadColorFamilies();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen]);
+    loadColorFamilies();
+  }, []); // טעינה פעם אחת בלבד
 
   // Available values (from config or fallback to default sizes)
   const valuesToShow = useMemo(() => 
@@ -171,153 +137,6 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
       : DEFAULT_SIZES,
     [variantConfig.values]
   );
-
-  const availableColorFamilies = useMemo(
-    () => colorFamilies.length > 0 ? colorFamilies : FALLBACK_COLOR_FAMILIES,
-    [colorFamilies]
-  );
-
-  const selectedFamily = useMemo(
-    () => availableColorFamilies.find((family) => family.family === selectedColorFamily),
-    [availableColorFamilies, selectedColorFamily]
-  );
-
-  const selectColorFamily = useCallback((family: string) => {
-    if (isAddingShade || family === selectedColorFamily) return;
-
-    // ערכים שהגיעו מבחירה בספרייה אינם שייכים למשפחה החדשה.
-    if (selectedShadeName) {
-      setColorName('');
-      setColorHex('#000000');
-      setColorHexWasExplicitlySet(false);
-    }
-
-    setSelectedColorFamily(family);
-    setSelectedShadeName(null);
-    setShowNewShadeForm(false);
-    setNewShadeName('');
-    setShadeError(null);
-    setShadeSuccess(null);
-  }, [isAddingShade, selectedColorFamily, selectedShadeName]);
-
-  const selectExistingShade = useCallback((shade: ColorVariant) => {
-    if (isAddingShade) return;
-
-    setColorName(shade.displayName?.trim() || shade.name);
-    setColorHex(shade.hex.toUpperCase());
-    setColorHexWasExplicitlySet(true);
-    setSelectedShadeName(shade.name);
-    setShowNewShadeForm(false);
-    setShadeError(null);
-    setShadeSuccess(null);
-  }, [isAddingShade]);
-
-  const openNewShadeForm = useCallback(() => {
-    if (!selectedFamily || isAddingShade) return;
-
-    const representativeHex = /^#[0-9A-Fa-f]{6}$/.test(selectedFamily.representativeHex)
-      ? selectedFamily.representativeHex.toUpperCase()
-      : '#000000';
-
-    setNewShadeName('');
-    setNewShadeHex(representativeHex);
-    setShowNewShadeForm(true);
-    setShadeError(null);
-    setShadeSuccess(null);
-  }, [selectedFamily, isAddingShade]);
-
-  const newShadeNameNormalized = newShadeName.trim().toLocaleLowerCase('he');
-  const newShadeDuplicate = useMemo(
-    () => Boolean(
-      newShadeNameNormalized && selectedFamily?.variants.some(
-        (shade) => shade.name.trim().toLocaleLowerCase('he') === newShadeNameNormalized
-      )
-    ),
-    [newShadeNameNormalized, selectedFamily]
-  );
-  const newShadeHexIsValid = /^#[0-9A-Fa-f]{6}$/.test(newShadeHex);
-  const canAddShade = Boolean(
-    selectedFamily &&
-    newShadeName.trim() &&
-    newShadeHexIsValid &&
-    !newShadeDuplicate &&
-    !isAddingShade
-  );
-
-  const addShadeToLibrary = useCallback(async () => {
-    if (!canAddShade || !selectedFamily || addingShadeRef.current) return;
-
-    const family = selectedFamily.family;
-    const shade: ColorVariant = {
-      name: newShadeName.trim(),
-      hex: newShadeHex.toUpperCase(),
-    };
-
-    addingShadeRef.current = true;
-    setIsAddingShade(true);
-    setShadeError(null);
-    setShadeSuccess(null);
-
-    try {
-      await FilterAttributeService.addColorVariant(family, shade.name, shade.hex);
-
-      // כל תשובת GET שהתחילה לפני השמירה נחשבת מיושנת מרגע זה.
-      colorFamiliesRequestIdRef.current += 1;
-      setLoadingColors(false);
-
-      // עדכון מיידי של הממשק; לאחריו מתבצע רענון ממקור האמת בשרת.
-      setColorFamilies((currentFamilies) => {
-        const sourceFamilies = currentFamilies.length > 0
-          ? currentFamilies
-          : FALLBACK_COLOR_FAMILIES;
-
-        return sourceFamilies.map((colorFamily) => colorFamily.family === family
-          ? { ...colorFamily, variants: [...colorFamily.variants, shade] }
-          : colorFamily
-        );
-      });
-      setColorName(shade.name);
-      setColorHex(shade.hex);
-      setColorHexWasExplicitlySet(true);
-      setSelectedShadeName(shade.name);
-      setNewShadeName('');
-      setShowNewShadeForm(false);
-      setShadeSuccess(`הגוון "${shade.name}" נוסף לספריית ${selectedFamily.displayName} ונבחר בטופס.`);
-
-      // הרענון משני לשמירה: הוא אינו משאיר את המודאל נעול ואינו דורס עדכון חדש יותר.
-      const refreshRequestId = ++colorFamiliesRequestIdRef.current;
-      void FilterAttributeService.getColorFamiliesForAdmin()
-        .then((refreshedFamilies) => {
-          if (refreshRequestId !== colorFamiliesRequestIdRef.current) return;
-
-          const refreshedShadeExists = refreshedFamilies
-            .find((colorFamily) => colorFamily.family === family)
-            ?.variants.some(
-              (variant) => variant.name.toLocaleLowerCase('he') === shade.name.toLocaleLowerCase('he')
-            );
-
-          if (refreshedShadeExists) {
-            setColorFamilies(refreshedFamilies);
-          } else {
-            console.warn('Shade was added, but was not present in the immediate refresh response.');
-          }
-        })
-        .catch((refreshError) => {
-          // השמירה כבר הצליחה; משאירים את העדכון המקומי ולא מציגים כשל מטעה למנהל.
-          console.warn('Shade was added, but refreshing color families failed:', refreshError);
-        });
-    } catch (error) {
-      setShadeError(error instanceof Error ? error.message : 'לא ניתן היה להוסיף את הגוון. נסה שוב.');
-    } finally {
-      addingShadeRef.current = false;
-      setIsAddingShade(false);
-    }
-  }, [canAddShade, selectedFamily, newShadeName, newShadeHex]);
-
-  const handleClose = useCallback(() => {
-    if (isLoading || isAddingShade || addingShadeRef.current) return;
-    onClose();
-  }, [isLoading, isAddingShade, onClose]);
 
   // Check if color already exists
   const colorExists = useMemo(() => 
@@ -361,16 +180,14 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
 
   // Handle submit - 🆕 אם colorName ריק או colorHex ריק - שולח undefined
   const handleSubmit = useCallback(() => {
-    if (!isValid || isAddingShade) return;
+    if (!isValid) return;
 
     // אם המנהל לא הזין שם צבע - שולח undefined כדי שהמערכת תיצור אוטומטית
     const finalColorName = colorName.trim() || undefined;
     
     // אם המנהל לא בחר colorHex (נשאר על ברירת המחדל #000000) - שולח undefined
     // כדי שהמערכת תיצור אוטומטית על בסיס colorFamily
-    const finalColorHex = colorHex && (colorHexWasExplicitlySet || colorHex !== '#000000')
-      ? colorHex
-      : undefined;
+    const finalColorHex = (colorHex && colorHex !== '#000000') ? colorHex : undefined;
 
     onSubmit({
       colorName: finalColorName, // 🆕 יכול להיות undefined
@@ -382,16 +199,14 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
     });
 
     onClose();
-  }, [isValid, isAddingShade, colorName, colorHex, colorHexWasExplicitlySet, selectedColorFamily, selectedSizes, initialQuantity, price, onSubmit, onClose]);
+  }, [isValid, colorName, colorHex, selectedColorFamily, selectedSizes, initialQuantity, price, onSubmit, onClose]);
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       title="הוספת צבע חדש"
-      size="large"
-      closeOnOverlayClick={!isLoading && !isAddingShade}
-      closeOnEscape={!isLoading && !isAddingShade}
+      size="medium"
     >
       <div className={styles.content}>
         {/* משפחת צבע (לסינון) - חובה */}
@@ -415,220 +230,42 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
           
           {/* כפתורי בחירת משפחת צבע */}
           <div className={styles.colorFamilyButtons}>
-            {availableColorFamilies.map((family) => (
-              <button
-                key={family.family}
-                type="button"
-                className={`${styles.familyButton} ${
-                  selectedColorFamily === family.family ? styles.selected : ''
-                }`}
-                onClick={() => selectColorFamily(family.family)}
-                title={family.displayName}
-                aria-pressed={selectedColorFamily === family.family}
-                disabled={isAddingShade}
-              >
-                <span
-                  className={styles.familyColorDot}
-                  style={{ backgroundColor: family.representativeHex }}
-                />
-                <span className={styles.familyName}>{family.displayName}</span>
-                {selectedColorFamily === family.family && (
-                  <Icon name="Check" size={14} className={styles.checkIcon} />
-                )}
-              </button>
-            ))}
-          </div>
-
-          {selectedFamily && (
-            <div className={styles.shadeLibrary}>
-              <div className={styles.shadeLibraryHeader}>
-                <div>
-                  <span className={styles.shadeLibraryTitle}>גוונים קיימים במשפחת {selectedFamily.displayName}</span>
-                  <span className={styles.shadeCount}>{selectedFamily.variants.length} גוונים</span>
-                </div>
-                <Icon name="Palette" size={18} />
-              </div>
-
-              {selectedFamily.variants.length > 0 ? (
-                <div className={styles.shadeGrid} aria-label={`גוונים במשפחת ${selectedFamily.displayName}`}>
-                  {selectedFamily.variants.map((shade) => {
-                    const isSelected = selectedShadeName?.toLocaleLowerCase('he') === shade.name.toLocaleLowerCase('he');
-                    const displayName = shade.displayName?.trim() || shade.name;
-
-                    return (
-                      <button
-                        key={shade.name}
-                        type="button"
-                        className={`${styles.shadeButton} ${isSelected ? styles.shadeSelected : ''}`}
-                        onClick={() => selectExistingShade(shade)}
-                        aria-pressed={isSelected}
-                        disabled={isAddingShade}
-                      >
-                        <span
-                          className={styles.shadeSwatch}
-                          style={{ backgroundColor: shade.hex }}
-                        />
-                        <span className={styles.shadeDetails}>
-                          <span className={styles.shadeName}>{displayName}</span>
-                          <span className={styles.shadeHex}>{shade.hex.toUpperCase()}</span>
-                        </span>
-                        {isSelected && <Icon name="Check" size={16} className={styles.shadeCheck} />}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className={styles.emptyShades}>עדיין אין גוונים במשפחה זו.</p>
-              )}
-
-              {!showNewShadeForm ? (
+            {(() => {
+              // נורמליזציה של מבנה הנתונים לפורמט אחיד
+              const normalizedFamilies = colorFamilies.length > 0 
+                ? colorFamilies.map(fam => ({
+                    family: fam.family,
+                    displayName: fam.displayName,
+                    hex: fam.representativeHex
+                  }))
+                : FALLBACK_COLORS.map(fam => ({
+                    family: fam.family,
+                    displayName: fam.name,
+                    hex: fam.hex
+                  }));
+              
+              return normalizedFamilies.map((family) => (
                 <button
+                  key={family.family}
                   type="button"
-                  className={styles.addShadeButton}
-                  onClick={openNewShadeForm}
-                  disabled={isAddingShade}
+                  className={`${styles.familyButton} ${
+                    selectedColorFamily === family.family ? styles.selected : ''
+                  }`}
+                  onClick={() => setSelectedColorFamily(family.family)}
+                  title={family.displayName}
                 >
-                  <Icon name="Plus" size={17} />
-                  הוסף גוון חדש למשפחת {selectedFamily.displayName}
+                  <span 
+                    className={styles.familyColorDot} 
+                    style={{ backgroundColor: family.hex }}
+                  />
+                  <span className={styles.familyName}>{family.displayName}</span>
+                  {selectedColorFamily === family.family && (
+                    <Icon name="Check" size={14} className={styles.checkIcon} />
+                  )}
                 </button>
-              ) : (
-                <div className={styles.newShadeForm}>
-                  <div className={styles.newShadeHeader}>
-                    <strong>גוון חדש במשפחת {selectedFamily.displayName}</strong>
-                    <button
-                      type="button"
-                      className={styles.closeShadeFormButton}
-                      onClick={() => {
-                        setShowNewShadeForm(false);
-                        setShadeError(null);
-                      }}
-                      disabled={isAddingShade}
-                      aria-label="סגור טופס הוספת גוון"
-                    >
-                      <Icon name="X" size={17} />
-                    </button>
-                  </div>
-
-                  <div className={styles.newShadeInputs}>
-                    <div className={styles.inputGroup}>
-                      <label className={styles.inputLabel} htmlFor="new-shade-name">שם הגוון</label>
-                      <input
-                        id="new-shade-name"
-                        type="text"
-                        className={styles.input}
-                        value={newShadeName}
-                        onChange={(event) => {
-                          setNewShadeName(event.target.value);
-                          setShadeError(null);
-                        }}
-                        placeholder="לדוגמה: תכלת עננים"
-                        disabled={isAddingShade}
-                        aria-invalid={newShadeDuplicate}
-                        aria-describedby={newShadeDuplicate ? 'new-shade-name-error' : undefined}
-                        autoFocus
-                      />
-                    </div>
-
-                    <div className={styles.inputGroup}>
-                      <label className={styles.inputLabel} htmlFor="new-shade-hex">קוד צבע (HEX)</label>
-                      <div className={styles.colorPickerWrapper}>
-                        <input
-                          type="color"
-                          className={styles.colorPicker}
-                          value={newShadeHex}
-                          onChange={(event) => {
-                            setNewShadeHex(event.target.value.toUpperCase());
-                            setShadeError(null);
-                          }}
-                          title="בחר גוון מדויק"
-                          disabled={isAddingShade}
-                        />
-                        <input
-                          id="new-shade-hex"
-                          type="text"
-                          className={styles.hexInput}
-                          value={newShadeHex}
-                          onChange={(event) => {
-                            const hex = event.target.value;
-                            if (/^#[0-9A-Fa-f]{0,6}$/.test(hex)) {
-                              setNewShadeHex(hex.toUpperCase());
-                              setShadeError(null);
-                            }
-                          }}
-                          placeholder="#000000"
-                          maxLength={7}
-                          disabled={isAddingShade}
-                          aria-invalid={newShadeHex.length > 0 && !newShadeHexIsValid}
-                          aria-describedby={newShadeHex.length > 0 && !newShadeHexIsValid ? 'new-shade-hex-error' : undefined}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {newShadeDuplicate && (
-                    <p id="new-shade-name-error" className={styles.inlineError} role="alert">
-                      כבר קיים גוון בשם הזה במשפחה.
-                    </p>
-                  )}
-                  {newShadeHex.length > 0 && !newShadeHexIsValid && (
-                    <p id="new-shade-hex-error" className={styles.inlineError} role="alert">
-                      יש להזין קוד HEX מלא, לדוגמה #4A90E2.
-                    </p>
-                  )}
-
-                  <p className={styles.libraryNotice}>
-                    <Icon name="Info" size={15} />
-                    הגוון נשמר מיד בספריית הצבעים הכללית ויישאר בה גם אם תבטל אחר כך את עריכת המוצר.
-                  </p>
-
-                  <div className={styles.newShadeActions}>
-                    <button
-                      type="button"
-                      className={styles.cancelShadeButton}
-                      onClick={() => {
-                        setShowNewShadeForm(false);
-                        setShadeError(null);
-                      }}
-                      disabled={isAddingShade}
-                    >
-                      ביטול
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.saveShadeButton}
-                      onClick={() => void addShadeToLibrary()}
-                      disabled={!canAddShade}
-                    >
-                      {isAddingShade ? (
-                        <>
-                          <span className={styles.spinner} />
-                          שומר גוון...
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="Plus" size={16} />
-                          שמור ובחר גוון
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {shadeError && (
-                <div className={styles.shadeMessageError} role="alert">
-                  <Icon name="AlertCircle" size={16} />
-                  {shadeError}
-                </div>
-              )}
-              {shadeSuccess && (
-                <div className={styles.shadeMessageSuccess} role="status">
-                  <Icon name="CheckCircle" size={16} />
-                  {shadeSuccess}
-                </div>
-              )}
-            </div>
-          )}
+              ));
+            })()}
+          </div>
         </div>
 
         {/* צבע תצוגה (חופשי) - אופציונלי */}
@@ -649,13 +286,8 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
                 type="text"
                 className={styles.input}
                 value={colorName}
-                onChange={(e) => {
-                  setColorName(e.target.value);
-                  setSelectedShadeName(null);
-                  setShadeSuccess(null);
-                }}
+                onChange={(e) => setColorName(e.target.value)}
                 placeholder="השאר ריק לשם ברירת מחדל..."
-                disabled={isAddingShade}
               />
             </div>
             <div className={styles.inputGroup}>
@@ -665,14 +297,8 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
                   type="color"
                   className={styles.colorPicker}
                   value={colorHex}
-                  onChange={(e) => {
-                    setColorHex(e.target.value);
-                    setColorHexWasExplicitlySet(true);
-                    setSelectedShadeName(null);
-                    setShadeSuccess(null);
-                  }}
+                  onChange={(e) => setColorHex(e.target.value)}
                   title="בחר גוון מדויק"
-                  disabled={isAddingShade}
                 />
                 <input
                   type="text"
@@ -682,14 +308,10 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
                     const hex = e.target.value;
                     if (/^#[0-9A-Fa-f]{0,6}$/.test(hex)) {
                       setColorHex(hex);
-                      setColorHexWasExplicitlySet(true);
-                      setSelectedShadeName(null);
-                      setShadeSuccess(null);
                     }
                   }}
                   placeholder="#000000"
                   maxLength={7}
-                  disabled={isAddingShade}
                 />
               </div>
             </div>
@@ -812,8 +434,8 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
           <button
             type="button"
             className={styles.cancelButton}
-            onClick={handleClose}
-            disabled={isLoading || isAddingShade}
+            onClick={onClose}
+            disabled={isLoading}
           >
             ביטול
           </button>
@@ -821,7 +443,7 @@ const AddColorModal: React.FC<AddColorModalProps> = ({
             type="button"
             className={styles.submitButton}
             onClick={handleSubmit}
-            disabled={!isValid || isLoading || isAddingShade}
+            disabled={!isValid || isLoading}
           >
             {isLoading ? (
               <>
