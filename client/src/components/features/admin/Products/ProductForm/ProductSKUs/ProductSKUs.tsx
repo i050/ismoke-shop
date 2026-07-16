@@ -13,6 +13,7 @@ import { VariantAttributesInline, type SelectedAttribute } from './VariantAttrib
 import CombinationsGrid, { type Combination, type AxisValue } from './CombinationsGrid';
 import { AutoFillPanel } from './AutoFillPanel';
 import { FilterAttributeService } from '../../../../../../services/filterAttributeService';
+import { reconcileSelectedCombinations } from './variantCombinationSelection';
 import styles from './ProductSKUs.module.css';
 
 /** 🆕 מצבי זרימה מפושטים - יצירה או ניהול */
@@ -142,6 +143,8 @@ interface ProductSKUsProps {
 
   /** 🆕 חשיפת צבעים שנבחרו בזרימת הוריאנטים (לפני יצירת SKUs) */
   onDraftColorsChange?: (colors: Array<{ color: string; colorHex?: string; colorFamily?: string }>) => void;
+  /** נעילת פעולות טופס המוצר בזמן שגוון חדש נשמר */
+  onColorVariantCreationBusyChange?: (isBusy: boolean) => void;
 }
 
 /**
@@ -158,6 +161,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   onUploadImages,
   productFormData, // 🆕 נתונים מהטופס הראשי
   onDraftColorsChange,
+  onColorVariantCreationBusyChange,
   // 🆕 הוספת callbacks לשמירת שמות הצירים
   primaryVariantLabel, // ✅ הוספת ערך ציר ראשי
   onPrimaryVariantLabelChange,
@@ -181,6 +185,17 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
 
   // State למודאל הוספה
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const [isCreatingColorVariant, setIsCreatingColorVariant] = useState(false);
+
+  const handleColorVariantCreationBusyChange = useCallback((isBusy: boolean) => {
+    setIsCreatingColorVariant(isBusy);
+    onColorVariantCreationBusyChange?.(isBusy);
+  }, [onColorVariantCreationBusyChange]);
+
+  useEffect(() => () => {
+    onColorVariantCreationBusyChange?.(false);
+  }, [onColorVariantCreationBusyChange]);
 
   // State למחיקה
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
@@ -641,31 +656,15 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
    * זה מאפשר לרשת להתעדכן בזמן אמת
    */
   const handleAttributesChange = useCallback((newAttrs: SelectedAttribute[]) => {
+    const nextSelectedCombinations = reconcileSelectedCombinations(
+      selectedVariantAttributes,
+      newAttrs,
+      selectedCombinations
+    );
+
     setSelectedVariantAttributes(newAttrs);
-    
-    // יצירת שילובים אוטומטית כשיש ערכים נבחרים
-    if (newAttrs.length >= 1 && newAttrs.every(sa => sa.selectedValues.length > 0)) {
-      const allCombinations: Combination[] = [];
-      
-      if (newAttrs.length === 1 || newAttrs[1]?.selectedValues.length === 0) {
-        // מצב 1D - רק ציר ראשי
-        newAttrs[0].selectedValues.forEach(pv => {
-          allCombinations.push({ primary: pv.value, secondary: '' });
-        });
-      } else {
-        // מצב 2D - שני צירים
-        newAttrs[0].selectedValues.forEach(pv => {
-          newAttrs[1].selectedValues.forEach(sv => {
-            allCombinations.push({ primary: pv.value, secondary: sv.value });
-          });
-        });
-      }
-      
-      setSelectedCombinations(allCombinations);
-    } else {
-      setSelectedCombinations([]);
-    }
-  }, []);
+    setSelectedCombinations(nextSelectedCombinations);
+  }, [selectedCombinations, selectedVariantAttributes]);
 
   /**
    * 🆕 פתיחה אוטומטית של AutoFill כשיש וריאנטים נבחרים
@@ -1675,12 +1674,18 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
           שלב יצירה: הכל בדף אחד - מאפיינים → רשת → הגדרות
           ============================================================================ */}
       {variantFlowStep === 'create' && (
-        <div className={styles.createFlow}>
+        <fieldset
+          className={`${styles.createFlow} ${isCreatingColorVariant ? styles.createFlowBusy : ''}`}
+          aria-busy={isCreatingColorVariant}
+          disabled={isCreatingColorVariant}
+          inert={isCreatingColorVariant}
+        >
           {/* בחירת מאפיינים וערכים */}
           <VariantAttributesInline
             selectedAttributes={selectedVariantAttributes}
             onChange={handleAttributesChange}
             showContinueButton={false}
+            onColorVariantCreationBusyChange={handleColorVariantCreationBusyChange}
             onDisabledValueRemoveRequest={handleDisabledValueRemoveRequest}
           />
 
@@ -1730,13 +1735,14 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
                 type="button"
                 className={styles.secondaryButton}
                 onClick={() => setVariantFlowStep('manage')}
+                disabled={isCreatingColorVariant}
               >
                 <Icon name="ChevronRight" size={16} />
                 חזרה לניהול וריאנטים קיימים
               </button>
             </div>
           )}
-        </div>
+        </fieldset>
       )}
 
       {/* ============================================================================

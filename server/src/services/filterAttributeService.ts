@@ -326,28 +326,44 @@ export const addColorVariant = async (
     throw new Error('Color must be a full HEX value, for example #1A2B3C');
   }
 
-  // בדיקת כפילות — case-insensitive
-  const existing = await FilterAttribute.findOne({
-    key: 'color',
-    colorFamilies: {
-      $elemMatch: {
-        family,
-        'variants.name': { $regex: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
-      }
-    }
-  });
-  if (existing) {
-    throw new Error(`גוון "${name}" כבר קיים במשפחת "${family}"`);
-  }
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const exactNamePattern = new RegExp(`^${escapedName}$`, 'i');
 
-  // $push אטומי
+  // הוספה אטומית שמותנית בכך שהשם אינו קיים באף משפחה. שם הגוון
+  // משמש כמזהה בטופס המוצר, ולכן כפילות בין משפחות אינה ניתנת להבחנה.
   const result = await FilterAttribute.updateOne(
-    { key: 'color', 'colorFamilies.family': family },
+    {
+      key: 'color',
+      'colorFamilies.family': family,
+      $nor: [
+        {
+          colorFamilies: {
+            $elemMatch: {
+              variants: { $elemMatch: { name: exactNamePattern } },
+            },
+          },
+        },
+      ],
+    },
     { $push: { 'colorFamilies.$.variants': { name, hex } } }
   );
 
-  if (result.matchedCount === 0) {
-    throw new Error(`משפחת צבע "${family}" לא נמצאה`);
+  if (result.modifiedCount === 0) {
+    const colorAttribute = await FilterAttribute.findOne({ key: 'color' }).lean();
+    const targetFamily = colorAttribute?.colorFamilies?.find((item) => item.family === family);
+
+    if (!targetFamily) {
+      throw new Error(`משפחת צבע "${family}" לא נמצאה`);
+    }
+
+    const collisionFamily = colorAttribute?.colorFamilies?.find((item) =>
+      item.variants.some((variant) => exactNamePattern.test(variant.name))
+    );
+    if (collisionFamily) {
+      throw new Error(`גוון "${name}" כבר קיים במשפחת "${collisionFamily.displayName}"`);
+    }
+
+    throw new Error('לא ניתן היה להוסיף את הגוון. יש לרענן ולנסות שוב');
   }
 
   await refreshColorFamiliesCache();
@@ -389,12 +405,19 @@ export const updateColorVariant = async (
     throw new Error('Color family or variant was not found');
   }
 
-  if (nextName && nextName.toLocaleLowerCase() !== targetVariant.name.toLocaleLowerCase()) {
-    const duplicate = targetFamily.variants.some(
-      (item) => item.name.toLocaleLowerCase() === nextName.toLocaleLowerCase()
+  const isRenaming = Boolean(
+    nextName && nextName.toLocaleLowerCase() !== targetVariant.name.toLocaleLowerCase()
+  );
+  const nextNamePattern = isRenaming && nextName
+    ? new RegExp(`^${nextName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+    : null;
+
+  if (nextNamePattern) {
+    const collisionFamily = colorAttribute?.colorFamilies?.find((item) =>
+      item.variants.some((variant) => nextNamePattern.test(variant.name))
     );
-    if (duplicate) {
-      throw new Error('A shade with this name already exists in the selected color family');
+    if (collisionFamily) {
+      throw new Error(`גוון "${nextName}" כבר קיים במשפחת "${collisionFamily.displayName}"`);
     }
   }
 
@@ -411,7 +434,28 @@ export const updateColorVariant = async (
   if (Object.keys(setOps).length === 0) return;
 
   const result = await FilterAttribute.updateOne(
-    { key: 'color' },
+    {
+      key: 'color',
+      colorFamilies: {
+        $elemMatch: {
+          family,
+          'variants.name': variantName,
+        },
+      },
+      ...(nextNamePattern
+        ? {
+            $nor: [
+              {
+                colorFamilies: {
+                  $elemMatch: {
+                    variants: { $elemMatch: { name: nextNamePattern } },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    },
     { $set: setOps },
     {
       arrayFilters: [
@@ -422,6 +466,17 @@ export const updateColorVariant = async (
   );
 
   if (result.matchedCount === 0) {
+    const currentAttribute = await FilterAttribute.findOne({ key: 'color' }).lean();
+    const collisionFamily = nextNamePattern
+      ? currentAttribute?.colorFamilies?.find((item) =>
+          item.variants.some((variant) => nextNamePattern.test(variant.name))
+        )
+      : undefined;
+
+    if (collisionFamily) {
+      throw new Error(`גוון "${nextName}" כבר קיים במשפחת "${collisionFamily.displayName}"`);
+    }
+
     throw new Error(`גוון "${variantName}" לא נמצא במשפחת "${family}"`);
   }
 

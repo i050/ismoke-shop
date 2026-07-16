@@ -131,8 +131,10 @@
 
 /* קונטיינר ערכים */
 .valuesContainer {
-  max-height: 300px;
+  max-height: min(65vh, 640px);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid var(--border-color, #e0e0e0);
   border-radius: 6px;
   background-color: var(--bg-primary, #fff);
@@ -201,9 +203,211 @@
 .colorVariants {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   gap: 8px;
   padding: 8px 12px 12px 32px;
   background-color: var(--bg-secondary, #fafafa);
+}
+
+/* הוספת גוון מתוך יצירה/עריכת מוצר */
+.shadeCreationArea {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 4px;
+}
+
+.addShadeButton {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px dashed var(--primary-color, #1976d2);
+  border-radius: 8px;
+  background-color: var(--primary-bg, #e3f2fd);
+  color: var(--primary-dark, #1565c0);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.addShadeButton:hover:not(:disabled) {
+  border-color: var(--primary-dark, #1565c0);
+  background-color: #d7ecff;
+  box-shadow: 0 2px 5px rgba(25, 118, 210, 0.14);
+}
+
+.addShadeButton:focus-visible,
+.saveShadeButton:focus-visible,
+.cancelShadeButton:focus-visible,
+.shadeInput:focus-visible,
+.shadeColorInput:focus-visible {
+  outline: 2px solid var(--primary-color, #1976d2);
+  outline-offset: 2px;
+}
+
+.addShadeButton:disabled,
+.saveShadeButton:disabled,
+.cancelShadeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.newShadeForm {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(210px, 0.8fr);
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--primary-color, #1976d2);
+  border-radius: 9px;
+  background-color: var(--bg-primary, #fff);
+  box-shadow: 0 2px 7px rgba(25, 118, 210, 0.12);
+}
+
+.newShadeFormHeader,
+.shadePersistenceNote,
+.shadeError,
+.shadeFormActions {
+  grid-column: 1 / -1;
+}
+
+.newShadeFormHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary, #212121);
+  font-size: 14px;
+}
+
+.shadeField {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary, #616161);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.shadeInput {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-color, #d6d6d6);
+  border-radius: 6px;
+  background-color: var(--bg-primary, #fff);
+  color: var(--text-primary, #212121);
+  font: inherit;
+  font-size: 14px;
+}
+
+.shadeHexControls {
+  display: grid;
+  grid-template-columns: 46px minmax(100px, 1fr);
+  gap: 8px;
+}
+
+.shadeColorInput {
+  width: 46px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--border-color, #d6d6d6);
+  border-radius: 6px;
+  background-color: var(--bg-primary, #fff);
+  cursor: pointer;
+}
+
+.shadeHexInput {
+  direction: ltr;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.shadePersistenceNote {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 6px;
+  background-color: #fff8e1;
+  color: #6d4c00;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.shadeError,
+.shadeSuccess {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.shadeError {
+  border: 1px solid #ffcdd2;
+  background-color: #ffebee;
+  color: var(--error-color, #c62828);
+}
+
+.shadeSuccess {
+  border: 1px solid #a5d6a7;
+  background-color: #e8f5e9;
+  color: #1b5e20;
+}
+
+.shadeError svg,
+.shadeSuccess svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.shadeFormActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.saveShadeButton,
+.cancelShadeButton {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.saveShadeButton {
+  border: 1px solid var(--primary-color, #1976d2);
+  background-color: var(--primary-color, #1976d2);
+  color: #fff;
+}
+
+.saveShadeButton:hover:not(:disabled) {
+  background-color: var(--primary-dark, #1565c0);
+}
+
+.cancelShadeButton {
+  border: 1px solid var(--border-color, #d6d6d6);
+  background-color: var(--bg-primary, #fff);
+  color: var(--text-secondary, #616161);
+}
+
+.cancelShadeButton:hover:not(:disabled) {
+  background-color: var(--bg-hover, #f5f5f5);
 }
 
 /* Swatch צבע */
@@ -396,6 +600,35 @@
   }
 }
 
+@media (max-width: 640px) {
+  .container {
+    padding: 12px;
+  }
+
+  .valuesContainer {
+    max-height: min(60vh, 520px);
+  }
+
+  .colorVariants {
+    padding: 8px 10px 12px;
+  }
+
+  .newShadeForm {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .shadeFormActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .saveShadeButton,
+  .cancelShadeButton {
+    width: 100%;
+  }
+}
+
 /* RTL תמיכה */
 [dir="rtl"] .expandIcon {
   transform: scaleX(-1);
@@ -403,4 +636,10 @@
 
 [dir="rtl"] .colorVariants {
   padding: 8px 32px 12px 12px;
+}
+
+@media (max-width: 640px) {
+  [dir="rtl"] .colorVariants {
+    padding: 8px 10px 12px;
+  }
 }
