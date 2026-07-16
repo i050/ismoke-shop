@@ -22,14 +22,25 @@ const parseErrorResponse = async (response: Response): Promise<string> => {
 /**
  * ממשק משפחת צבעים - Color Family
  */
+export interface ColorVariant {
+  name: string;
+  displayName?: string;
+  hex: string;
+}
+
 export interface ColorFamily {
   family: string;
   displayName: string;
-  variants: Array<{
-    name: string;
-    displayName?: string;  // שם תצוגה בעברית (אם לא קיים - ישתמש ב-name)
-    hex: string;
-  }>;
+  variants: ColorVariant[];
+}
+
+/**
+ * משפחת צבע כפי שהיא מוחזרת למסכי הניהול.
+ * representativeHex נשמר לתאימות עם הצרכנים הוותיקים, והגוונים מאפשרים
+ * בחירה והוספה ישירות מתוך עריכת מוצר.
+ */
+export interface AdminColorFamily extends ColorFamily {
+  representativeHex: string;
 }
 
 /**
@@ -166,14 +177,9 @@ export class FilterAttributeService {
   }
 
   /**
-   * 🆕 קבלת משפחות צבעים בלבד (ללא variants) - לממשק ניהול
-   * מחזיר רשימה פשוטה של משפחות עם HEX ייצוגי
+   * קבלת משפחות הצבע והגוונים שלהן לממשקי הניהול.
    */
-  static async getColorFamiliesForAdmin(): Promise<Array<{
-    family: string;
-    displayName: string;
-    representativeHex: string;
-  }>> {
+  static async getColorFamiliesForAdmin(): Promise<AdminColorFamily[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/filter-attributes/color-families`, {
         method: 'GET',
@@ -187,12 +193,13 @@ export class FilterAttributeService {
         throw new ApiError(response.status, message);
       }
 
-      const result: ApiResponse<Array<{
-        family: string;
-        displayName: string;
-        representativeHex: string;
-      }>> = await response.json();
-      return result.data;
+      const result: ApiResponse<AdminColorFamily[]> = await response.json();
+
+      // תאימות לאחור מול שרת ישן שהחזיר רק את פרטי המשפחה.
+      return result.data.map((family) => ({
+        ...family,
+        variants: Array.isArray(family.variants) ? family.variants : [],
+      }));
     } catch (error) {
       console.error('❌ Error fetching color families for admin:', error);
       throw error;
