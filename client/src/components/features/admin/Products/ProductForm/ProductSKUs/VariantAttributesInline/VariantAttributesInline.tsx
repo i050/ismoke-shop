@@ -10,7 +10,7 @@
  * 5. כפתור "המשך לבחירת שילובים"
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { FilterAttributeService, type FilterAttribute } from '../../../../../../../services/filterAttributeService';
 import FilterAttributeValueSelector, { type SelectedValue } from '../FilterAttributeValueSelector';
 import { Icon } from '../../../../../../ui/Icon';
@@ -40,6 +40,8 @@ export interface VariantAttributesInlineProps {
   onContinue?: () => void;
   /** האם להציג כפתור המשך - ברירת מחדל true */
   showContinueButton?: boolean;
+  /** מעדכן את טופס המוצר בזמן שמירת גוון חדש */
+  onColorVariantCreationBusyChange?: (isBusy: boolean) => void;
   /** 🆕 callback כאשר המשתמש מבקש להסיר ערך נעול (קיים במוצר) */
   onDisabledValueRemoveRequest?: (value: SelectedValue, attributeKey: string) => void;
 }
@@ -54,6 +56,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
   disabled = false,
   onContinue,
   showContinueButton = true,
+  onColorVariantCreationBusyChange,
   onDisabledValueRemoveRequest, // 🆕 callback להסרת ערך נעול
 }) => {
   // ===== State לטעינת מאפיינים =====
@@ -67,12 +70,26 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
   // ===== State למאפיינים מורחבים (פתוחים לבחירת ערכים) =====
   const [expandedAttributes, setExpandedAttributes] = useState<Set<string>>(new Set());
 
+  // נעילה קצרה של כל בחירת המאפיינים בזמן שגוון חדש נשמר בשרת
+  const [isCreatingColorVariant, setIsCreatingColorVariant] = useState(false);
+  const selectedAttributesRef = useRef(selectedAttributes);
+  selectedAttributesRef.current = selectedAttributes;
+
+  const interactionsDisabled = disabled || isCreatingColorVariant;
+
+  const handleColorVariantCreationBusyChange = useCallback((isBusy: boolean) => {
+    setIsCreatingColorVariant(isBusy);
+    onColorVariantCreationBusyChange?.(isBusy);
+  }, [onColorVariantCreationBusyChange]);
+
   // ===== פתיחה אוטומטית של מאפיינים שכבר נבחרו (למשל בעת הוספת וריאנטים למוצר קיים) =====
   useEffect(() => {
     if (selectedAttributes.length > 0) {
       const keysToExpand = selectedAttributes.map(sa => sa.attribute.key);
       setExpandedAttributes(new Set(keysToExpand));
     }
+    // תלות במערך המלא תפתח מחדש כרטיס שהמנהל סגר בכל שינוי של ערך.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAttributes.length]); // רק כשמספר המאפיינים משתנה
 
   // ===== טעינת כל המאפיינים מהשרת =====
@@ -105,7 +122,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
     const hasLockedAttributes = lockedAttributeKeys.length > 0;
     
     // אם יש מאפיינים נעולים - הצג רק אותם! (לא את כל המאפיינים)
-    let attributesToShow = hasLockedAttributes
+    const attributesToShow = hasLockedAttributes
       ? allAttributes.filter(attr => lockedAttributeKeys.includes(attr.key))
       : allAttributes;
     
@@ -131,7 +148,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
 
   // ===== טיפול בבחירת/ביטול מאפיין =====
   const handleAttributeToggle = useCallback((attribute: FilterAttribute) => {
-    if (disabled) return;
+    if (interactionsDisabled) return;
 
     const isSelected = isAttributeSelected(attribute.key);
 
@@ -182,21 +199,24 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
       // פתח את ה-expand
       setExpandedAttributes(prev => new Set([...prev, attribute.key]));
     }
-  }, [disabled, isAttributeSelected, getSelectedAttribute, selectedAttributes, onChange]);
+  }, [interactionsDisabled, isAttributeSelected, getSelectedAttribute, selectedAttributes, onChange]);
 
   // ===== טיפול בשינוי ערכים נבחרים של מאפיין =====
   const handleValuesChange = useCallback((attrKey: string, values: SelectedValue[]) => {
-    const updated = selectedAttributes.map(sa => {
+    const updated = selectedAttributesRef.current.map(sa => {
       if (sa.attribute.key === attrKey) {
         return { ...sa, selectedValues: values };
       }
       return sa;
     });
+    selectedAttributesRef.current = updated;
     onChange(updated);
-  }, [selectedAttributes, onChange]);
+  }, [onChange]);
 
   // ===== פתיחה/סגירה של מאפיין =====
   const toggleExpand = useCallback((attrKey: string) => {
+    if (interactionsDisabled) return;
+
     setExpandedAttributes(prev => {
       const newSet = new Set(prev);
       if (newSet.has(attrKey)) {
@@ -206,7 +226,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
       }
       return newSet;
     });
-  }, []);
+  }, [interactionsDisabled]);
 
   // ===== חישוב סטטיסטיקות =====
   const stats = useMemo(() => {
@@ -301,7 +321,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
                       type="button"
                       className={styles.removeTag}
                       onClick={() => handleAttributeToggle(sa.attribute)}
-                      disabled={disabled}
+                      disabled={interactionsDisabled}
                     >
                       <Icon name="X" size={12} />
                     </button>
@@ -324,14 +344,14 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
           placeholder="חפש מאפיינים: מידה, צבע, חומר..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          disabled={disabled}
+          disabled={interactionsDisabled}
         />
         {searchQuery && (
           <button
             type="button"
             className={styles.clearSearch}
             onClick={() => setSearchQuery('')}
-            disabled={disabled}
+            disabled={interactionsDisabled}
           >
             <Icon name="X" size={14} />
           </button>
@@ -377,7 +397,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleAttributeToggle(attr)}
-                      disabled={disabled || isDisabledForSelection || isLockedAttribute}
+                      disabled={interactionsDisabled || isDisabledForSelection || isLockedAttribute}
                       className={styles.checkbox}
                     />
                     <span className={styles.attributeIcon}>
@@ -405,7 +425,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
                       type="button"
                       className={styles.expandButton}
                       onClick={() => toggleExpand(attr.key)}
-                      disabled={disabled}
+                      disabled={interactionsDisabled}
                     >
                       <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={18} />
                     </button>
@@ -433,7 +453,13 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
                       onChange={(values) => handleValuesChange(attr.key, values)}
                       showColorSwatches={attr.valueType === 'color'}
                       showSearch={true}
-                      disabled={disabled}
+                      disabled={interactionsDisabled}
+                      allowColorVariantCreation={attr.valueType === 'color'}
+                      onColorVariantCreationBusyChange={
+                        attr.valueType === 'color'
+                          ? handleColorVariantCreationBusyChange
+                          : undefined
+                      }
                       onDisabledValueRemoveRequest={
                         onDisabledValueRemoveRequest 
                           ? (value) => onDisabledValueRemoveRequest(value, attr.key)
@@ -466,7 +492,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
             type="button"
             className={styles.continueButton}
             onClick={onContinue}
-            disabled={disabled || !stats.canContinue}
+            disabled={interactionsDisabled || !stats.canContinue}
           >
             <span>המשך לבחירת שילובים</span>
             <Icon name="ChevronLeft" size={18} />

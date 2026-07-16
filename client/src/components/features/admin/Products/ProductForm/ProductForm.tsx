@@ -78,10 +78,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   
   const confirm = useConfirm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreatingColorVariant, setIsCreatingColorVariant] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeSection, setActiveSection] = useState<'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'specifications' | 'skus' | 'colorFamilyImages' | 'seo' | 'marketing'>(initialActiveTab);
   const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState<number>(5);
+  const isFormBusy = isSubmitting || isCreatingColorVariant;
   
   // 🆕 hasVariants עכשיו state פנימי - נקבע מ-initialData במצב edit, או ע"י המשתמש במצב create
   const [hasVariants, setHasVariants] = useState<boolean>(initialData?.hasVariants ?? false);
@@ -477,6 +479,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
    * טיפול בשליחת הטופס
    */
   const handleFormSubmit = async (data: ProductFormData) => {
+    if (isFormBusy) return;
+
     // לוג מופחת - רק במצב פיתוח
     if (process.env.NODE_ENV === 'development') {
       console.log('🚀 [ProductForm] handleFormSubmit', { mode, skusCount: data.skus?.length });
@@ -572,6 +576,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
    * טיפול בביטול הטופס
    */
   const handleCancelClick = () => {
+    if (isFormBusy) return;
+
     if (isFormDirty) {
       setShowCancelConfirm(true);
     } else {
@@ -580,6 +586,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const handleCancelConfirm = () => {
+    if (isFormBusy) return;
+
     // ניקוי draft
     if (mode === 'create') {
       localStorage.removeItem('productFormDraft');
@@ -593,11 +601,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
    * טיפול במחיקת מוצר
    */
   const handleDeleteClick = () => {
+    if (isFormBusy) return;
     setShowDeleteConfirm(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!onDelete) return;
+    if (!onDelete || isFormBusy) return;
     
     setIsSubmitting(true);
     setShowDeleteConfirm(false);
@@ -615,7 +624,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
    * טיפול בשכפול מוצר
    */
   const handleDuplicateClick = async () => {
-    if (!onDuplicate) return;
+    if (!onDuplicate || isFormBusy) return;
     
     setIsSubmitting(true);
     
@@ -758,6 +767,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             iconPosition="left"
             aria-label="חזרה לרשימת המוצרים"
             onClick={handleCancelClick}
+            disabled={isFormBusy}
           >
             חזרה לרשימת המוצרים
           </Button>
@@ -968,7 +978,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               // Fix in Phase 7 refactoring
               errors={errors as any}
               onChange={(field, value) => setValueWithDirty(field, value)}
-              disabled={isSubmitting}
+              disabled={isFormBusy}
             />
             
             {/* 🆕 שאלה "האם למוצר יש גירסאות?" - בתוך הטופס במקום בדיאלוג */}
@@ -992,7 +1002,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                         // 🔧 FIX: סנכרון hasVariants עם הטופס ל-validation נכון
                         setValue('hasVariants', false, { shouldValidate: true });
                       }}
-                      disabled={isSubmitting}
+                      disabled={isFormBusy}
                     />
                     <div className={styles.variantOptionContent}>
                       <Icon name="Package" size={24} />
@@ -1021,7 +1031,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                         );
                         setValueWithDirty('skus', realSkus);
                       }}
-                      disabled={isSubmitting}
+                      disabled={isFormBusy}
                     />
                     <div className={styles.variantOptionContent}>
                       <Icon name="Palette" size={24} />
@@ -1048,7 +1058,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               }}
               errors={errors as any}
               onChange={(field, value) => setValueWithDirty(field, value)}
-              disabled={isSubmitting}
+              disabled={isFormBusy}
             />
           </div>
 
@@ -1066,7 +1076,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 onChange={(field, value) => setValueWithDirty(field as any, value)}
                 onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
                 productId={initialData?._id || null}
-                disabled={isSubmitting}
+                disabled={isFormBusy}
                 isSimpleProduct={true}
               />
             </div>
@@ -1109,7 +1119,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               }}
               errors={errors as any}
               onChange={(field, value) => setValueWithDirty(field, value)}
-              disabled={isSubmitting}
+              disabled={isFormBusy}
             />
           </div>
 
@@ -1120,7 +1130,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <ProductFilterAttributes
                 skus={formValues.skus || []}
                 onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
-                disabled={isSubmitting}
+                disabled={isFormBusy}
                 isSimpleProduct={true}
               />
             </div>
@@ -1132,7 +1142,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               specifications={formValues.specifications || []}
               onChange={(specs) => setValueWithDirty('specifications', specs)}
               categoryId={formValues.categoryId}
-              disabled={isSubmitting}
+              disabled={isFormBusy}
               errors={errors as any}
             />
           </div>
@@ -1150,6 +1160,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   mode={mode}
                   onUploadImages={handleSKUImagesUpload}
                   onDraftColorsChange={setDraftVariantColors}
+                  onColorVariantCreationBusyChange={setIsCreatingColorVariant}
                   productFormData={{
                     name: formValues.name,
                     basePrice: formValues.basePrice,
@@ -1180,7 +1191,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   draftColors={draftVariantColors}
                   onUpload={(files: File[]) => handleSKUImagesUpload(files, '__COLOR_IMAGES__') as unknown as Promise<any>}
                   maxImagesPerFamily={10}
-                  disabled={isSubmitting}
+                  disabled={isFormBusy}
                   activeFamilies={(formValues.skus || []).map(sku => sku.colorFamily).filter((f): f is string => !!f)}
                   // 🆕 נתוני ה-SKUs לשליפת מידע על הצבעים
                   skus={formValues.skus || []}
@@ -1200,7 +1211,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   onChange={(field, value) => setValueWithDirty(field as any, value)}
                   onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
                   productId={initialData?._id || null}
-                  disabled={isSubmitting}
+                  disabled={isFormBusy}
                   isSimpleProduct={false}
                 />
               </div>
@@ -1212,7 +1223,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 <ProductFilterAttributes
                   skus={formValues.skus || []}
                   onSkusChange={(updatedSkus) => setValueWithDirty('skus', updatedSkus)}
-                  disabled={isSubmitting}
+                  disabled={isFormBusy}
                   isSimpleProduct={false}
                 />
               </div>
@@ -1229,7 +1240,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               slug={formValues.slug || ''}
               productName={formValues.name || ''}
               onChange={(field, value) => setValueWithDirty(field as any, value)}
-              disabled={isSubmitting}
+              disabled={isFormBusy}
             />
           </div>
           */}
@@ -1243,7 +1254,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               isBestSeller={formValues.isBestSeller || false}
               promotionTags={(formValues.promotionTags || []).filter((t): t is string => !!t)}
               onChange={(field, value) => setValueWithDirty(field as any, value)}
-              disabled={isSubmitting}
+              disabled={isFormBusy}
             />
           </div>
           */}
@@ -1262,7 +1273,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         )}
         <ProductFormActions
           mode={mode}
-          isSubmitting={isSubmitting}
+          isSubmitting={isFormBusy}
           isDirty={isFormDirty}
           isValid={isValid}
           validationErrors={{

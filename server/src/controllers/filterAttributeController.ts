@@ -268,7 +268,11 @@ export const updateColorVariant = async (req: Request, res: Response) => {
     res.json({ success: true, message: 'הגוון עודכן בהצלחה' });
   } catch (error: any) {
     console.error('❌ Error in updateColorVariant:', error);
-    const status = error.message.includes('לא נמצא') ? 404 : 400;
+    const status = error.message.includes('לא נמצא')
+      ? 404
+      : error.message.includes('כבר קיים')
+        ? 409
+        : 400;
     res.status(status).json({ success: false, message: error.message });
   }
 };
