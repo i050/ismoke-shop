@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../../../hooks/reduxHooks';
 import { useToast } from '../../../hooks/useToast';
 import { useConfirm } from '../../../hooks/useConfirm';
@@ -34,6 +34,7 @@ import styles from './ProductsManagementPage.module.css';
 
 // ברירת מחדל לגודל דף ברשימות ניהול (מניעת טעינת מאות פריטים בבת אחת)
 const DEFAULT_ADMIN_PAGE_LIMIT = 50;
+const ADMIN_MAIN_SCROLL_SELECTOR = '[data-scroll-container="admin-main"]';
 import { useLocation } from 'react-router-dom';
 
 /**
@@ -53,6 +54,7 @@ const ProductsManagementPage: React.FC = () => {
   const [initialActiveTab, setInitialActiveTab] = useState<'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'skus'>('basic');
   const [deepLinkProductId, setDeepLinkProductId] = useState<string | null>(null);
   const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState<number>(5);
+  const listScrollTopRef = useRef<number | null>(null);
   
   // 🆕 הבחירה "יש גרסאות?" עברה לתוך הטופס - אין צורך ב-state כאן
   
@@ -85,6 +87,23 @@ const ProductsManagementPage: React.FC = () => {
     editingProduct,
     viewMode,
   } = useAppSelector((state) => state.productsManagement);
+
+  // The list and form share the same admin scroll container. Reset the new form
+  // before paint, then restore the list position when leaving create mode.
+  useLayoutEffect(() => {
+    const adminMain = document.querySelector<HTMLElement>(ADMIN_MAIN_SCROLL_SELECTOR);
+    if (!adminMain) return;
+
+    if (mode === 'create') {
+      adminMain.scrollTop = 0;
+      return;
+    }
+
+    if (mode === 'list' && listScrollTopRef.current !== null) {
+      adminMain.scrollTop = listScrollTopRef.current;
+      listScrollTopRef.current = null;
+    }
+  }, [mode]);
 
   // Phase 7: האם אנחנו בתצוגת מוצרים נמחקים
   const isDeletedView = viewMode === 'deleted';
@@ -168,6 +187,8 @@ const ProductsManagementPage: React.FC = () => {
 
   // פונקציה להוספת מוצר - עוברת ישירות ליצירה (הבחירה "יש גרסאות?" בתוך הטופס)
   const handleAddProduct = () => {
+    const adminMain = document.querySelector<HTMLElement>(ADMIN_MAIN_SCROLL_SELECTOR);
+    listScrollTopRef.current = adminMain?.scrollTop ?? null;
     dispatch(setModeCreate());
   };
 
