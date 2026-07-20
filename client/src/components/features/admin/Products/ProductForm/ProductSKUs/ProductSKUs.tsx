@@ -143,8 +143,8 @@ interface ProductSKUsProps {
 
   /** 🆕 חשיפת צבעים שנבחרו בזרימת הוריאנטים (לפני יצירת SKUs) */
   onDraftColorsChange?: (colors: Array<{ color: string; colorHex?: string; colorFamily?: string }>) => void;
-  /** נעילת פעולות טופס המוצר בזמן שגוון חדש נשמר */
-  onColorVariantCreationBusyChange?: (isBusy: boolean) => void;
+  /** נעילת פעולות טופס המוצר בזמן שינוי בספריית מאפיינים גלובלית */
+  onAttributeLibraryMutationBusyChange?: (isBusy: boolean) => void;
 }
 
 /**
@@ -161,7 +161,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   onUploadImages,
   productFormData, // 🆕 נתונים מהטופס הראשי
   onDraftColorsChange,
-  onColorVariantCreationBusyChange,
+  onAttributeLibraryMutationBusyChange,
   // 🆕 הוספת callbacks לשמירת שמות הצירים
   primaryVariantLabel, // ✅ הוספת ערך ציר ראשי
   onPrimaryVariantLabelChange,
@@ -186,16 +186,16 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
   // State למודאל הוספה
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const [isCreatingColorVariant, setIsCreatingColorVariant] = useState(false);
+  const [isMutatingAttributeLibrary, setIsMutatingAttributeLibrary] = useState(false);
 
-  const handleColorVariantCreationBusyChange = useCallback((isBusy: boolean) => {
-    setIsCreatingColorVariant(isBusy);
-    onColorVariantCreationBusyChange?.(isBusy);
-  }, [onColorVariantCreationBusyChange]);
+  const handleAttributeLibraryMutationBusyChange = useCallback((isBusy: boolean) => {
+    setIsMutatingAttributeLibrary(isBusy);
+    onAttributeLibraryMutationBusyChange?.(isBusy);
+  }, [onAttributeLibraryMutationBusyChange]);
 
   useEffect(() => () => {
-    onColorVariantCreationBusyChange?.(false);
-  }, [onColorVariantCreationBusyChange]);
+    onAttributeLibraryMutationBusyChange?.(false);
+  }, [onAttributeLibraryMutationBusyChange]);
 
   // State למחיקה
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
@@ -1675,17 +1675,16 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
           ============================================================================ */}
       {variantFlowStep === 'create' && (
         <fieldset
-          className={`${styles.createFlow} ${isCreatingColorVariant ? styles.createFlowBusy : ''}`}
-          aria-busy={isCreatingColorVariant}
-          disabled={isCreatingColorVariant}
-          inert={isCreatingColorVariant}
+          className={`${styles.createFlow} ${isMutatingAttributeLibrary ? styles.createFlowBusy : ''}`}
+          aria-busy={isMutatingAttributeLibrary}
+          disabled={isMutatingAttributeLibrary}
         >
           {/* בחירת מאפיינים וערכים */}
           <VariantAttributesInline
             selectedAttributes={selectedVariantAttributes}
             onChange={handleAttributesChange}
             showContinueButton={false}
-            onColorVariantCreationBusyChange={handleColorVariantCreationBusyChange}
+            onAttributeLibraryMutationBusyChange={handleAttributeLibraryMutationBusyChange}
             onDisabledValueRemoveRequest={handleDisabledValueRemoveRequest}
           />
 
@@ -1735,7 +1734,7 @@ const ProductSKUs: React.FC<ProductSKUsProps> = ({
                 type="button"
                 className={styles.secondaryButton}
                 onClick={() => setVariantFlowStep('manage')}
-                disabled={isCreatingColorVariant}
+                disabled={isMutatingAttributeLibrary}
               >
                 <Icon name="ChevronRight" size={16} />
                 חזרה לניהול וריאנטים קיימים

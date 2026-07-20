@@ -40,8 +40,8 @@ export interface VariantAttributesInlineProps {
   onContinue?: () => void;
   /** האם להציג כפתור המשך - ברירת מחדל true */
   showContinueButton?: boolean;
-  /** מעדכן את טופס המוצר בזמן שמירת גוון חדש */
-  onColorVariantCreationBusyChange?: (isBusy: boolean) => void;
+  /** מעדכן את טופס המוצר בזמן שינוי בספריית מאפיינים גלובלית */
+  onAttributeLibraryMutationBusyChange?: (isBusy: boolean) => void;
   /** 🆕 callback כאשר המשתמש מבקש להסיר ערך נעול (קיים במוצר) */
   onDisabledValueRemoveRequest?: (value: SelectedValue, attributeKey: string) => void;
 }
@@ -56,7 +56,7 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
   disabled = false,
   onContinue,
   showContinueButton = true,
-  onColorVariantCreationBusyChange,
+  onAttributeLibraryMutationBusyChange,
   onDisabledValueRemoveRequest, // 🆕 callback להסרת ערך נעול
 }) => {
   // ===== State לטעינת מאפיינים =====
@@ -70,17 +70,29 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
   // ===== State למאפיינים מורחבים (פתוחים לבחירת ערכים) =====
   const [expandedAttributes, setExpandedAttributes] = useState<Set<string>>(new Set());
 
-  // נעילה קצרה של כל בחירת המאפיינים בזמן שגוון חדש נשמר בשרת
-  const [isCreatingColorVariant, setIsCreatingColorVariant] = useState(false);
+  // נעילה קצרה של כל בחירת המאפיינים בזמן שהספרייה הגלובלית מתעדכנת
+  const [isMutatingAttributeLibrary, setIsMutatingAttributeLibrary] = useState(false);
+  const activeAttributeMutationsRef = useRef<Set<string>>(new Set());
   const selectedAttributesRef = useRef(selectedAttributes);
   selectedAttributesRef.current = selectedAttributes;
 
-  const interactionsDisabled = disabled || isCreatingColorVariant;
+  const interactionsDisabled = disabled || isMutatingAttributeLibrary;
 
-  const handleColorVariantCreationBusyChange = useCallback((isBusy: boolean) => {
-    setIsCreatingColorVariant(isBusy);
-    onColorVariantCreationBusyChange?.(isBusy);
-  }, [onColorVariantCreationBusyChange]);
+  const handleAttributeLibraryMutationBusyChange = useCallback((
+    attributeKey: string,
+    isBusy: boolean
+  ) => {
+    const activeMutations = activeAttributeMutationsRef.current;
+    if (isBusy) {
+      activeMutations.add(attributeKey);
+    } else {
+      activeMutations.delete(attributeKey);
+    }
+
+    const hasActiveMutation = activeMutations.size > 0;
+    setIsMutatingAttributeLibrary(hasActiveMutation);
+    onAttributeLibraryMutationBusyChange?.(hasActiveMutation);
+  }, [onAttributeLibraryMutationBusyChange]);
 
   // ===== פתיחה אוטומטית של מאפיינים שכבר נבחרו (למשל בעת הוספת וריאנטים למוצר קיים) =====
   useEffect(() => {
@@ -426,6 +438,9 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
                       className={styles.expandButton}
                       onClick={() => toggleExpand(attr.key)}
                       disabled={interactionsDisabled}
+                      aria-expanded={isExpanded}
+                      aria-controls={`attribute-values-${attr.key}`}
+                      aria-label={`${isExpanded ? 'סגור' : 'פתח'} ערכים עבור ${attr.name}`}
                     >
                       <Icon name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={18} />
                     </button>
@@ -446,7 +461,10 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
 
                 {/* בחירת ערכים (כשפתוח) */}
                 {isSelected && isExpanded && (
-                  <div className={styles.valuesSection}>
+                  <div
+                    id={`attribute-values-${attr.key}`}
+                    className={styles.valuesSection}
+                  >
                     <FilterAttributeValueSelector
                       attributeKey={attr.key}
                       selectedValues={selectedAttr?.selectedValues || []}
@@ -455,10 +473,9 @@ const VariantAttributesInline: React.FC<VariantAttributesInlineProps> = ({
                       showSearch={true}
                       disabled={interactionsDisabled}
                       allowColorVariantCreation={attr.valueType === 'color'}
-                      onColorVariantCreationBusyChange={
-                        attr.valueType === 'color'
-                          ? handleColorVariantCreationBusyChange
-                          : undefined
+                      allowAttributeValueCreation={attr.valueType !== 'color'}
+                      onAttributeLibraryMutationBusyChange={(isBusy) =>
+                        handleAttributeLibraryMutationBusyChange(attr.key, isBusy)
                       }
                       onDisabledValueRemoveRequest={
                         onDisabledValueRemoveRequest 

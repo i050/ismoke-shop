@@ -39,4 +39,26 @@ describe('reconcileSelectedCombinations', () => {
       ])
     ).toEqual([{ primary: 'Blue', secondary: '' }]);
   });
+
+  it('selects a newly added text value without restoring a value the manager deselected', () => {
+    const previousAttributes = [{
+      selectedValues: [{ value: 'cotton' }, { value: 'wool' }],
+    }];
+    const nextAttributes = [{
+      selectedValues: [
+        { value: 'cotton' },
+        { value: 'wool' },
+        { value: 'linen' },
+      ],
+    }];
+
+    expect(
+      reconcileSelectedCombinations(previousAttributes, nextAttributes, [
+        { primary: 'cotton', secondary: '' },
+      ])
+    ).toEqual([
+      { primary: 'cotton', secondary: '' },
+      { primary: 'linen', secondary: '' },
+    ]);
+  });
 });

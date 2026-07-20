@@ -24,7 +24,14 @@ const shouldInvalidateAttributesCache = (updates?: Record<string, any>): boolean
   }
 
   const keys = Object.keys(updates);
-  const criticalFields = ['color', 'colorFamily', 'attributes', 'isActive'];
+  const criticalFields = [
+    'color',
+    'colorFamily',
+    'attributes',
+    'variantName',
+    'subVariantName',
+    'isActive',
+  ];
 
   return keys.some((key) => criticalFields.includes(key) || key.startsWith('attributes.'));
 };
