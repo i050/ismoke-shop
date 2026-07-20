@@ -40,6 +40,10 @@ export interface AttributeValue {
   displayName: string;
 }
 
+export interface AttributeValueMutationResult extends AttributeValue {
+  created: boolean;
+}
+
 /**
  * ממשק מאפיין סינון גלובלי
  */
@@ -240,7 +244,8 @@ export class FilterAttributeService {
    */
   static async updateAttribute(
     id: string,
-    data: Partial<FilterAttribute>
+    data: Partial<FilterAttribute>,
+    expectedUpdatedAt?: string
   ): Promise<FilterAttribute> {
     try {
       const token = getToken();
@@ -254,7 +259,10 @@ export class FilterAttributeService {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          ...(expectedUpdatedAt ? { expectedUpdatedAt } : {}),
+        }),
       });
 
       if (!response.ok) {
@@ -266,6 +274,45 @@ export class FilterAttributeService {
       return result.data;
     } catch (error) {
       console.error('❌ Error updating filter attribute:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * הוספת ערך טקסט/מספר למאפיין מתוך טופס מוצר.
+   * השרת מחזיר ערך קיים באופן idempotent אם כבר קיימת התאמה.
+   */
+  static async addAttributeValue(
+    id: string,
+    displayName: string
+  ): Promise<AttributeValueMutationResult> {
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new ApiError(401, 'לא נמצא טוקן אימות');
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/filter-attributes/${encodeURIComponent(id)}/values`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ displayName }),
+        }
+      );
+
+      if (!response.ok) {
+        const message = await parseErrorResponse(response);
+        throw new ApiError(response.status, message);
+      }
+
+      const result: ApiResponse<AttributeValueMutationResult> = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('❌ Error adding filter attribute value:', error);
       throw error;
     }
   }

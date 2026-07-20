@@ -8,6 +8,129 @@ import { loadColorFamilies, refreshColorFamiliesCache } from '../utils/colorFami
 const attributesCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 const FILTER_ATTRIBUTES_CACHE_KEY = 'filter-attributes';
 
+type AttributeValueType = 'text' | 'number';
+type StoredAttributeValue = string | {
+  value?: unknown;
+  displayName?: unknown;
+};
+
+export interface AttributeValueMutationResult {
+  value: string;
+  displayName: string;
+  created: boolean;
+}
+
+export class AttributeValueMutationError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode: 400 | 404 | 409
+  ) {
+    super(message);
+    this.name = 'AttributeValueMutationError';
+  }
+}
+
+export class AttributeUpdateConflictError extends Error {
+  public readonly statusCode = 409;
+
+  constructor() {
+    super('המאפיין השתנה במקביל. יש לסגור את החלון, לפתוח אותו מחדש ולנסות שוב');
+    this.name = 'AttributeUpdateConflictError';
+  }
+}
+
+type AttributeUpdateInput = Partial<IFilterAttribute> & {
+  expectedUpdatedAt?: unknown;
+};
+
+const normalizeHumanText = (value: string): string =>
+  value.normalize('NFKC').trim().replace(/\s+/gu, ' ');
+
+const normalizeNumberText = (value: string): string | null => {
+  const normalizedText = normalizeHumanText(value);
+  if (!normalizedText) return null;
+
+  const decimalText = normalizedText.includes('.')
+    ? normalizedText
+    : normalizedText.replace(',', '.');
+
+  if ((decimalText.match(/\./g) || []).length > 1) return null;
+
+  const numericValue = Number(decimalText);
+  if (!Number.isFinite(numericValue) || numericValue < 0) return null;
+
+  return String(numericValue);
+};
+
+const normalizeComparableAttributeValue = (
+  value: unknown,
+  valueType: AttributeValueType
+): string | null => {
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+
+  const normalized = valueType === 'number'
+    ? normalizeNumberText(String(value))
+    : normalizeHumanText(String(value));
+
+  return normalized ? normalized.toLocaleLowerCase() : null;
+};
+
+const findStoredAttributeValue = (
+  values: unknown,
+  requestedValue: string,
+  valueType: AttributeValueType
+): Omit<AttributeValueMutationResult, 'created'> | null => {
+  if (!Array.isArray(values)) return null;
+
+  const requestedComparable = normalizeComparableAttributeValue(requestedValue, valueType);
+  if (!requestedComparable) return null;
+
+  for (const rawEntry of values as StoredAttributeValue[]) {
+    if (typeof rawEntry === 'string') {
+      if (normalizeComparableAttributeValue(rawEntry, valueType) === requestedComparable) {
+        return { value: rawEntry, displayName: rawEntry };
+      }
+      continue;
+    }
+
+    if (!rawEntry || typeof rawEntry !== 'object') continue;
+
+    const storedValue = typeof rawEntry.value === 'string'
+      ? rawEntry.value
+      : typeof rawEntry.value === 'number'
+        ? String(rawEntry.value)
+        : '';
+    const storedDisplayName = typeof rawEntry.displayName === 'string'
+      ? rawEntry.displayName
+      : typeof rawEntry.displayName === 'number'
+        ? String(rawEntry.displayName)
+        : '';
+
+    const matchesValue =
+      normalizeComparableAttributeValue(storedValue, valueType) === requestedComparable;
+    const matchesDisplayName =
+      normalizeComparableAttributeValue(storedDisplayName, valueType) === requestedComparable;
+
+    if (matchesValue || matchesDisplayName) {
+      const fallback = storedValue || storedDisplayName;
+      return {
+        value: storedValue || fallback,
+        displayName: storedDisplayName || fallback,
+      };
+    }
+  }
+
+  return null;
+};
+
+const buildEquivalentValuePattern = (value: string): RegExp => {
+  const escapedParts = value
+    .split(' ')
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+  return new RegExp(`^\\s*${escapedParts.join('\\s+')}\\s*$`, 'i');
+};
+
 /**
  * ניקוי Cache של מאפייני הסינון (משמש אחרי כל שינוי רלוונטי)
  */
@@ -104,11 +227,37 @@ export const createAttribute = async (
  */
 export const updateAttribute = async (
   id: string,
-  updates: Partial<IFilterAttribute>
+  updates: AttributeUpdateInput
 ): Promise<IFilterAttribute | null> => {
   try {
+    const {
+      expectedUpdatedAt,
+      ...requestedUpdates
+    } = updates;
+    const safeUpdates = requestedUpdates as Partial<IFilterAttribute> & Record<string, unknown>;
+
+    // These fields are server-owned and must never be accepted from a generic update payload.
+    delete safeUpdates._id;
+    delete safeUpdates.createdAt;
+    delete safeUpdates.updatedAt;
+    delete safeUpdates.__v;
+
+    const replacesValueLibrary = Object.prototype.hasOwnProperty.call(safeUpdates, 'values');
+    let expectedTimestamp: Date | null = null;
+
+    if (replacesValueLibrary) {
+      if (typeof expectedUpdatedAt !== 'string') {
+        throw new AttributeUpdateConflictError();
+      }
+
+      expectedTimestamp = new Date(expectedUpdatedAt);
+      if (Number.isNaN(expectedTimestamp.getTime())) {
+        throw new AttributeUpdateConflictError();
+      }
+    }
+
     // אם מנסים לשנות את valueType, צריך לבדוק שאין שימוש
-    if (updates.valueType) {
+    if (safeUpdates.valueType) {
       const existingAttribute = await FilterAttribute.findById(id);
       
       if (!existingAttribute) {
@@ -116,7 +265,7 @@ export const updateAttribute = async (
       }
 
       // אם valueType משתנה ויש SKUs שמשתמשים במאפיין
-      if (existingAttribute.valueType !== updates.valueType) {
+      if (existingAttribute.valueType !== safeUpdates.valueType) {
         const usageCount = await SKU.countDocuments({
           $or: [
             { [existingAttribute.key]: { $exists: true } },
@@ -135,13 +284,21 @@ export const updateAttribute = async (
       }
     }
 
-    const attribute = await FilterAttribute.findByIdAndUpdate(
-      id,
-      updates,
+    const updateFilter: Record<string, unknown> = { _id: id };
+    if (expectedTimestamp) {
+      updateFilter.updatedAt = expectedTimestamp;
+    }
+
+    const attribute = await FilterAttribute.findOneAndUpdate(
+      updateFilter,
+      safeUpdates,
       { new: true, runValidators: true }
     );
 
     if (!attribute) {
+      if (expectedTimestamp && await FilterAttribute.exists({ _id: id })) {
+        throw new AttributeUpdateConflictError();
+      }
       throw new Error('Attribute not found');
     }
 
@@ -152,6 +309,135 @@ export const updateAttribute = async (
     console.error('❌ Error updating attribute:', error);
     throw error;
   }
+};
+
+/**
+ * הוספת ערך טקסט/מספר לספריית מאפיין מתוך טופס מוצר.
+ *
+ * הפעולה idempotent ואטומית: ערך קיים מוחזר בזהות המקורית שלו, וערך חדש
+ * נוסף רק אם אין התאמה ל-value, ל-displayName או למבנה string ישן.
+ */
+export const addAttributeValue = async (
+  id: string,
+  displayName: unknown
+): Promise<AttributeValueMutationResult> => {
+  if (typeof displayName !== 'string') {
+    throw new AttributeValueMutationError('יש להזין שם לערך החדש', 400);
+  }
+
+  const humanText = normalizeHumanText(displayName);
+  if (!humanText) {
+    throw new AttributeValueMutationError('יש להזין שם לערך החדש', 400);
+  }
+
+  if (humanText.length > 50) {
+    throw new AttributeValueMutationError('שם הערך יכול להכיל עד 50 תווים', 400);
+  }
+
+  const attribute = await FilterAttribute.findById(id).lean();
+  if (!attribute) {
+    throw new AttributeValueMutationError('המאפיין לא נמצא', 404);
+  }
+
+  if (attribute.valueType === 'color') {
+    throw new AttributeValueMutationError(
+      'למאפיין צבע יש להוסיף גוון דרך משפחת הצבע המתאימה',
+      400
+    );
+  }
+
+  const valueType = attribute.valueType as AttributeValueType;
+  if (valueType === 'text' && humanText.includes(',')) {
+    throw new AttributeValueMutationError(
+      'שם הערך לא יכול להכיל פסיק, משום שפסיקים משמשים להפרדה בין ערכי סינון',
+      400
+    );
+  }
+
+  const normalizedValue = valueType === 'number'
+    ? normalizeNumberText(humanText)
+    : humanText;
+
+  if (!normalizedValue) {
+    throw new AttributeValueMutationError(
+      'יש להזין מספר תקין שאינו שלילי',
+      400
+    );
+  }
+
+  const initiallyExistingValue = findStoredAttributeValue(
+    attribute.values,
+    normalizedValue,
+    valueType
+  );
+  const equivalentPatterns = [
+    normalizedValue,
+    initiallyExistingValue?.value,
+    initiallyExistingValue?.displayName,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .map(buildEquivalentValuePattern);
+  const noEquivalentValueConditions = equivalentPatterns.flatMap((valuePattern) => [
+    { values: valuePattern },
+    { values: { $elemMatch: { value: valuePattern } } },
+    { values: { $elemMatch: { displayName: valuePattern } } },
+  ]);
+
+  const result = await FilterAttribute.updateOne(
+    {
+      _id: id,
+      valueType,
+      $nor: noEquivalentValueConditions,
+    },
+    {
+      $push: {
+        values: {
+          value: normalizedValue,
+          displayName: normalizedValue,
+        },
+      },
+    },
+    { runValidators: true }
+  );
+
+  if (result.modifiedCount === 1) {
+    clearAttributesCache();
+    console.log(`✅ Added value "${normalizedValue}" to attribute "${attribute.name}"`);
+    return {
+      value: normalizedValue,
+      displayName: normalizedValue,
+      created: true,
+    };
+  }
+
+  // בקשה אחרת עשויה הייתה להוסיף את אותו ערך בין הקריאה לעדכון.
+  // קריאה חוזרת מחזירה את הזהות שנשמרה בפועל במקום ליצור כפילות.
+  const currentAttribute = await FilterAttribute.findById(id).lean();
+  if (!currentAttribute) {
+    throw new AttributeValueMutationError('המאפיין לא נמצא', 404);
+  }
+
+  if (currentAttribute.valueType !== valueType) {
+    throw new AttributeValueMutationError(
+      'סוג המאפיין השתנה במקביל. יש לטעון אותו מחדש ולנסות שוב',
+      409
+    );
+  }
+
+  const concurrentValue = findStoredAttributeValue(
+    currentAttribute.values,
+    normalizedValue,
+    valueType
+  );
+  if (concurrentValue) {
+    return { ...concurrentValue, created: false };
+  }
+
+  throw new AttributeValueMutationError(
+    'ספריית הערכים השתנתה במקביל. יש לנסות שוב',
+    409
+  );
 };
 
 /**
@@ -657,6 +943,107 @@ const buildDynamicColorFamilies = async (): Promise<Array<{
  * קבלת מאפיינים שמוצגים בסינון (עם ספירת שימוש)
  * משתמש ב-Aggregation יחיד למניעת N+1 queries
  */
+const VARIANT_NAME_USAGE_KEY = '__variantName';
+const SUB_VARIANT_NAME_USAGE_KEY = '__subVariantName';
+
+interface AggregatedAttributeValueUsage {
+  _id: {
+    key: string;
+    value: unknown;
+  };
+  skuIds: unknown[];
+}
+
+type AttributeUsageIndex = Map<string, Map<string, Set<string>>>;
+
+/**
+ * Build a lookup of exact stored SKU values. Exact matching is deliberate:
+ * the public product query also uses MongoDB's exact `$in` matching, so a
+ * value is only advertised when selecting it can actually match a SKU.
+ */
+const buildAttributeUsageIndex = (
+  rows: AggregatedAttributeValueUsage[]
+): AttributeUsageIndex => {
+  const usageIndex: AttributeUsageIndex = new Map();
+
+  rows.forEach((row) => {
+    if (typeof row?._id?.key !== 'string' || typeof row?._id?.value !== 'string') {
+      return;
+    }
+
+    let valuesForKey = usageIndex.get(row._id.key);
+    if (!valuesForKey) {
+      valuesForKey = new Map();
+      usageIndex.set(row._id.key, valuesForKey);
+    }
+
+    const skuIds = valuesForKey.get(row._id.value) || new Set<string>();
+    (row.skuIds || []).forEach((skuId) => skuIds.add(String(skuId)));
+    valuesForKey.set(row._id.value, skuIds);
+  });
+
+  return usageIndex;
+};
+
+const normalizeLibraryValue = (
+  value: unknown
+): { value: string; displayName: string } | null => {
+  if (typeof value === 'string') {
+    return value ? { value, displayName: value } : null;
+  }
+  if (!value || typeof value !== 'object') return null;
+
+  const rawValue = (value as { value?: unknown }).value;
+  const rawDisplayName = (value as { displayName?: unknown }).displayName;
+  const identity = typeof rawValue === 'string' && rawValue
+    ? rawValue
+    : typeof rawDisplayName === 'string' && rawDisplayName
+      ? rawDisplayName
+      : '';
+  const displayName = typeof rawDisplayName === 'string' && rawDisplayName
+    ? rawDisplayName
+    : identity;
+
+  return identity ? { value: identity, displayName } : null;
+};
+
+/**
+ * Keep only values backed by an active SKU and return the distinct SKU count
+ * for the attribute. `variantName`/`subVariantName` remain compatibility
+ * fallbacks because product editors have historically used those fields for
+ * custom variant axes while writing inconsistent `attributes` keys.
+ */
+const filterAttributeValuesByActiveUsage = (
+  attribute: IFilterAttribute,
+  usageIndex: AttributeUsageIndex
+): { values: unknown[]; usageCount: number } => {
+  const libraryValues = (Array.isArray(attribute.values) ? attribute.values : [])
+    .map(normalizeLibraryValue)
+    .filter((value): value is { value: string; displayName: string } => Boolean(value));
+  const directUsage = usageIndex.get(attribute.key);
+  const primaryVariantUsage = usageIndex.get(VARIANT_NAME_USAGE_KEY);
+  const secondaryVariantUsage = usageIndex.get(SUB_VARIANT_NAME_USAGE_KEY);
+  const matchingSkuIds = new Set<string>();
+
+  const values = libraryValues.filter((libraryValue) => {
+    const identity = libraryValue.value;
+
+    const skuIdSets = [
+      directUsage?.get(identity),
+      primaryVariantUsage?.get(identity),
+      secondaryVariantUsage?.get(identity),
+    ].filter((skuIds): skuIds is Set<string> => Boolean(skuIds));
+
+    skuIdSets.forEach((skuIds) => {
+      skuIds.forEach((skuId) => matchingSkuIds.add(skuId));
+    });
+
+    return skuIdSets.length > 0;
+  });
+
+  return { values, usageCount: matchingSkuIds.size };
+};
+
 export const getAttributesForFilter = async (): Promise<Array<{
   attribute: IFilterAttribute;
   usageCount: number;
@@ -682,43 +1069,63 @@ export const getAttributesForFilter = async (): Promise<Array<{
     // שאילתת aggregation יחידה לחישוב כל הספירות
     const attributeKeys = attributes.map((a) => a.key);
     
-    const counts = await SKU.aggregate([
+    const usageRows = await SKU.aggregate<AggregatedAttributeValueUsage>([
       { $match: { isActive: true } },
       {
         $project: {
-          // בודק אילו מאפיינים קיימים ב-SKU
-          attributeKeys: {
-            $filter: {
-              input: attributeKeys,
-              as: 'attrKey',
-              cond: {
-                $or: [
-                  // בדיקה אם השדה קיים ברמה העליונה (color, size)
-                  { $ne: [{ $ifNull: [`$$attrKey`, null] }, null] },
-                  // בדיקה אם השדה קיים בתוך attributes
-                  { 
-                    $ne: [
-                      { $ifNull: [{ $getField: { field: '$$attrKey', input: '$attributes' } }, null] },
-                      null
-                    ]
-                  }
-                ]
-              }
-            }
-          }
-        }
+          skuId: '$_id',
+          candidates: {
+            $concatArrays: [
+              {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: {
+                        $objectToArray: {
+                          $cond: [
+                            { $eq: [{ $type: '$attributes' }, 'object'] },
+                            '$attributes',
+                            {},
+                          ],
+                        },
+                      },
+                      as: 'entry',
+                      cond: { $in: ['$$entry.k', attributeKeys] },
+                    },
+                  },
+                  as: 'entry',
+                  in: { key: '$$entry.k', value: '$$entry.v' },
+                },
+              },
+              [
+                // Color is intentionally stored as a top-level SKU field.
+                { key: 'color', value: '$color' },
+                { key: VARIANT_NAME_USAGE_KEY, value: '$variantName' },
+                { key: SUB_VARIANT_NAME_USAGE_KEY, value: '$subVariantName' },
+              ],
+            ],
+          },
+        },
       },
-      { $unwind: { path: '$attributeKeys', preserveNullAndEmptyArrays: false } },
+      { $unwind: { path: '$candidates', preserveNullAndEmptyArrays: false } },
+      {
+        $match: {
+          'candidates.value': { $type: 'string', $nin: ['', null] },
+        },
+      },
       {
         $group: {
-          _id: '$attributeKeys',
-          count: { $sum: 1 }
+          _id: {
+            key: '$candidates.key',
+            value: '$candidates.value',
+          },
+          skuIds: { $addToSet: '$skuId' },
         }
       }
     ]);
 
     // מיפוי התוצאות
-    const countMap = new Map(counts.map((c) => [c._id, c.count]));
+    const usageIndex = buildAttributeUsageIndex(usageRows);
 
     // 🆕 בניית colorFamilies דינמית מה-SKUs הפעילים
     // במקום להשתמש ב-colorFamilies הסטטי מה-FilterAttribute
@@ -738,19 +1145,34 @@ export const getAttributesForFilter = async (): Promise<Array<{
             }))
           );
           
+          const colorUsageCount = activeColorFamilies.length > 0
+            ? new Set(
+                Array.from(usageIndex.get(attr.key)?.values() || [])
+                  .flatMap((skuIds) => Array.from(skuIds))
+              ).size
+            : 0;
+
           return {
             attribute: {
               ...attr,
               colorFamilies: activeColorFamilies,
               values, // ✅ הוספת values שטוח
             } as IFilterAttribute,
-            usageCount: countMap.get(attr.key) || 0,
+            usageCount: colorUsageCount,
           };
         }
         
+        const { values, usageCount } = filterAttributeValuesByActiveUsage(
+          attr as IFilterAttribute,
+          usageIndex
+        );
+
         return {
-          attribute: attr,
-          usageCount: countMap.get(attr.key) || 0,
+          attribute: {
+            ...attr,
+            values,
+          } as IFilterAttribute,
+          usageCount,
         };
       })
       .filter((item) => item.usageCount > 0);

@@ -26,6 +26,9 @@ router.get('/', authMiddleware, requireAdmin, adminLimiter, controller.getAllAtt
 // POST /api/filter-attributes - יצירת מאפיין חדש
 router.post('/', authMiddleware, requireAdmin, adminLimiter, controller.createAttribute);
 
+// POST /api/filter-attributes/:id/values - הוספת ערך טקסט/מספר למאפיין
+router.post('/:id/values', authMiddleware, requireAdmin, adminLimiter, controller.addAttributeValue);
+
 // PUT /api/filter-attributes/:id - עדכון מאפיין
 router.put('/:id', authMiddleware, requireAdmin, adminLimiter, controller.updateAttribute);
 

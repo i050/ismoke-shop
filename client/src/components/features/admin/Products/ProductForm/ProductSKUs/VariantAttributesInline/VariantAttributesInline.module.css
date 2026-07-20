@@ -181,6 +181,13 @@
   padding-inline-end: 8px;
 }
 
+/* כאשר מאפיין פתוח, הגלילה שייכת לרשימת הערכים הפנימית ולא לעטיפה. */
+.attributesList:has(.valuesSection) {
+  max-height: none;
+  overflow-y: visible;
+  padding-inline-end: 0;
+}
+
 /* פריט מאפיין */
 .attributeItem {
   display: flex;

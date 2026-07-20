@@ -18,6 +18,12 @@ import {
   findShadeNameCollision,
   normalizeShadeHex,
 } from './colorVariantCreation';
+import {
+  mergeAttributeValue,
+  mergeSelectedValue,
+  normalizeAttributeValues,
+  validateNewAttributeValue,
+} from './attributeValueCreation';
 import styles from './FilterAttributeValueSelector.module.css';
 
 /**
@@ -62,8 +68,11 @@ export interface FilterAttributeValueSelectorProps {
   /** מאפשר למנהל להוסיף גוון חדש מתוך זרימת יצירה/עריכת מוצר */
   allowColorVariantCreation?: boolean;
 
-  /** מעדכן את מעטפת בחירת המאפיינים בזמן שמירת גוון */
-  onColorVariantCreationBusyChange?: (isBusy: boolean) => void;
+  /** מאפשר למנהל להוסיף ערך טקסט/מספר מתוך זרימת יצירה/עריכת מוצר */
+  allowAttributeValueCreation?: boolean;
+
+  /** מעדכן את מעטפת בחירת המאפיינים בזמן שינוי בספרייה הגלובלית */
+  onAttributeLibraryMutationBusyChange?: (isBusy: boolean) => void;
 
   /** 🆕 callback כאשר המשתמש מבקש להסיר ערך נעול (קיים במוצר) */
   onDisabledValueRemoveRequest?: (value: SelectedValue) => void;
@@ -83,7 +92,8 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
   showSearch = true,
   disabled = false,
   allowColorVariantCreation = false,
-  onColorVariantCreationBusyChange,
+  allowAttributeValueCreation = false,
+  onAttributeLibraryMutationBusyChange,
   onDisabledValueRemoveRequest, // 🆕 callback להסרת ערך נעול
 }) => {
   // State לנתוני המאפיין
@@ -101,7 +111,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
   const [newShadeFamily, setNewShadeFamily] = useState<string | null>(null);
   const [newShadeName, setNewShadeName] = useState('');
   const [newShadeHex, setNewShadeHex] = useState('#000000');
-  const [isAddingShade, setIsAddingShade] = useState(false);
+  const [isMutatingAttributeLibrary, setIsMutatingAttributeLibrary] = useState(false);
   const [shadeError, setShadeError] = useState<string | null>(null);
   const [shadeSuccess, setShadeSuccess] = useState<{ family: string; message: string } | null>(null);
   const [shadeFocusTargetFamily, setShadeFocusTargetFamily] = useState<string | null>(null);
@@ -109,6 +119,17 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
   const refocusShadeNameAfterErrorRef = useRef(false);
   const newShadeNameInputRef = useRef<HTMLInputElement>(null);
   const addShadeButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  // State להוספת ערך טקסט/מספר חדש מתוך המאפיין הפתוח
+  const [isNewAttributeValueFormOpen, setIsNewAttributeValueFormOpen] = useState(false);
+  const [newAttributeValue, setNewAttributeValue] = useState('');
+  const [attributeValueError, setAttributeValueError] = useState<string | null>(null);
+  const [attributeValueSuccess, setAttributeValueSuccess] = useState<string | null>(null);
+  const [shouldRestoreAttributeValueTriggerFocus, setShouldRestoreAttributeValueTriggerFocus] = useState(false);
+  const addAttributeValueInFlightRef = useRef(false);
+  const refocusAttributeValueAfterErrorRef = useRef(false);
+  const newAttributeValueInputRef = useRef<HTMLInputElement>(null);
+  const addAttributeValueButtonRef = useRef<HTMLButtonElement>(null);
   const selectedValuesRef = useRef(selectedValues);
   const onChangeRef = useRef(onChange);
 
@@ -123,26 +144,66 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
   }, [newShadeFamily]);
 
   useEffect(() => {
-    if (!newShadeFamily && shadeFocusTargetFamily) {
+    if (
+      !newShadeFamily &&
+      shadeFocusTargetFamily &&
+      !isMutatingAttributeLibrary &&
+      !disabled
+    ) {
       const trigger = addShadeButtonRefs.current.get(shadeFocusTargetFamily);
       if (trigger) {
         trigger.focus();
         setShadeFocusTargetFamily(null);
       }
     }
-  }, [newShadeFamily, shadeFocusTargetFamily]);
+  }, [disabled, isMutatingAttributeLibrary, newShadeFamily, shadeFocusTargetFamily]);
 
   useEffect(() => {
     if (
       refocusShadeNameAfterErrorRef.current &&
       newShadeFamily &&
-      !isAddingShade &&
+      !isMutatingAttributeLibrary &&
       !disabled
     ) {
       newShadeNameInputRef.current?.focus();
       refocusShadeNameAfterErrorRef.current = false;
     }
-  }, [disabled, isAddingShade, newShadeFamily, shadeError]);
+  }, [disabled, isMutatingAttributeLibrary, newShadeFamily, shadeError]);
+
+  useEffect(() => {
+    if (isNewAttributeValueFormOpen) {
+      newAttributeValueInputRef.current?.focus();
+    }
+  }, [isNewAttributeValueFormOpen]);
+
+  useEffect(() => {
+    if (
+      !isNewAttributeValueFormOpen &&
+      shouldRestoreAttributeValueTriggerFocus &&
+      !isMutatingAttributeLibrary &&
+      !disabled
+    ) {
+      addAttributeValueButtonRef.current?.focus();
+      setShouldRestoreAttributeValueTriggerFocus(false);
+    }
+  }, [
+    disabled,
+    isMutatingAttributeLibrary,
+    isNewAttributeValueFormOpen,
+    shouldRestoreAttributeValueTriggerFocus,
+  ]);
+
+  useEffect(() => {
+    if (
+      refocusAttributeValueAfterErrorRef.current &&
+      isNewAttributeValueFormOpen &&
+      !isMutatingAttributeLibrary &&
+      !disabled
+    ) {
+      newAttributeValueInputRef.current?.focus();
+      refocusAttributeValueAfterErrorRef.current = false;
+    }
+  }, [attributeValueError, disabled, isMutatingAttributeLibrary, isNewAttributeValueFormOpen]);
 
   /**
    * טעינת מאפיין הסינון מהשרת
@@ -160,7 +221,10 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
         const found = allAttributes.find(attr => attr.key === attributeKey);
         
         if (found) {
-          setAttribute(found);
+          setAttribute({
+            ...found,
+            values: normalizeAttributeValues(found.values),
+          });
           console.log(`✅ נטען מאפיין: ${found.name} (${found.valueType})`);
         } else {
           setError(`לא נמצא מאפיין עם מפתח: ${attributeKey}`);
@@ -187,7 +251,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
    * טיפול בבחירת/ביטול ערך טקסט או מספר
    */
   const handleTextValueToggle = useCallback((value: string, displayName: string) => {
-    if (disabled || isAddingShade) return;
+    if (disabled || isMutatingAttributeLibrary) return;
     
     const isSelected = isValueSelected(value);
     const existingValue = selectedValues.find(sv => sv.value === value);
@@ -206,7 +270,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
       // הוסף את הערך
       onChange([...selectedValues, { value, displayName }]);
     }
-  }, [selectedValues, onChange, isValueSelected, disabled, isAddingShade, onDisabledValueRemoveRequest]);
+  }, [selectedValues, onChange, isValueSelected, disabled, isMutatingAttributeLibrary, onDisabledValueRemoveRequest]);
 
   /**
    * טיפול בבחירת/ביטול ערך צבע
@@ -217,7 +281,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
     family: string,
     displayName?: string
   ) => {
-    if (disabled || isAddingShade) return;
+    if (disabled || isMutatingAttributeLibrary) return;
     
     const isSelected = isValueSelected(colorName);
     const existingValue = selectedValues.find(sv => sv.value === colorName);
@@ -241,7 +305,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
         family,
       }]);
     }
-  }, [selectedValues, onChange, isValueSelected, disabled, isAddingShade, onDisabledValueRemoveRequest]);
+  }, [selectedValues, onChange, isValueSelected, disabled, isMutatingAttributeLibrary, onDisabledValueRemoveRequest]);
 
   /**
    * החלפת מצב פתיחה/סגירה של משפחת צבע
@@ -259,7 +323,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
   }, []);
 
   const openNewShadeForm = useCallback((family: ColorFamily) => {
-    if (disabled || isAddingShade) return;
+    if (disabled || isMutatingAttributeLibrary) return;
 
     setNewShadeFamily(family.family);
     refocusShadeNameAfterErrorRef.current = false;
@@ -267,10 +331,10 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
     setNewShadeHex(normalizeShadeHex(family.variants[0]?.hex || '') || '#000000');
     setShadeError(null);
     setShadeSuccess(null);
-  }, [disabled, isAddingShade]);
+  }, [disabled, isMutatingAttributeLibrary]);
 
   const closeNewShadeForm = useCallback(() => {
-    if (isAddingShade) return;
+    if (isMutatingAttributeLibrary) return;
 
     setShadeFocusTargetFamily(newShadeFamily);
     refocusShadeNameAfterErrorRef.current = false;
@@ -278,12 +342,12 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
     setNewShadeName('');
     setNewShadeHex('#000000');
     setShadeError(null);
-  }, [isAddingShade, newShadeFamily]);
+  }, [isMutatingAttributeLibrary, newShadeFamily]);
 
   const handleAddShade = useCallback(async (family: ColorFamily) => {
     if (
       disabled ||
-      isAddingShade ||
+      isMutatingAttributeLibrary ||
       addShadeInFlightRef.current ||
       newShadeFamily !== family.family ||
       !attribute
@@ -312,8 +376,8 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
     }
 
     addShadeInFlightRef.current = true;
-    setIsAddingShade(true);
-    onColorVariantCreationBusyChange?.(true);
+    setIsMutatingAttributeLibrary(true);
+    onAttributeLibraryMutationBusyChange?.(true);
     setShadeError(null);
     setShadeSuccess(null);
 
@@ -371,24 +435,134 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
       );
     } finally {
       addShadeInFlightRef.current = false;
-      setIsAddingShade(false);
-      onColorVariantCreationBusyChange?.(false);
+      setIsMutatingAttributeLibrary(false);
+      onAttributeLibraryMutationBusyChange?.(false);
     }
   }, [
     attribute,
     disabled,
-    isAddingShade,
+    isMutatingAttributeLibrary,
     newShadeFamily,
     newShadeHex,
     newShadeName,
-    onColorVariantCreationBusyChange,
+    onAttributeLibraryMutationBusyChange,
+  ]);
+
+  const openNewAttributeValueForm = useCallback(() => {
+    if (disabled || isMutatingAttributeLibrary) return;
+
+    setShouldRestoreAttributeValueTriggerFocus(false);
+    refocusAttributeValueAfterErrorRef.current = false;
+    setIsNewAttributeValueFormOpen(true);
+    setNewAttributeValue('');
+    setAttributeValueError(null);
+    setAttributeValueSuccess(null);
+  }, [disabled, isMutatingAttributeLibrary]);
+
+  const closeNewAttributeValueForm = useCallback(() => {
+    if (isMutatingAttributeLibrary) return;
+
+    setShouldRestoreAttributeValueTriggerFocus(true);
+    refocusAttributeValueAfterErrorRef.current = false;
+    setIsNewAttributeValueFormOpen(false);
+    setNewAttributeValue('');
+    setAttributeValueError(null);
+  }, [isMutatingAttributeLibrary]);
+
+  const handleAddAttributeValue = useCallback(async () => {
+    if (
+      disabled ||
+      isMutatingAttributeLibrary ||
+      addAttributeValueInFlightRef.current ||
+      !isNewAttributeValueFormOpen ||
+      !attribute ||
+      attribute.valueType === 'color'
+    ) {
+      return;
+    }
+
+    const validation = validateNewAttributeValue(
+      newAttributeValue,
+      attribute.valueType
+    );
+    if (validation.error) {
+      setAttributeValueError(validation.error);
+      newAttributeValueInputRef.current?.focus();
+      return;
+    }
+
+    addAttributeValueInFlightRef.current = true;
+    setIsMutatingAttributeLibrary(true);
+    onAttributeLibraryMutationBusyChange?.(true);
+    setAttributeValueError(null);
+    setAttributeValueSuccess(null);
+
+    try {
+      const result = await FilterAttributeService.addAttributeValue(
+        attribute._id,
+        validation.value
+      );
+      const authoritativeValue: SelectedValue = {
+        value: result.value,
+        displayName: result.displayName,
+      };
+
+      setAttribute((currentAttribute) => currentAttribute
+        ? {
+            ...currentAttribute,
+            values: mergeAttributeValue(
+              currentAttribute.values,
+              authoritativeValue
+            ),
+          }
+        : currentAttribute
+      );
+
+      const currentSelectedValues = selectedValuesRef.current;
+      const updatedSelectedValues = mergeSelectedValue(
+        currentSelectedValues,
+        authoritativeValue
+      );
+      if (updatedSelectedValues !== currentSelectedValues) {
+        selectedValuesRef.current = updatedSelectedValues;
+        onChangeRef.current(updatedSelectedValues);
+      }
+
+      setIsNewAttributeValueFormOpen(false);
+      setShouldRestoreAttributeValueTriggerFocus(true);
+      setNewAttributeValue('');
+      setSearchQuery('');
+      setAttributeValueSuccess(
+        result.created
+          ? `הערך „${result.displayName}” נוסף לספרייה ונבחר למוצר`
+          : `הערך „${result.displayName}” כבר קיים בספרייה ונבחר למוצר`
+      );
+    } catch (addError) {
+      refocusAttributeValueAfterErrorRef.current = true;
+      setAttributeValueError(
+        addError instanceof Error && addError.message
+          ? addError.message
+          : 'שגיאה בהוספת הערך. לא בוצע שינוי במוצר.'
+      );
+    } finally {
+      addAttributeValueInFlightRef.current = false;
+      setIsMutatingAttributeLibrary(false);
+      onAttributeLibraryMutationBusyChange?.(false);
+    }
+  }, [
+    attribute,
+    disabled,
+    isMutatingAttributeLibrary,
+    isNewAttributeValueFormOpen,
+    newAttributeValue,
+    onAttributeLibraryMutationBusyChange,
   ]);
 
   /**
    * בחירת כל הערכים
    */
   const handleSelectAll = useCallback(() => {
-    if (disabled || isAddingShade || !attribute) return;
+    if (disabled || isMutatingAttributeLibrary || !attribute) return;
     
     if (attribute.valueType === 'color' && attribute.colorFamilies) {
       // צבעים - בחר את כל הוריאנטים מכל המשפחות
@@ -412,16 +586,16 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
       }));
       onChange(allValues);
     }
-  }, [attribute, onChange, disabled, isAddingShade]);
+  }, [attribute, onChange, disabled, isMutatingAttributeLibrary]);
 
   /**
    * ביטול כל הבחירות (מחיקה רק של ערכים לא מושבתים)
    */
   const handleClearAll = useCallback(() => {
-    if (disabled || isAddingShade) return;
+    if (disabled || isMutatingAttributeLibrary) return;
     // השאר רק ערכים מושבתים (קיימים במוצר)
     onChange(selectedValues.filter(sv => sv.disabled));
-  }, [selectedValues, onChange, disabled, isAddingShade]);
+  }, [selectedValues, onChange, disabled, isMutatingAttributeLibrary]);
 
   /**
    * סינון ערכים לפי חיפוש
@@ -472,6 +646,12 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
     );
   }
 
+  const hasAvailableValues = attribute.valueType === 'color'
+    ? Boolean(attribute.colorFamilies?.some((family) => family.variants.length > 0))
+    : Boolean(attribute.values?.length);
+  const newAttributeValueNoteId = `new-attribute-value-note-${attribute._id}`;
+  const newAttributeValueErrorId = `new-attribute-value-error-${attribute._id}`;
+
   /**
    * רינדור ערכי צבע
    */
@@ -515,7 +695,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                 type="button"
                 className={styles.familyHeader}
                 onClick={() => toggleFamilyExpansion(family.family)}
-                disabled={disabled || isAddingShade}
+                disabled={disabled || isMutatingAttributeLibrary}
                 aria-expanded={isExpanded}
               >
                 {/* נקודת צבע ייצוגית */}
@@ -579,7 +759,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                               }}
                               placeholder="לדוגמה: כחול מעושן"
                               maxLength={80}
-                              disabled={isAddingShade}
+                              disabled={isMutatingAttributeLibrary}
                               autoComplete="off"
                             />
                           </label>
@@ -595,7 +775,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                                   setNewShadeHex(event.target.value.toUpperCase());
                                   setShadeError(null);
                                 }}
-                                disabled={isAddingShade}
+                                disabled={isMutatingAttributeLibrary}
                                 aria-label={`בחירת צבע לגוון החדש במשפחת ${family.displayName}`}
                               />
                               <input
@@ -615,7 +795,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                                 placeholder="#1A2B3C"
                                 maxLength={7}
                                 dir="ltr"
-                                disabled={isAddingShade}
+                                disabled={isMutatingAttributeLibrary}
                                 aria-label="קוד HEX לגוון החדש"
                               />
                             </span>
@@ -637,16 +817,16 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                               type="button"
                               className={styles.saveShadeButton}
                               onClick={() => void handleAddShade(family)}
-                              disabled={isAddingShade}
+                              disabled={isMutatingAttributeLibrary}
                             >
-                              <Icon name={isAddingShade ? 'Loader2' : 'Plus'} size={16} className={isAddingShade ? styles.spinner : undefined} />
-                              <span>{isAddingShade ? 'שומר גוון…' : 'הוסף ובחר למוצר'}</span>
+                              <Icon name={isMutatingAttributeLibrary ? 'Loader2' : 'Plus'} size={16} className={isMutatingAttributeLibrary ? styles.spinner : undefined} />
+                              <span>{isMutatingAttributeLibrary ? 'שומר גוון…' : 'הוסף ובחר למוצר'}</span>
                             </button>
                             <button
                               type="button"
                               className={styles.cancelShadeButton}
                               onClick={closeNewShadeForm}
-                              disabled={isAddingShade}
+                              disabled={isMutatingAttributeLibrary}
                             >
                               ביטול
                             </button>
@@ -664,7 +844,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                           type="button"
                           className={styles.addShadeButton}
                           onClick={() => openNewShadeForm(family)}
-                          disabled={disabled || isAddingShade}
+                          disabled={disabled || isMutatingAttributeLibrary}
                         >
                           <Icon name="Plus" size={17} />
                           <span>הוסף גוון חדש למשפחת {family.displayName}</span>
@@ -683,7 +863,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                         type="button"
                         className={`${styles.colorSwatch} ${isSelected ? styles.selected : ''} ${selectedValues.find(sv => sv.value === variant.name)?.disabled ? styles.disabled : ''}`}
                         onClick={() => handleColorToggle(variant.name, variant.hex, family.family, variant.displayName || variant.name)}
-                        disabled={disabled || isAddingShade}
+                        disabled={disabled || isMutatingAttributeLibrary}
                         title={`${variant.displayName || variant.name}${selectedValues.find(sv => sv.value === variant.name)?.disabled ? ' (לחץ להסרה)' : ''}`}
                       >
                         <span 
@@ -705,7 +885,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleColorToggle(variant.name, variant.hex, family.family, variant.displayName || variant.name)}
-                          disabled={disabled || isAddingShade}
+                          disabled={disabled || isMutatingAttributeLibrary}
                         />
                         <span 
                           className={styles.colorDot}
@@ -760,7 +940,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => handleTextValueToggle(item.value, item.displayName)}
-                disabled={disabled || isAddingShade}
+                disabled={disabled || isMutatingAttributeLibrary}
               />
               <span>{item.displayName}</span>
               {isDisabled && (
@@ -801,14 +981,14 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
             placeholder="חיפוש..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            disabled={disabled || isAddingShade}
+            disabled={disabled || isMutatingAttributeLibrary}
           />
           {searchQuery && (
             <button
               type="button"
               className={styles.clearSearch}
               onClick={() => setSearchQuery('')}
-              disabled={disabled || isAddingShade}
+              disabled={disabled || isMutatingAttributeLibrary}
             >
               <Icon name="X" />
             </button>
@@ -822,7 +1002,7 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
           type="button"
           className={styles.actionButton}
           onClick={handleSelectAll}
-          disabled={disabled || isAddingShade}
+          disabled={disabled || isMutatingAttributeLibrary || !hasAvailableValues}
         >
           <Icon name="CheckCircle" />
           <span>בחר הכל</span>
@@ -831,12 +1011,109 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
           type="button"
           className={styles.actionButton}
           onClick={handleClearAll}
-          disabled={disabled || isAddingShade || selectedValues.length === 0 || selectedValues.every(sv => sv.disabled)}
+          disabled={disabled || isMutatingAttributeLibrary || selectedValues.length === 0 || selectedValues.every(sv => sv.disabled)}
         >
           <Icon name="XCircle" />
           <span>בטל הכל</span>
         </button>
       </div>
+
+      {attribute.valueType !== 'color' && allowAttributeValueCreation && (
+        <div className={styles.attributeValueCreationArea}>
+          {attributeValueSuccess && (
+            <div className={styles.shadeSuccess} role="status">
+              <Icon name="CheckCircle2" size={16} />
+              <span>{attributeValueSuccess}</span>
+            </div>
+          )}
+
+          {isNewAttributeValueFormOpen ? (
+            <div className={`${styles.newShadeForm} ${styles.newAttributeValueForm}`}>
+              <div className={styles.newShadeFormHeader}>
+                <Icon name="Tag" size={18} />
+                <strong>הוספת ערך ל{attribute.name}</strong>
+              </div>
+
+              <label className={styles.shadeField}>
+                <span>{attribute.valueType === 'number' ? 'ערך מספרי' : 'שם הערך'}</span>
+                <input
+                  ref={newAttributeValueInputRef}
+                  type={attribute.valueType === 'number' ? 'number' : 'text'}
+                  inputMode={attribute.valueType === 'number' ? 'decimal' : undefined}
+                  min={attribute.valueType === 'number' ? 0 : undefined}
+                  step={attribute.valueType === 'number' ? 'any' : undefined}
+                  maxLength={attribute.valueType === 'text' ? 50 : undefined}
+                  className={styles.shadeInput}
+                  value={newAttributeValue}
+                  onChange={(event) => {
+                    setNewAttributeValue(event.target.value);
+                    setAttributeValueError(null);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      void handleAddAttributeValue();
+                    }
+                  }}
+                  placeholder={attribute.valueType === 'number' ? 'לדוגמה: 12.5' : 'לדוגמה: כותנה אורגנית'}
+                  disabled={isMutatingAttributeLibrary}
+                  autoComplete="off"
+                  aria-invalid={Boolean(attributeValueError)}
+                  aria-describedby={`${newAttributeValueNoteId}${
+                    attributeValueError ? ` ${newAttributeValueErrorId}` : ''
+                  }`}
+                />
+              </label>
+
+              <p id={newAttributeValueNoteId} className={styles.shadePersistenceNote}>
+                הערך נשמר מיד בספריית המאפיינים הכללית ויישאר בה גם אם עריכת המוצר תבוטל.
+              </p>
+
+              {attributeValueError && (
+                <div id={newAttributeValueErrorId} className={styles.shadeError} role="alert">
+                  <Icon name="AlertCircle" size={16} />
+                  <span>{attributeValueError}</span>
+                </div>
+              )}
+
+              <div className={styles.shadeFormActions}>
+                <button
+                  type="button"
+                  className={styles.saveShadeButton}
+                  onClick={() => void handleAddAttributeValue()}
+                  disabled={isMutatingAttributeLibrary}
+                >
+                  <Icon
+                    name={isMutatingAttributeLibrary ? 'Loader2' : 'Plus'}
+                    size={16}
+                    className={isMutatingAttributeLibrary ? styles.spinner : undefined}
+                  />
+                  <span>{isMutatingAttributeLibrary ? 'שומר ערך…' : 'הוסף ובחר למוצר'}</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.cancelShadeButton}
+                  onClick={closeNewAttributeValueForm}
+                  disabled={isMutatingAttributeLibrary}
+                >
+                  ביטול
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              ref={addAttributeValueButtonRef}
+              type="button"
+              className={styles.addAttributeValueButton}
+              onClick={openNewAttributeValueForm}
+              disabled={disabled || isMutatingAttributeLibrary}
+            >
+              <Icon name="Plus" size={17} />
+              <span>הוסף ערך חדש ל{attribute.name}</span>
+            </button>
+          )}
+        </div>
+      )}
       
       {/* רשימת ערכים */}
       <div className={styles.valuesContainer}>
@@ -865,11 +1142,11 @@ const FilterAttributeValueSelector: React.FC<FilterAttributeValueSelectorProps> 
                     type="button"
                     className={styles.removeTag}
                     onClick={() => {
-                      if (!disabled && !isAddingShade) {
+                      if (!disabled && !isMutatingAttributeLibrary) {
                         onChange(selectedValues.filter(v => v.value !== sv.value));
                       }
                     }}
-                    disabled={disabled || isAddingShade}
+                    disabled={disabled || isMutatingAttributeLibrary}
                   >
                     <Icon name="X" />
                   </button>

@@ -118,6 +118,13 @@ export const updateAttribute = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('❌ Error in updateAttribute:', error);
 
+    if (error instanceof filterAttributeService.AttributeUpdateConflictError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     if (error.message.includes('not found')) {
       return res.status(404).json({
         success: false,
@@ -128,6 +135,42 @@ export const updateAttribute = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to update attribute',
+    });
+  }
+};
+
+/**
+ * POST /api/filter-attributes/:id/values
+ * הוספת ערך טקסט/מספר לספריית מאפיין (Admin)
+ */
+export const addAttributeValue = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await filterAttributeService.addAttributeValue(
+      id,
+      req.body?.displayName
+    );
+
+    res.status(result.created ? 201 : 200).json({
+      success: true,
+      message: result.created
+        ? 'הערך נוסף בהצלחה'
+        : 'הערך כבר קיים במאפיין',
+      data: result,
+    });
+  } catch (error: any) {
+    console.error('❌ Error in addAttributeValue:', error);
+
+    if (error instanceof filterAttributeService.AttributeValueMutationError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'שגיאה בהוספת הערך למאפיין',
     });
   }
 };

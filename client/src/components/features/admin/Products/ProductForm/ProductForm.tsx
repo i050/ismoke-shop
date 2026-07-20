@@ -78,12 +78,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   
   const confirm = useConfirm();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCreatingColorVariant, setIsCreatingColorVariant] = useState(false);
+  const [isMutatingAttributeLibrary, setIsMutatingAttributeLibrary] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeSection, setActiveSection] = useState<'basic' | 'pricing' | 'inventory' | 'images' | 'categories' | 'attributes' | 'specifications' | 'skus' | 'colorFamilyImages' | 'seo' | 'marketing'>(initialActiveTab);
   const [globalLowStockThreshold, setGlobalLowStockThreshold] = useState<number>(5);
-  const isFormBusy = isSubmitting || isCreatingColorVariant;
+  const isFormBusy = isSubmitting || isMutatingAttributeLibrary;
   
   // 🆕 hasVariants עכשיו state פנימי - נקבע מ-initialData במצב edit, או ע"י המשתמש במצב create
   const [hasVariants, setHasVariants] = useState<boolean>(initialData?.hasVariants ?? false);
@@ -1160,7 +1160,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   mode={mode}
                   onUploadImages={handleSKUImagesUpload}
                   onDraftColorsChange={setDraftVariantColors}
-                  onColorVariantCreationBusyChange={setIsCreatingColorVariant}
+                  onAttributeLibraryMutationBusyChange={setIsMutatingAttributeLibrary}
                   productFormData={{
                     name: formValues.name,
                     basePrice: formValues.basePrice,

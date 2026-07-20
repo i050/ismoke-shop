@@ -210,16 +210,25 @@
 }
 
 /* הוספת גוון מתוך יצירה/עריכת מוצר */
-.shadeCreationArea {
+.shadeCreationArea,
+.attributeValueCreationArea {
   display: flex;
-  flex: 1 1 100%;
   flex-direction: column;
   gap: 8px;
   min-width: 0;
   margin-bottom: 4px;
 }
 
-.addShadeButton {
+.shadeCreationArea {
+  flex: 1 1 100%;
+}
+
+.attributeValueCreationArea {
+  width: 100%;
+}
+
+.addShadeButton,
+.addAttributeValueButton {
   display: flex;
   width: 100%;
   min-height: 42px;
@@ -237,13 +246,15 @@
   transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.addShadeButton:hover:not(:disabled) {
+.addShadeButton:hover:not(:disabled),
+.addAttributeValueButton:hover:not(:disabled) {
   border-color: var(--primary-dark, #1565c0);
   background-color: #d7ecff;
   box-shadow: 0 2px 5px rgba(25, 118, 210, 0.14);
 }
 
 .addShadeButton:focus-visible,
+.addAttributeValueButton:focus-visible,
 .saveShadeButton:focus-visible,
 .cancelShadeButton:focus-visible,
 .shadeInput:focus-visible,
@@ -253,6 +264,7 @@
 }
 
 .addShadeButton:disabled,
+.addAttributeValueButton:disabled,
 .saveShadeButton:disabled,
 .cancelShadeButton:disabled {
   cursor: not-allowed;
@@ -268,6 +280,10 @@
   border-radius: 9px;
   background-color: var(--bg-primary, #fff);
   box-shadow: 0 2px 7px rgba(25, 118, 210, 0.12);
+}
+
+.newAttributeValueForm {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .newShadeFormHeader,

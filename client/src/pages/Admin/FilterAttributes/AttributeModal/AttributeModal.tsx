@@ -154,7 +154,11 @@ const AttributeModal: React.FC<AttributeModalProps> = ({
 
     try {
       if (attribute) {
-        await FilterAttributeService.updateAttribute(attribute._id, data);
+        await FilterAttributeService.updateAttribute(
+          attribute._id,
+          data,
+          attribute.updatedAt
+        );
         showToast('success', 'המאפיין עודכן בהצלחה');
       } else {
         await FilterAttributeService.createAttribute(data);
@@ -162,7 +166,9 @@ const AttributeModal: React.FC<AttributeModalProps> = ({
       }
       onSuccess();
     } catch (error: any) {
-      const message = error.response?.data?.message || 'שגיאה בשמירת המאפיין';
+      const message = error.response?.data?.message
+        || (error instanceof Error && error.message)
+        || 'שגיאה בשמירת המאפיין';
       showToast('error', message);
     } finally {
       setIsSaving(false);
