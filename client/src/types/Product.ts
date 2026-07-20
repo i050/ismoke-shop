@@ -98,6 +98,7 @@ export interface Product {// זה הטייפ של מוצר
   name: string;
   subtitle?: string; // שם משני אופציונלי - מוצג מתחת לשם הראשי
   description: string;
+  brand?: string | null;
   basePrice: number;
   compareAtPrice?: number; // מחיר לפני הנחה - להצגת חיסכון
   images: IImage[]; // Phase 1.4: שונה מ-string[] ל-IImage[]
@@ -199,6 +200,7 @@ export interface Product {// זה הטייפ של מוצר
 export interface ProductCreateRequest {// כשאנחנו רוצים ליצור מוצר חדש
   name: string;
   description: string;
+  brand?: string | null;
   basePrice: number;
   images?: string[];
   quantityInStock: number;
@@ -213,6 +215,7 @@ export interface ProductCreateRequest {// כשאנחנו רוצים ליצור �
 export interface ProductUpdateRequest {// כשאנחנו רוצים לעדכן מוצר קיים
   name?: string;
   description?: string;
+  brand?: string | null;
   basePrice?: number;
   images?: string[];
   quantityInStock?: number;

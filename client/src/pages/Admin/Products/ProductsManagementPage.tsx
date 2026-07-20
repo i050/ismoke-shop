@@ -305,7 +305,11 @@ const ProductsManagementPage: React.FC = () => {
     
     try {
       // 🔧 FIX: טוען את המוצר עם SKUs מה-API במקום מהרשימה
-      const productWithSkus = await ProductService.getProductById(productId);
+      const productWithSkus = await ProductService.getProductById(
+        productId,
+        undefined,
+        { forceRefresh: true }
+      );
       dispatch(setModeEdit(productWithSkus));
     } catch (error) {
       showToast('error', 'שגיאה בטעינת המוצר');

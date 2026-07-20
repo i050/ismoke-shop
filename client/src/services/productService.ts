@@ -93,6 +93,16 @@ interface ProductDetailsCacheEntry {
 // מטמון פנימי עבור Product Details (key: product ID → data + ttl)
 const productDetailsCache = new Map<string, ProductDetailsCacheEntry>();
 
+// מונע מבקשה ישנה שהסתיימה מאוחר לכתוב מחדש נתונים שבוטלו או הוחלפו ב-force refresh.
+let productDetailsCacheGeneration = 0;
+const productDetailsRequestVersions = new Map<string, number>();
+
+const bumpProductDetailsRequestVersion = (productId: string): number => {
+  const nextVersion = (productDetailsRequestVersions.get(productId) ?? 0) + 1;
+  productDetailsRequestVersions.set(productId, nextVersion);
+  return nextVersion;
+};
+
 // מנגנון דדופ עבור בקשות Prefetch - שמירת Promise פעיל כדי למנוע fetch כפול בו-זמנית
 const productDetailsPrefetchRequests = new Map<string, Promise<Product>>();
 
@@ -165,10 +175,15 @@ export class ProductService {
    */
   static invalidateProductDetailsCache(productId?: string): void {
     if (productId) {
+      bumpProductDetailsRequestVersion(productId);
       productDetailsCache.delete(productId);
+      productDetailsPrefetchRequests.delete(productId);
       console.log(`🗑️ [ProductService] Invalidated cache for product: ${productId}`);
     } else {
+      productDetailsCacheGeneration += 1;
+      productDetailsRequestVersions.clear();
       productDetailsCache.clear();
+      productDetailsPrefetchRequests.clear();
       console.log('🗑️ [ProductService] Cleared entire product details cache');
     }
   }
@@ -235,18 +250,31 @@ export class ProductService {
   }
 
   // קבלת מוצר לפי ID עם מחירים מותאמים אישית + Caching
-  static async getProductById(id: string, signal?: AbortSignal): Promise<Product> {
+  static async getProductById(
+    id: string,
+    signal?: AbortSignal,
+    options: { forceRefresh?: boolean } = {}
+  ): Promise<Product> {
     try {
+      if (options.forceRefresh) {
+        bumpProductDetailsRequestVersion(id);
+        productDetailsCache.delete(id);
+        productDetailsPrefetchRequests.delete(id);
+      }
+
+      const requestCacheGeneration = productDetailsCacheGeneration;
+      const requestVersion = productDetailsRequestVersions.get(id) ?? 0;
+
       // בדיקה ראשונה: האם הנתונים נמצאים בcache ותקפים?
       const cachedEntry = productDetailsCache.get(id);
-      if (cachedEntry && cachedEntry.expiresAt > Date.now()) {
+      if (!options.forceRefresh && cachedEntry && cachedEntry.expiresAt > Date.now()) {
         // ✅ נתונים תקפים בcache - החזר מיד
         return cachedEntry.data;
       }
 
       // בדיקה שנייה: האם כבר יש בקשה פעילה עבור אותו ID?
       // (דדופ - למנוע fetch כפול בו-זמנית)
-      if (productDetailsPrefetchRequests.has(id)) {
+      if (!options.forceRefresh && productDetailsPrefetchRequests.has(id)) {
         return productDetailsPrefetchRequests.get(id)!;
       }
 
@@ -278,10 +306,15 @@ export class ProductService {
       
 
       // �💾 שמירה בcache עם זמן תפוגה
-      productDetailsCache.set(id, {
-        data,
-        expiresAt: Date.now() + PRODUCT_DETAILS_CACHE_TTL_MS
-      });
+      if (
+        requestCacheGeneration === productDetailsCacheGeneration &&
+        requestVersion === (productDetailsRequestVersions.get(id) ?? 0)
+      ) {
+        productDetailsCache.set(id, {
+          data,
+          expiresAt: Date.now() + PRODUCT_DETAILS_CACHE_TTL_MS
+        });
+      }
       
       console.log('ProductService - received product with pricing:', data); // דיבג
       return data;
@@ -311,12 +344,16 @@ export class ProductService {
     productDetailsPrefetchRequests.set(id, prefetchPromise);
     
     // ניקוי מה-dedupe map כשהבקשה תסתיים (בהצלחה או בשגיאה)
+    const clearCompletedPrefetch = () => {
+      if (productDetailsPrefetchRequests.get(id) === prefetchPromise) {
+        productDetailsPrefetchRequests.delete(id);
+      }
+    };
+
     prefetchPromise
-      .then(() => {
-        productDetailsPrefetchRequests.delete(id);
-      })
+      .then(clearCompletedPrefetch)
       .catch(() => {
-        productDetailsPrefetchRequests.delete(id);
+        clearCompletedPrefetch();
         // לא חשוב אם prefetch נכשל - זה רק אופטימיזציה
       });
   }
