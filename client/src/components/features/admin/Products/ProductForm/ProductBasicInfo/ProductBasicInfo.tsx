@@ -4,7 +4,8 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Input } from '../../../../../ui/Input/Input';
-import { BrandService, type BrandForSelect } from '../../../../../../services/brandService';
+import { BrandService, type Brand } from '../../../../../../services/brandService';
+import { buildProductBrandOptions } from '../productBrandState';
 import styles from './ProductBasicInfo.module.css';
 
 // ==========================================
@@ -43,25 +44,46 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
   disabled = false,
 }) => {
   // מותגים לבחירה
-  const [brands, setBrands] = useState<BrandForSelect[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loadingBrands, setLoadingBrands] = useState(true);
+  const [brandsLoadError, setBrandsLoadError] = useState(false);
 
   // טעינת מותגים
   useEffect(() => {
+    let ignore = false;
+
     const fetchBrands = async () => {
       try {
         setLoadingBrands(true);
-        const data = await BrandService.getBrandsForSelect();
-        setBrands(data);
+        setBrandsLoadError(false);
+        const data = await BrandService.getAllBrands();
+        if (!ignore) {
+          setBrands(data);
+        }
       } catch (error) {
         console.error('Failed to load brands:', error);
-        setBrands([]);
+        if (!ignore) {
+          setBrands([]);
+          setBrandsLoadError(true);
+        }
       } finally {
-        setLoadingBrands(false);
+        if (!ignore) {
+          setLoadingBrands(false);
+        }
       }
     };
-    fetchBrands();
+
+    void fetchBrands();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
+
+  const brandOptions = useMemo(
+    () => buildProductBrandOptions(brands, values.brand),
+    [brands, values.brand]
+  );
 
   // מעקב אחרי כמות תווים בשם המוצר
   const nameLength = values.name?.length || 0;
@@ -213,24 +235,30 @@ const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
             name="brand"
             value={values.brand || ''}
             onChange={handleBrandChange}
-            disabled={disabled || loadingBrands}
+            disabled={disabled || loadingBrands || brandsLoadError}
             className={`${styles.select} ${errors.brand ? styles.selectError : ''}`}
           >
             <option value="">
               {loadingBrands ? 'טוען מותגים...' : 'ללא מותג'}
             </option>
-            {brands.map((brand) => (
-              <option key={brand._id} value={brand.name}>
-                {brand.name}
+            {brandOptions.map((brand) => (
+              <option key={brand.key} value={brand.value} disabled={brand.disabled}>
+                {brand.label}
               </option>
             ))}
           </select>
           {errors.brand && (
             <span className={styles.errorText}>{errors.brand}</span>
           )}
-          <span className={styles.helperText}>
-            אופציונלי - בחר מותג מהרשימה או השאר ריק
-          </span>
+          {brandsLoadError ? (
+            <span className={styles.errorText} role="alert">
+              לא ניתן לטעון כרגע את רשימת המותגים. המותג הקיים יישמר ללא שינוי.
+            </span>
+          ) : (
+            <span className={styles.helperText}>
+              אופציונלי - בחר מותג מהרשימה או השאר ריק
+            </span>
+          )}
         </div>
       </div>
 

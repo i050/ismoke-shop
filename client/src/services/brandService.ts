@@ -6,6 +6,7 @@
 
 import { API_BASE_URL as BASE_URL } from '../config/api';
 import { getToken } from '../utils/tokenUtils';
+import { ProductService } from './productService';
 
 // כתובת ה-API
 const API_BASE_URL = `${BASE_URL}/api/brands`;
@@ -144,7 +145,7 @@ export const createBrand = async (name: string): Promise<Brand> => {
  */
 export const updateBrand = async (
   id: string,
-  updates: { name?: string; isActive?: boolean }
+  updates: { name?: string; isActive?: boolean; expectedUpdatedAt?: string }
 ): Promise<Brand> => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -159,6 +160,8 @@ export const updateBrand = async (
     }
 
     const data = await response.json();
+    ProductService.invalidateProductDetailsCache();
+    ProductService.invalidateFilteredProductsCache();
     return data.data;
   } catch (error: any) {
     console.error('❌ שגיאה בעדכון מותג:', error);

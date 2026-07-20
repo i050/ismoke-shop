@@ -332,6 +332,59 @@ function safeNumber(value: unknown): number | undefined {
   return value;
 }
 
+const hasExplicitEmptyBrand = (productData: Partial<IProduct>): boolean => {
+  if (!Object.prototype.hasOwnProperty.call(productData, 'brand')) return false;
+
+  const brand = (productData as Partial<IProduct> & { brand?: string | null }).brand;
+  return brand === null || (typeof brand === 'string' && brand.trim() === '');
+};
+
+/** Empty brand values mean "no brand" and must not be persisted on creation. */
+export const normalizeProductDataForCreate = (
+  productData: Partial<IProduct>
+): Partial<IProduct> => {
+  if (!hasExplicitEmptyBrand(productData)) return productData;
+
+  const normalized = { ...productData };
+  delete normalized.brand;
+  return normalized;
+};
+
+/**
+ * Mongo update document that distinguishes an omitted brand (leave unchanged)
+ * from an explicitly empty brand (remove the stored field).
+ */
+export const buildProductUpdateDocument = (
+  productData: Partial<IProduct>
+): mongoose.UpdateQuery<IProduct> => {
+  if (!hasExplicitEmptyBrand(productData)) return productData;
+
+  const fieldsToSet = { ...productData } as Record<string, unknown>;
+  delete fieldsToSet.brand;
+
+  const update: mongoose.UpdateQuery<IProduct> = {
+    $unset: { brand: 1 },
+  };
+  if (Object.keys(fieldsToSet).length > 0) {
+    update.$set = fieldsToSet;
+  }
+
+  return update;
+};
+
+const escapeRegexLiteral = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Exact, case-insensitive matching for legacy product brand strings. */
+export const buildCaseInsensitiveBrandFilter = (
+  brands: string[]
+): { $in: RegExp[] } => ({
+  $in: brands
+    .map((brand) => brand.trim())
+    .filter(Boolean)
+    .map((brand) => new RegExp(`^${escapeRegexLiteral(brand)}$`, 'i')),
+});
+
 /**
  * שאילתת מוצרים מפולטרת עם פגינציה ומיון + החזרת meta.
  * מחזירה גם total (ללא פילטרים) וגם filtered (עם פילטרים) כדי לאפשר UI של "מוצגים X מתוך Y".
@@ -378,7 +431,7 @@ export async function fetchProductsFiltered(options: ProductQueryOptions): Promi
 
   // סינון לפי מותגים
   if (brands && brands.length > 0) {
-    filter.brand = { $in: brands };
+    filter.brand = buildCaseInsensitiveBrandFilter(brands);
     if (isDev) console.log('🏷️ [fetchProductsFiltered] Filtering by brands:', brands);
   }
 
@@ -894,9 +947,10 @@ export const fetchActiveSkusByProductIds = async (
  * @returns {Promise<IProduct>} מסמך המוצר החדש שנוצר.
  */
 export const createNewProduct = async (productData: Partial<IProduct>): Promise<IProduct> => {
-    const product = new Product(productData);
+    const persistedProductData = normalizeProductDataForCreate(productData);
+    const product = new Product(persistedProductData);
     const savedProduct = await product.save();
-    await shiftManualPositions(savedProduct._id as mongoose.Types.ObjectId, productData);
+    await shiftManualPositions(savedProduct._id as mongoose.Types.ObjectId, persistedProductData);
     // 🚀 Performance: ניקוי cache של ספירת מוצרים כי נוסף מוצר
     invalidateTotalProductsCache();
     return savedProduct;
@@ -915,7 +969,11 @@ export const updateExistingProduct = async (id: string, productData: Partial<IPr
     if (!previousProduct) return null;
 
     await shiftManualPositions(id, productData, previousProduct);
-    return Product.findByIdAndUpdate(id, productData, { new: true, runValidators: true });
+    return Product.findByIdAndUpdate(
+      id,
+      buildProductUpdateDocument(productData),
+      { new: true, runValidators: true }
+    );
 };
 
 /**
@@ -992,6 +1050,8 @@ export const createProductWithSkus = async (
   productData: Partial<IProduct>,
   skusData: Partial<ISku>[]
 ): Promise<{ product: IProduct; skus: ISku[] }> => {
+  const persistedProductData = normalizeProductDataForCreate(productData);
+
   // 🆕 SKU בסיס אוטומטי - אם אין SKUs ו-hasVariants=false
   let finalSkusData = skusData;
   
@@ -1038,8 +1098,8 @@ export const createProductWithSkus = async (
 
   try {
     // שלב 1: יצירת המוצר (עם session)
-    const [product] = await Product.create([productData], { session });
-    await shiftManualPositions(product._id as mongoose.Types.ObjectId, productData, {}, session);
+    const [product] = await Product.create([persistedProductData], { session });
+    await shiftManualPositions(product._id as mongoose.Types.ObjectId, persistedProductData, {}, session);
 
     // שלב 2: יצירת כל ה-SKUs עם productId של המוצר החדש
     const skusWithProductId = finalSkusData.map(skuData => ({
@@ -1175,7 +1235,7 @@ export const updateProductWithSkus = async (
     // שלב 1: עדכון המוצר
     const updatedProduct = await Product.findByIdAndUpdate(
       productId,
-      productData,
+      buildProductUpdateDocument(productData),
       { new: true, runValidators: true, session }
     );
 

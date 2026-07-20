@@ -21,6 +21,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { productSchema, defaultProductValues, type ProductFormData } from '@/schemas/productFormSchema';
 import type { Product } from '@/types/Product';
 import productManagementService from '@/services/productManagementService';
+import { buildBrandSubmissionPatch, getInitialProductBrand } from './productBrandState';
 import styles from './ProductForm.module.css';
 
 /**
@@ -210,7 +211,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           name: initialData.name || '',
           subtitle: initialData.subtitle || '',
           description: initialData.description || '',
-          brand: null, // TODO: להוסיף brand ל-Product type
+          brand: getInitialProductBrand(initialData),
           basePrice: initialData.basePrice || 0,
           compareAtPrice: (initialData as any).compareAtPrice || null, // מחיר לפני הנחה מהמוצר הקיים
           // 🔧 FIX: המרת תמונות ישנות (string) לפורמט חדש (object)
@@ -496,8 +497,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
       // לפני השליחה לשרת: משמרים price=null כירושה אמיתית ממחיר המוצר
       // במוצר פשוט (בלי וריאנטים) - אם ה-SKU ריק (name ריק), נשים את שם המוצר
+      const { brand: submittedBrand, ...dataWithoutBrand } = data;
       const payload = {
-        ...data,
+        ...dataWithoutBrand,
+        ...buildBrandSubmissionPatch(
+          submittedBrand,
+          mode,
+          Boolean(dirtyFields.brand)
+        ),
         specifications: filteredSpecifications,
         hasVariants, // 🆕 שליחת hasVariants לשרת לפי הבחירה בדיאלוג
         skus: (data.skus || []).map(sku => {

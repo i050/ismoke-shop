@@ -156,7 +156,7 @@ const productSchema = Joi.object({
   brand: Joi.string()
     .min(2)
     .max(100)
-    .allow('')
+    .allow('', null)
     .trim()
     .messages({
       'string.min': 'שם המותג חייב להכיל לפחות 2 תווים',

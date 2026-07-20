@@ -77,6 +77,7 @@ const BrandModal: React.FC<BrandModalProps> = ({ brand, onClose, onSuccess }) =>
         await BrandService.updateBrand(brand._id, {
           name: name.trim(),
           isActive,
+          expectedUpdatedAt: brand.updatedAt,
         });
         showToast('success', `מותג "${name}" עודכן בהצלחה`);
       } else {
